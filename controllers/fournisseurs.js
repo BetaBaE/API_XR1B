@@ -54,3 +54,54 @@ exports.getFournissuers = async (req, res) => {
     res.send(error.message);
   }
 };
+
+exports.getAllFournissuers = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
+
+    console.log(req.count);
+    res.set("Content-Range", `fournisseurs 0-${req.count - 1}/${req.count}`);
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
+
+exports.getRibsFournisseurValid = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .query(Fournisseurs.RibsFournisseurValid);
+
+    console.log(req.count);
+    res.set(
+      "Content-Range",
+      `fournisseurs 0-${req.count - 1}/${req.count - 1}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
+
+exports.FournisseursRibValid = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .query(Fournisseurs.FournisseursRibValid);
+    res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};

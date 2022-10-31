@@ -24,10 +24,20 @@ app.use(cookieParser());
 const fournissues = require("./routers/fournisseurs");
 const ribTemporaire = require("./routers/ribTemporaire");
 const ribFournisseurs = require("./routers/ribFournisseurs");
+const ribAtner = require("./routers/ribAtner");
+const users = require("./routers/users");
+const orderVirements = require("./routers/ordervirements");
+const factures = require("./routers/factures");
+const virements = require("./routers/virements");
 
 app.use("/", fournissues);
 app.use("/", ribTemporaire);
 app.use("/", ribFournisseurs);
+app.use("/", ribAtner);
+app.use("/", users);
+app.use("/", orderVirements);
+app.use("/", factures);
+app.use("/", virements);
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {

@@ -29,8 +29,8 @@ exports.getRibs = async (req, res) => {
     console.log(filter);
 
     let queryFilter = "";
-    if (filter.FournisseurId) {
-      queryFilter += ` and FournisseurId like('%${filter.FournisseurId}%')`;
+    if (filter.fournisseur) {
+      queryFilter += ` and f.nom like('%${filter.fournisseur}%')`;
     }
     if (filter.rib) {
       queryFilter += ` and rib like('%${filter.rib}%')`;
@@ -75,7 +75,7 @@ exports.createRibs = async (req, res) => {
       .input("FournisseurId", getSql().Int, FournisseurId)
       .input("rib", getSql().VarChar, rib)
       .query(ribTemporaire.createRibs);
-
+    console.log("errour");
     createRibFournisseurs(FournisseurId, rib);
     res.json({
       id: "",
