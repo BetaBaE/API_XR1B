@@ -34,7 +34,6 @@ exports.getFournissuers = async (req, res) => {
     }
     console.log(queryFilter);
     const pool = await getConnection();
-    // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
 
     const result = await pool.request().query(
       `${Fournisseurs.getAllFournisseurs} ${queryFilter} Order by ${sort[0]} ${
@@ -61,7 +60,6 @@ exports.getAllFournissuers = async (req, res) => {
 
     const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
 
-    console.log(req.count);
     res.set("Content-Range", `fournisseurs 0-${req.count - 1}/${req.count}`);
     res.json(result.recordset);
   } catch (error) {
@@ -91,11 +89,39 @@ exports.getRibsFournisseurValid = async (req, res) => {
 };
 
 exports.FournisseursRibValid = async (req, res) => {
+  let filter = req.query.ordervirment || "{}";
+  filter = JSON.parse(filter);
+
   try {
     const pool = await getConnection();
 
     const result = await pool
       .request()
+      .input("ovId", getSql().VarChar, filter.id)
+      .query(Fournisseurs.FournisseursRibValid);
+    res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+exports.PrintOrderVirement = async (req, res) => {
+  let printData = {
+    header: {},
+    body: [],
+  };
+  let filter = req.query.ordervirment || "{}";
+  filter = JSON.parse(filter);
+
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("ovId", getSql().VarChar, filter.id)
       .query(Fournisseurs.FournisseursRibValid);
     res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
 

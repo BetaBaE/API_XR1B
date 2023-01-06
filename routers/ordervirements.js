@@ -6,6 +6,7 @@ const {
   getOneOrderById,
   updateOrderVirements,
   orderVirementsEnCours,
+  PrintOrderVirement,
 } = require("../controllers/ordervirement");
 const router = express.Router();
 
@@ -16,4 +17,5 @@ router.get("/ordervirement/:id", getOneOrderById);
 router.put("/ordervirement/:id", updateOrderVirements);
 router.get("/ordervirementencours", getOrderCount, orderVirementsEnCours);
 
+router.get("/oneordervirement/", PrintOrderVirement);
 module.exports = router;

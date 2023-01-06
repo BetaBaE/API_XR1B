@@ -3,9 +3,11 @@ exports.Fournisseurs = {
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
   RibsFournisseurValid: `select f.nom, rf.* from [ATNER_DW].[dbo].[DAF_FOURNISSEURS] f, [ATNER_DW].[dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
-  FournisseursRibValid: `SELECT f.*, rf.rib, rf.validation FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf 
-  where f.id = rf.id
-  AND rf.validation = 'validé'`,
+  FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf 
+  where f.id = rf.FournisseurId
+  AND rf.validation = 'validé' AND f.nom not in (SELECT
+ distinct [NOM]   
+  FROM [ATNER_DW].[dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and orderVirementId =@ovId)`,
 };
 
 exports.ribTemporaire = {
@@ -33,7 +35,7 @@ exports.ribFournisseur = {
     WHERE id = @id `,
   getOne: `SELECT rf.*, f.nom as fournisseur FROM [dbo].[DAF_RIB_Fournisseurs] rf, DAF_FOURNISSEURS f   WHERE rf.fournisseurid = f.id AND  rf.id = @id`,
   RibsValid: `select * from [ATNER_DW].[dbo].[DAF_RIB_Fournisseurs] where validation = 'Validé'`,
-  ribfournisseursvalid: `SELECT * FROM [dbo].[DAF_RIB_Fournisseurs] 
+  ribfournisseursvalid: `distinct SELECT * FROM [dbo].[DAF_RIB_Fournisseurs] 
   where validation = 'validé'`,
 };
 
@@ -104,6 +106,35 @@ exports.ordervirements = {
   WHERE id = @id`,
   orderVirementsEnCours: `SELECT * FROM [dbo].[DAF_Order_virements]
   WHERE etat = 'En cours'`,
+  AddToTotal:
+    "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
+  MiunsFromTotal:
+    "update [DAF_Order_virements] set total = total-@montantVirement where id =@id",
+  getHeaderPrint: `SELECT  ov.*, ra.nom, ra.rib
+  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
+  where ov.ribAtner = ra.id and ov.id = @ovId`,
+  getBodyPrint: `
+      SELECT v.[id]
+      ,[orderVirementId]
+      ,f.nom
+      ,rf.rib
+      ,[montantVirement],
+      v.Etat
+  FROM  [dbo].[DAF_VIREMENTS] v ,
+      [dbo].[DAF_RIB_Fournisseurs] rf, 
+      [dbo].[DAF_FOURNISSEURS] f
+  where v.fournisseurId = f.id 
+    and v.ribFournisseurId = rf.id 
+    and Etat = 'En cours'
+    and [orderVirementId] = @ovId`,
+  updateVirements: `update [dbo].[DAF_VIREMENTS] set Etat = 'Reglee' 
+                      where orderVirementId = @id`,
+
+  updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee' 
+                        where orderVirementId = @id`,
+
+  updateDateExecution: `update [dbo].[DAF_Order_virements] set dateExecution = GETDATE() 
+                            where id = @id`,
 };
 
 exports.factures = {
@@ -112,4 +143,82 @@ exports.factures = {
   getOne: `SELECT * FROM [dbo].[DAF_FA_VC] where id=@id`,
   getAllFactures: `SELECT * FROM [dbo].[DAF_FA_VC]
   order by nom , datedoc `,
+  getfacturebyfournisseurid: `Select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_FA_VC] fa
+  where f.nom = fa.nom
+  and f.id=@id
+  and fa.id not in (SELECT [CODEDOCUTIL]
+  FROM [ATNER_DW].[dbo].[DAF_LOG_FACTURE]
+  WHERE [etat] in ('En cours','Validé' ))
+  order by fa.DATEDOC`,
+};
+
+exports.virements = {
+  sumFacture: `select SUM(NETAPAYER) as Totale from [dbo].[DAF_FA_VC]
+where 1=1 `,
+  create: `
+  INSERT INTO [dbo].[DAF_VIREMENTS]
+      (
+       [fournisseurId]
+      ,[ribFournisseurId]
+      ,[orderVirementId]
+      ,[montantVirement])
+  VALUES
+      (
+       @fournisseurId
+      ,@ribFournisseurId
+      ,@orderVirementId
+      ,@montantVirement
+      )`,
+  getCount: "  SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS]",
+  getAll: `
+  SELECT v.[id]
+      ,[orderVirementId]
+      ,f.nom
+      ,rf.rib
+      ,[montantVirement],
+      v.Etat
+  FROM  [dbo].[DAF_VIREMENTS] v ,
+      [dbo].[DAF_RIB_Fournisseurs] rf, 
+      [dbo].[DAF_FOURNISSEURS] f
+  where v.fournisseurId = f.id 
+    and v.ribFournisseurId = rf.id 
+    and 1=1 
+  `,
+  getDataFromLogFacture: `SELECT * FROM [ATNER_DW].[dbo].[DAF_VIEW_FACTURE] where 1=1 `,
+  createLogFacture: `
+  INSERT INTO [dbo].[DAF_LOG_FACTURE]
+           ([CODEDOCUTIL]
+           ,[CODECHT]
+           ,[DATEDOC]
+           ,[NOM]
+           ,[LIBREGLEMENT]
+           ,[TOTALTTC]
+           ,[TOTHTNET]
+           ,[NETAPAYER]
+           ,[TOTTVANET]
+           ,[orderVirementId])
+     VALUES `,
+  update: `Update [dbo].[DAF_VIREMENTS] set Etat=@Etat where id=@id`,
+  getOne: `
+  SELECT v.[id]
+      ,[orderVirementId]
+      ,f.nom
+      ,rf.rib
+      ,[montantVirement],
+      v.Etat
+  FROM  [dbo].[DAF_VIREMENTS] v ,
+      [dbo].[DAF_RIB_Fournisseurs] rf, 
+      [dbo].[DAF_FOURNISSEURS] f
+  where v.fournisseurId = f.id 
+    and v.ribFournisseurId = rf.id 
+    and v.[id] = @id
+ `,
+
+  updateLogFactureWhenAnnuleV:
+    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
+};
+
+exports.logFactures = {
+  getLogFactureCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_LOG_FACTURE]",
+  getLogFactures: "SELECT * FROM [dbo].[DAF_LOG_FACTURE] where 1=1 ",
 };

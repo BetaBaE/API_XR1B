@@ -1,8 +1,17 @@
 const express = require("express");
-const { createVirements, getVirements } = require("../controllers/virements");
+const { update } = require("lodash");
+const {
+  createVirements,
+  getVirements,
+  getVirementCount,
+  getOneVirementById,
+  updateVirmeents,
+} = require("../controllers/virements");
 
 const router = express.Router();
 router.post("/virements", createVirements);
-router.get("/virements", getVirements);
+router.get("/virements", getVirementCount, getVirements);
+router.get("/virements/:id", getOneVirementById);
+router.put("/virements/:id", updateVirmeents);
 
 module.exports = router;

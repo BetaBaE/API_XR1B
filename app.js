@@ -29,6 +29,7 @@ const users = require("./routers/users");
 const orderVirements = require("./routers/ordervirements");
 const factures = require("./routers/factures");
 const virements = require("./routers/virements");
+const logFactures = require("./routers/logfacture");
 
 app.use("/", fournissues);
 app.use("/", ribTemporaire);
@@ -38,6 +39,7 @@ app.use("/", users);
 app.use("/", orderVirements);
 app.use("/", factures);
 app.use("/", virements);
+app.use("/", logFactures);
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {

@@ -88,3 +88,21 @@ exports.getAllFactures = async (req, res) => {
     res.status(500);
   }
 };
+
+exports.getfacturebyfournisseurid = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .query(factures.getfacturebyfournisseurid);
+
+    res.set("Content-Range", `factures 0-1/1`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
