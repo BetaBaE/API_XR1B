@@ -214,6 +214,23 @@ exports.orderVirementsEnCours = async (req, res) => {
   }
 };
 
+exports.orderVirementsEtat = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .query(ordervirements.orderVirementsEtat);
+
+    res.set("Content-Range", `ordervirements 0 - ${req.count}/${req.count}`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
 exports.PrintOrderVirement = async (req, res) => {
   const toWords = new ToWords({
     localeCode: "fr-FR",
@@ -273,9 +290,9 @@ exports.PrintOrderVirement = async (req, res) => {
     let concat = year + "" + month + "" + day + "" + hour + "" + min + "" + sec;
 
     let currentDate = new Date();
-    let today = `${currentDate.getDate()}/${
+    let today = `${addZero(currentDate.getDate())}/${addZero(
       currentDate.getMonth() + 1
-    }/${currentDate.getFullYear()}`;
+    )}/${addZero(currentDate.getFullYear())}`;
 
     // let date = `${currentDate.getFullYear()}${
     //   currentDate.getMonth.length > 1
@@ -403,7 +420,7 @@ exports.PrintOrderVirement = async (req, res) => {
           <div class="date">
             <p dir="rtl">
               Rabat le &emsp;
-              ${today.length == 9 ? "0" + today : today}
+              ${today}
             </p>
             <p dir="rtl">A l'attention de Monsieur le Dircteur
             <br/>du Center d'Affaires
