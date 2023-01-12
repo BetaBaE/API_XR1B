@@ -173,14 +173,17 @@ exports.getVirements = async (req, res) => {
     console.log(filter);
 
     let queryFilter = "";
-    if (filter.fournisseur) {
-      queryFilter += ` and [orderVirementId] like('%${filter.orderVirementId}%')`;
+    if (filter.orderVirementId) {
+      queryFilter += ` and orderVirementId like('%${filter.orderVirementId}%')`;
     }
-    if (filter.rib) {
+    if (filter.nom) {
       queryFilter += ` and f.nom like('%${filter.nom}%')`;
     }
-    if (filter.validation) {
+    if (filter.rib) {
       queryFilter += ` and rf.rib like('%${filter.rib}%')`;
+    }
+    if (filter.Etat) {
+      queryFilter += ` and v.Etat like('%${filter.Etat}%')`;
     }
 
     console.log(queryFilter);
