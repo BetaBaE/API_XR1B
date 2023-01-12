@@ -315,7 +315,6 @@ exports.PrintOrderVirement = async (req, res) => {
     //     ? currentDate.getSeconds
     //     : "0" + currentDate.getSeconds.toString()
     // }`;
-    console.log("length", today.length, "0" + today);
     result = await pool
       .request()
       .input("ovId", getSql().VarChar, filter.id)

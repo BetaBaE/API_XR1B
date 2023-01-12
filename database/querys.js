@@ -107,7 +107,7 @@ exports.ordervirements = {
   orderVirementsEnCours: `SELECT * FROM [dbo].[DAF_Order_virements]
   WHERE etat = 'En cours'`,
   orderVirementsEtat: `SELECT * FROM [dbo].[DAF_Order_virements]
-  WHERE etat in('En cours','Reglee')
+  WHERE etat in('En cours')
   and total <> 0`,
   AddToTotal:
     "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
