@@ -5,6 +5,20 @@ const fs = require("fs");
 const { ToWords } = require("to-words");
 const { DateTime } = require("mssql");
 
+const addZerotonumbers = (num) => {
+  let str = num.toString();
+  if (str.includes(".")) {
+    let ary = str.split(".");
+    if (ary[1].length < 2) {
+      return str + "" + "0";
+    }
+  } else {
+    return str + ".00";
+  }
+
+  return str;
+};
+
 const addZero = (num) => {
   let str = num.toString();
   if (str.length === 1) {
@@ -329,7 +343,7 @@ exports.PrintOrderVirement = async (req, res) => {
                 <td class="tdorder">${virement.nom}</td>
                 <td class="tdorder">${virement.rib}</td>
                 <td class="tdorder montant">${numberWithSpaces(
-                  virement.montantVirement
+                  addZerotonumbers(virement.montantVirement)
                 )}</td>
               </tr>
         `;
@@ -459,7 +473,7 @@ exports.PrintOrderVirement = async (req, res) => {
                   .toLocaleUpperCase()}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-                printData.header[0].total.toFixed(2)
+                addZerotonumbers(printData.header[0].total.toFixed(2))
               )}</th>
             </tfoot>
           </table>
