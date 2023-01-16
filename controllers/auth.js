@@ -39,8 +39,6 @@ exports.getUsers = async (req, res) => {
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
 
-    console.log(filter);
-
     let queryFilter = "";
     if (filter.fullname) {
       queryFilter += ` and fullname like('%${filter.fullname}%')`;
