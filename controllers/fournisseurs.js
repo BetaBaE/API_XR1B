@@ -68,6 +68,29 @@ exports.getAllFournissuers = async (req, res) => {
   }
 };
 
+exports.createFournisseurs = async (req, res) => {
+  const { codeFournisseur, nom } = req.body;
+
+  try {
+    const pool = await getConnection();
+
+    await pool
+      .request()
+      .input("CodeFournisseur", getSql().VarChar, codeFournisseur)
+      .input("nom", getSql().VarChar, nom)
+      .query(Fournisseurs.createFournisseur);
+    console.log("success");
+    res.json({
+      id: "",
+      codeFournisseur,
+      nom,
+    });
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
+
 exports.getRibsFournisseurValid = async (req, res) => {
   try {
     const pool = await getConnection();

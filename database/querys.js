@@ -1,6 +1,8 @@
 exports.Fournisseurs = {
   getAllFournisseurs: `SELECT * FROM DAF_FOURNISSEURS WHERE 1=1`,
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
+  createFournisseur: `INSERT INTO DAF_FOURNISSEURS( CodeFournisseur, nom )
+     VALUES( @codeFournisseur, @nom )`,
   RibsFournisseurValid: `select f.nom, rf.* from [ATNER_DW].[dbo].[DAF_FOURNISSEURS] f, [ATNER_DW].[dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf 
