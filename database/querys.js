@@ -162,7 +162,7 @@ exports.factures = {
   and f.id=@id
   and fa.id not in (SELECT [CODEDOCUTIL]
   FROM [ATNER_DW].[dbo].[DAF_LOG_FACTURE]
-  WHERE [etat] in ('En cours','Validé' ))
+  WHERE [etat] in ('En cours','Reglee' ))
   order by fa.DATEDOC`,
 };
 
