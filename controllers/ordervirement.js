@@ -182,7 +182,21 @@ exports.updateOrderVirements = async (req, res) => {
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateDateExecution);
+    } else if (etat == "Annule") {
+      await pool
+        .request()
+        .input("id", getSql().VarChar, req.params.id)
+        .query(ordervirements.updateVirementsAnnuler);
+      await pool
+        .request()
+        .input("id", getSql().VarChar, req.params.id)
+        .query(ordervirements.updateLogFactureAnnuler);
+      await pool
+        .request()
+        .input("id", getSql().VarChar, req.params.id)
+        .query(ordervirements.updateordervirementAnnuler);
     }
+
     res.json({
       ribAtner,
       etat,
