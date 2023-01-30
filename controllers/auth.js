@@ -223,10 +223,11 @@ exports.signin = async (req, res) => {
   //generte a token with user id and secret key
   const token = jwt.sign({ id: login[0].salt }, process.env.JWT_SECRET);
   //persist the token as 't' in cookie with expiry date
-  res.cookie("t", token, { expire: new Date() + 1300 });
-  // return respons with user and token to frontend cleint
+  res.cookie("t", token, { expires: new Date(Date.now() + 1000 * 60 * 1440) });
+  // return respons with user and token to frontend client
   const { id, fullname, Role } = login[0];
   res.json({ token, role: Role, user: { id, fullname, username } });
+
   // return res.json(login);
   // if error or no user
   // User.findOne({ email: username }, (err, user) => {
