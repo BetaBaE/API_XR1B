@@ -167,8 +167,17 @@ exports.factures = {
 };
 
 exports.virements = {
-  sumFacture: `select SUM(NETAPAYER) as Totale from [dbo].[DAF_FA_VC]
-where 1=1 `,
+  // sumFacture: `
+  // SELECT  SUM(netapayer) as netapayer
+  // FROM(
+  //   select sum(NETAPAYER) as netapayer from [ATNER_DW].[dbo].[DAF_FA_VC]
+  //   where MontantFacture is null
+  //   and id in (@facturelistString)
+  //       UNION ALL
+  //   select sum(MontantFacture) as netapayer from [ATNER_DW].[dbo].[DAF_FA_VC]
+  //   where MontantFacture is not null
+  //   and id in (@facturelistString)
+  //   ) sum `,
   create: `
   INSERT INTO [dbo].[DAF_VIREMENTS]
       (
@@ -183,7 +192,7 @@ where 1=1 `,
       ,@orderVirementId
       ,@montantVirement
       )`,
-  getCount: "  SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS]",
+  getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS]",
   getAll: `
   SELECT v.[id]
       ,[orderVirementId]
@@ -198,7 +207,7 @@ where 1=1 `,
     and v.ribFournisseurId = rf.id 
     and 1=1 
   `,
-  getDataFromLogFacture: `SELECT * FROM [ATNER_DW].[dbo].[DAF_VIEW_FACTURE] where 1=1 `,
+  getDataFromLogFacture: `SELECT * FROM [ATNER_DW].[dbo].[DAF_FA_VC] where 1=1 `,
   createLogFacture: `
   INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]

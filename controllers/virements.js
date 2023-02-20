@@ -10,11 +10,28 @@ async function calculSumFactures(facturelist) {
 
   console.log(facturelist.join("','"));
   try {
+    console.log(` SELECT  SUM(netapayer) as Totale
+  FROM( 
+    select sum(NETAPAYER) as netapayer from [ATNER_DW].[dbo].[DAF_FA_VC]
+	  where MontantFacture is null
+    and id in ('${facturelistString}')
+        UNION ALL
+	  select sum(MontantFacture) as netapayer from [ATNER_DW].[dbo].[DAF_FA_VC]
+    where MontantFacture is not null
+    and id in ('${facturelistString}')
+    ) sum `);
     const pool = await getConnection();
-    const result = await pool
-      .request()
-      .query(`${virements.sumFacture} and id in('${facturelistString}')`);
-    console.log("hello: ", result.recordset[0]);
+    const result = await pool.request().query(` SELECT  SUM(netapayer) as Totale
+  FROM( 
+    select sum(NETAPAYER) as netapayer from [ATNER_DW].[dbo].[DAF_FA_VC]
+	  where MontantFacture is null
+    and id in ('${facturelistString}')
+        UNION ALL
+	  select sum(MontantFacture) as netapayer from [ATNER_DW].[dbo].[DAF_FA_VC]
+    where MontantFacture is not null
+    and id in ('${facturelistString}')
+    ) sum `);
+
     return result.recordset[0];
   } catch (error) {
     console.error(error.message);
@@ -23,13 +40,14 @@ async function calculSumFactures(facturelist) {
 }
 async function getFactureFromView(facturelist) {
   let facturelistString = facturelist.join("','");
+
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
 
       .query(
-        `${virements.getDataFromLogFacture} and CODEDOCUTIL in('${facturelistString}')`
+        `${virements.getDataFromLogFacture} and id in('${facturelistString}')`
       );
     return result.recordset;
   } catch (error) {
@@ -38,14 +56,14 @@ async function getFactureFromView(facturelist) {
 }
 
 async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
-  let query = ``;
+  let query = ` `;
   ArrayOfFacture.forEach(
     (
       {
-        CODEDOCUTIL,
-        CODECHT,
+        id,
+        chantier,
         DATEDOC,
-        NOM,
+        nom,
         LIBREGLEMENT,
         TOTALTTC,
         TOTHTNET,
@@ -55,12 +73,8 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
       i
     ) => {
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${CODECHT}','${
-            DATEDOC.split("T")[0]
-          }','${NOM}','${LIBREGLEMENT}',${TOTALTTC},${TOTHTNET},${NETAPAYER},${TOTTVANET},'${orderVirementId}'),`)
-        : (query += `('${CODEDOCUTIL}','${CODECHT}','${
-            DATEDOC.split("T")[0]
-          }','${NOM}','${LIBREGLEMENT}',${TOTALTTC},${TOTHTNET},${NETAPAYER},${TOTTVANET},'${orderVirementId}')`);
+        ? (query += `('${id}','${chantier}','${DATEDOC}','${nom}','${LIBREGLEMENT}',${TOTALTTC},${TOTHTNET},${NETAPAYER},${TOTTVANET},'${orderVirementId}'),`)
+        : (query += `('${id}','${chantier}','${DATEDOC}','${nom}','${LIBREGLEMENT}',${TOTALTTC},${TOTHTNET},${NETAPAYER},${TOTTVANET},'${orderVirementId}')`);
     }
   );
   // console.log(`${virements.createLogFacture} ('${query}')`);
@@ -76,7 +90,7 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
 
 async function AddToTotalOv(number, id) {
   try {
-    let num = MontantFixed(number);
+    // let num = MontantFixed(number);
 
     const pool = await getConnection();
     const result = await pool
@@ -84,7 +98,7 @@ async function AddToTotalOv(number, id) {
       // .input("montantVirement", getSql().Numeric, number)
       // .input("id", getSql().VarChar, id)
       .query(
-        `update [DAF_Order_virements] set total = total+${num} where id ='${id}'`
+        `update [DAF_Order_virements] set total = total+${number} where id ='${id}'`
       );
 
     return result.recordset;
@@ -94,12 +108,12 @@ async function AddToTotalOv(number, id) {
 }
 async function MiunsFromTotalOv(number, id) {
   try {
-    let num = MontantFixed(number);
+    // let num = MontantFixed(number);
     const pool = await getConnection();
     const result = await pool
       .request()
       .query(
-        `update [DAF_Order_virements] set total = total-${num} where id ='${id}'`
+        `update [DAF_Order_virements] set total = total-${number} where id ='${id}'`
       );
     return result.recordset;
   } catch (error) {
@@ -136,10 +150,10 @@ exports.getVirementCount = async (req, res, next) => {
 };
 
 exports.createVirements = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   let { facturelist } = req.body;
   let { Totale } = await calculSumFactures(facturelist);
-  let num = MontantFixed(Totale);
+  //let num = MontantFixed(Totale);
   let ArrayOfFacture = await getFactureFromView(facturelist);
   insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
   try {
@@ -149,7 +163,7 @@ exports.createVirements = async (req, res) => {
       .input("orderVirementId", getSql().VarChar, req.body.orderVirementId)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
       .input("ribFournisseurId", getSql().Int, req.body.ribFournisseurId)
-      .input("montantVirement", getSql().Float, num)
+      .input("montantVirement", getSql().Float, Totale)
       .query(virements.create);
     await AddToTotalOv(Totale, req.body.orderVirementId);
     res.json({ id: "" });

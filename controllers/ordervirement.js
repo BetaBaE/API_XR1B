@@ -10,10 +10,12 @@ const addZerotonumbers = (num) => {
   if (str.includes(".")) {
     let ary = str.split(".");
     if (ary[1].length < 2) {
+      return str + "" + "00";
+    } else if (ary[1].length == 2) {
       return str + "" + "0";
     }
   } else {
-    return str + ".00";
+    return str + ".000";
   }
 
   return str;
@@ -262,22 +264,6 @@ exports.orderVirementsEtat = async (req, res) => {
 exports.PrintOrderVirement = async (req, res) => {
   const toWords = new ToWords({
     localeCode: "fr-FR",
-    converterOptions: {
-      currency: true,
-      ignoreDecimal: false,
-      ignoreZeroCurrency: false,
-      doNotAddOnly: false,
-      currencyOptions: {
-        name: "DIRHAMS",
-        plural: "DIRHAMS",
-        symbol: "MAD",
-        fractionalUnit: {
-          name: "CENTIMES",
-          plural: "CENTIMES",
-          symbol: "CENT",
-        },
-      },
-    },
   });
 
   function numberWithSpaces(x) {
@@ -349,6 +335,18 @@ exports.PrintOrderVirement = async (req, res) => {
       .query(ordervirements.getBodyPrint);
     printData.body = result.recordset;
     let trdata = "";
+
+    const wordToNumber = (x) => {
+      let res = "";
+      let to_words = toWords.convert(x).toLocaleUpperCase();
+      if (to_words.includes("VIRGULE")) {
+        to_words = to_words.split("VIRGULE");
+        res = to_words[0] + " DIRHAMS VIRGULE" + to_words[1];
+      } else {
+        res = to_words + " DIRHAMS";
+      }
+      return res;
+    };
 
     printData.body.forEach((virement, index) => {
       trdata += `
@@ -482,12 +480,10 @@ exports.PrintOrderVirement = async (req, res) => {
             <tfoot>
               <th class="thorder">Total</th>
               <th colspan="2" class="thorder ">
-                ${toWords
-                  .convert(printData.header[0].total, { currency: true })
-                  .toLocaleUpperCase()}
+                ${wordToNumber(printData.header[0].total)}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-                addZerotonumbers(printData.header[0].total.toFixed(2))
+                addZerotonumbers(printData.header[0].total)
               )}</th>
             </tfoot>
           </table>
