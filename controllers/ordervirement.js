@@ -90,6 +90,7 @@ exports.createOrderVirements = async (req, res) => {
     await pool
       .request()
       .input("id", getSql().VarChar, generateOvID(await getOrderCountbyYear()))
+      .input("directeursigne", getSql().VarChar, req.body.directeursigne)
       .input("ribAtner", getSql().Int, ribAtner)
 
       .query(ordervirements.create);
@@ -127,6 +128,9 @@ exports.getorderVirements = async (req, res) => {
     if (filter.nom) {
       queryFilter += ` and nom like('%${filter.nom}%')`;
     }
+    if (filter.directeursigne) {
+      queryFilter += ` and directeursigne like('%${filter.directeursigne}%')`;
+    }
     if (filter.etat) {
       queryFilter += ` and etat like('%${filter.etat}%')`;
     }
@@ -157,7 +161,7 @@ exports.getorderVirements = async (req, res) => {
 };
 
 exports.updateOrderVirements = async (req, res) => {
-  const { ribAtner, etat } = req.body;
+  const { ribAtner, etat, directeursigne } = req.body;
   if (ribAtner == null || etat == null) {
     return res.status(400).json({ error: "all field is required" });
   }
@@ -168,6 +172,7 @@ exports.updateOrderVirements = async (req, res) => {
       .request()
       .input("ribAtner", getSql().Int, ribAtner)
       .input("etat", getSql().VarChar, etat)
+      .input("directeursigne", getSql().VarChar, directeursigne)
       .input("id", getSql().VarChar, req.params.id)
       .query(ordervirements.update);
 
@@ -386,7 +391,7 @@ exports.PrintOrderVirement = async (req, res) => {
               .discription {
                 font-size: 16px;
               }
-              
+
               .table {
                 width: 100%;
                 display: flex;
@@ -411,7 +416,7 @@ exports.PrintOrderVirement = async (req, res) => {
               }
               th  {
                 font-size : 16px;
-                background : #878787; 
+                background : #878787;
               }
               td {
                 text-align: center;
@@ -475,7 +480,7 @@ exports.PrintOrderVirement = async (req, res) => {
               </tr>
             </thead>
             <tbody>
-            ${trdata} 
+            ${trdata}
             </tbody>
             <tfoot>
               <th class="thorder">Total</th>
@@ -492,7 +497,8 @@ exports.PrintOrderVirement = async (req, res) => {
           <p>Salutations distinguées</p>
           <b>
             <p>Le Directeur Général <br/>
-            M Youness ZAMANI</p>
+            ${printData.header[0].directeursigne}
+            </p>
           </b>
         </div>
         <div class="footer">

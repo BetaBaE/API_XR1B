@@ -1,0 +1,206 @@
+const { getConnection, getSql } = require("../database/connection");
+const { factureFicheNavette } = require("../database/querys");
+
+exports.getFactureCount = async (req, res, next) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(factureFicheNavette.getCount);
+    req.count = result.recordset[0].count;
+    next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};
+
+exports.getFacture = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["dateFacture" , "desc"]';
+    let filter = req.query.filter || "{}";
+
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+    console.log(filter);
+    console.log(filter);
+    let queryFilter = "";
+
+    if (filter.ficheNavette) {
+      queryFilter += ` and upper(ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
+    }
+    if (filter.chantier) {
+      queryFilter += ` and upper(ch.LIBELLE) like(upper('%${filter.chantier}%'))`;
+    }
+
+    if (filter.BonCommande) {
+      queryFilter += ` and upper(BonCommande)  like('%${filter.BonCommande}%')`;
+    }
+    if (filter.fournisseur) {
+      queryFilter += ` and upper(fou.nom) like(upper('%${filter.fournisseur}%'))`;
+    }
+    if (filter.source) {
+      queryFilter += ` and upper(source) like(upper('%${filter.source}%'))`;
+    }
+    if (filter.designation) {
+      queryFilter += ` and upper(d.designation) like(upper('%${filter.designation}%'))`;
+    }
+
+    if (filter.numeroFacture) {
+      queryFilter += ` and upper(numeroFacture)  like('%${filter.numeroFacture}%')`;
+    }
+    if (filter.CodeFournisseur) {
+      queryFilter += ` and upper(fou.CodeFournisseur) like(upper('%${filter.CodeFournisseur}%'))`;
+    }
+
+    console.log(queryFilter);
+
+    const pool = await getConnection();
+
+    const result = await pool.request().query(
+      `${factureFicheNavette.get} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+    );
+
+    console.log(req.count);
+    res.set(
+      "Content-Range",
+      `facturefchantierfournisseur ${range[0]}-${range[1] + 1 - range[0]}/${
+        req.count
+      }`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
+
+exports.createfacture = async (req, res) => {
+  const { codechantier, idFacture, ficheNavette } = req.body;
+
+  try {
+    const pool = await getConnection();
+
+    await pool
+      .request()
+      .input("codechantier", getSql().Char, req.body.codechantier)
+      .input("idFacture", getSql().Numeric, req.body.idFacture)
+      .input("ficheNavette", getSql().Numeric, req.body.ficheNavette)
+      .query(factureFicheNavette.create);
+    console.log("errour");
+    res.json({
+      id: "",
+      codechantier,
+      idFacture,
+      ficheNavette,
+    });
+  } catch (error) {
+    switch (error.originalError.info.number) {
+      case 547:
+        error.message = "date invalid";
+        break;
+      case 2627:
+        error.message = "déja existe";
+        break;
+    }
+    res.status(500);
+    res.send(error.message);
+    res.status(500);
+    res.send(error.message);
+  }
+};
+
+/*
+exports.getFacturePaiement = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["datedoc" , "desc"]';
+    let filter = req.query.filter || "{}";
+
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+    console.log(filter);
+    console.log(filter);
+    let queryFilter = "";
+
+
+
+    if (filter.nom_chantier) {
+      queryFilter += ` and upper(nom_chantier) like(upper('%${filter.nom_chantier}%'))`;
+    }
+    if (filter.code_facture) {
+      queryFilter += ` and upper(code_facture) like(upper('%${filter.code_facture}%'))`;
+    }
+    if (filter.code_fiche_navette) {
+      queryFilter += ` and upper(code_fiche_navette) like(upper('%${filter.code_fiche_navette}%'))`;
+    }
+    console.log(queryFilter);
+
+    const pool = await getConnection();
+
+    const result = await pool.request().query(
+      `${ViewFacturChantierFournissuer.getFacturepaiement} ${queryFilter} Order by ${sort[0]} ${
+        sort[1]
+      }`
+    );
+
+    console.log(req.count);
+    res.set(
+      "Content-Range",
+      `facturefchantierfournisseur ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.json(result.recordset);
+  }
+};*/
+
+exports.getfactureresById = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().VarChar, req.params.id)
+      .query(factureFicheNavette.getOne);
+
+    res.set("Content-Range", `factures 0-1/1`);
+
+    res.json(result.recordset[0]);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+exports.updatenavette = async (req, res) => {
+  const { ficheNavette } = req.body;
+  try {
+    const pool = await getConnection();
+
+    await pool
+      .request()
+
+      .input("id", getSql().Int, req.params.id)
+      .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
+      .query(factureFicheNavette.update);
+
+    res.json({
+      id: req.params.id,
+      ficheNavette,
+    });
+  } catch (error) {
+    /*      //error.originalError.info.name="déja existe"
+         if(error.originalError.info.number=2627) {
+         //  error.originalError.info.name="déja existe"
+           error.message="déja supprimé"
+           res.set( error.originalError.info.name)
+          }*/
+
+    res.status(500);
+    res.send(error.message);
+  }
+};

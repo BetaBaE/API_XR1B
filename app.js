@@ -30,6 +30,10 @@ const orderVirements = require("./routers/ordervirements");
 const factures = require("./routers/factures");
 const virements = require("./routers/virements");
 const logFactures = require("./routers/logfacture");
+const chantier = require("./routers/Chantier");
+const factureRes = require("./routers/FactureRes");
+const ficheNavette = require("./routers/FactureFicheNavette");
+const all = require("./routers/all");
 
 app.use("/", fournissues);
 app.use("/", ribTemporaire);
@@ -40,7 +44,10 @@ app.use("/", orderVirements);
 app.use("/", factures);
 app.use("/", virements);
 app.use("/", logFactures);
-
+app.use("/", chantier);
+app.use("/", factureRes);
+app.use("/", ficheNavette);
+app.use("/", all);
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`Node API listening to port : ${port}`);
