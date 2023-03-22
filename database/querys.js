@@ -85,10 +85,10 @@ exports.Users = {
 
 exports.ordervirements = {
   getCountByYear: `SELECT  COUNT(*) +1 as count
-  FROM [dbo].[DAF_Order_virements_test]
+  FROM [dbo].[DAF_Order_virements]
   where datecreation like '%${new Date().getFullYear()}%'`,
-  getCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_Order_virements_test]`,
-  create: `INSERT INTO [dbo].[DAF_Order_virements_test]
+  getCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_Order_virements]`,
+  create: `INSERT INTO [dbo].[DAF_Order_virements]
            ([id],
             [directeursigne]
            ,[ribAtner]
@@ -99,27 +99,27 @@ exports.ordervirements = {
            ,@ribAtner
            )`,
   getAll: `SELECT  ov.*, ra.nom, ra.rib
-  FROM [dbo].[DAF_Order_virements_test] ov,[dbo].[DAF_RIB_ATNER] ra
+  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
   where ov.ribAtner = ra.id `,
   getOne: `SELECT  ov.*, ra.nom, ra.rib
-  FROM [dbo].[DAF_Order_virements_test] ov,[dbo].[DAF_RIB_ATNER] ra
+  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
   where ov.ribAtner = ra.id and ov.id = @id`,
-  update: `UPDATE [dbo].[DAF_Order_virements_test]
+  update: `UPDATE [dbo].[DAF_Order_virements]
    SET [ribAtner] = @ribAtner,
    [directeursigne]=@directeursigne
       ,[etat] = @etat
   WHERE id = @id`,
-  orderVirementsEnCours: `SELECT * FROM [dbo].[DAF_Order_virements_test]
+  orderVirementsEnCours: `SELECT * FROM [dbo].[DAF_Order_virements]
   WHERE etat = 'En cours'`,
-  orderVirementsEtat: `SELECT * FROM [dbo].[DAF_Order_virements_test]
+  orderVirementsEtat: `SELECT * FROM [dbo].[DAF_Order_virements]
   WHERE etat in('En cours')
   and total <> 0`,
   AddToTotal:
-    "update [DAF_Order_virements_test] set total = total+@montantVirement where id =@id",
+    "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
   MiunsFromTotal:
-    "update [DAF_Order_virements_test] set total = total-@montantVirement where id =@id",
+    "update [DAF_Order_virements] set total = total-@montantVirement where id =@id",
   getHeaderPrint: `SELECT  ov.*, ra.nom, ra.rib
-  FROM [dbo].[DAF_Order_virements_test] ov,[dbo].[DAF_RIB_ATNER] ra
+  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
   where ov.ribAtner = ra.id and ov.id = @ovId`,
   getBodyPrint: `
       SELECT v.[id]
@@ -128,28 +128,28 @@ exports.ordervirements = {
       ,rf.rib
       ,[montantVirement],
       v.Etat
-  FROM  [dbo].[DAF_VIREMENTS_test] v ,
+  FROM  [dbo].[DAF_VIREMENTS] v ,
       [dbo].[DAF_RIB_Fournisseurs] rf,
       [dbo].[DAF_FOURNISSEURS] f
   where v.fournisseurId = f.id
     and v.ribFournisseurId = rf.id
     and Etat = 'En cours'
     and [orderVirementId] = @ovId`,
-  updateVirements: `update [dbo].[DAF_VIREMENTS_test] set Etat = 'Reglee'
+  updateVirements: `update [dbo].[DAF_VIREMENTS] set Etat = 'Reglee'
                       where orderVirementId = @id`,
 
-  updateLogFacture: `update [dbo].[DAF_LOG_FACTURE_test] set Etat = 'Reglee'
+  updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee'
                         where orderVirementId = @id`,
 
-  updateDateExecution: `update [dbo].[DAF_Order_virement_tests] set dateExecution = GETDATE()
+  updateDateExecution: `update [dbo].[DAF_Order_virement] set dateExecution = GETDATE()
                             where id = @id`,
 
-  updateVirementsAnnuler: `update [dbo].[DAF_LOG_FACTURE_test] set Etat = 'Annuler'
+  updateVirementsAnnuler: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annuler'
                       where orderVirementId = @id`,
 
-  updateLogFactureAnnuler: `update [dbo].[DAF_LOG_FACTURE_test] set Etat = 'Annulé'
+  updateLogFactureAnnuler: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé'
                         where orderVirementId = @id`,
-  updateordervirementAnnuler: `update [dbo].[DAF_Order_virements_tests] set Etat = 'Annule' ,
+  updateordervirementAnnuler: `update [dbo].[DAF_Order_virements] set Etat = 'Annule' ,
                         total = 0
                         where id = @id`,
 };
@@ -165,7 +165,7 @@ exports.factures = {
   where
   f.id=@id and
   fa.CODEDOCUTIL not in (SELECT  CODEDOCUTIL
-  FROM [ATNER_DW].[dbo].[DAF_LOG_FACTURE_test]
+  FROM [ATNER_DW].[dbo].[DAF_LOG_FACTURE]
   WHERE [etat] in ('En cours','Reglee' ))
    and  fa.nom=f.nom
   order by fa.DateFacture`,
@@ -184,7 +184,7 @@ exports.virements = {
   //   and id in (@facturelistString)
   //   ) sum `,
   create: `
-  INSERT INTO [dbo].[DAF_VIREMENTS_TEST]
+  INSERT INTO [dbo].[DAF_VIREMENTS]
       (
        [fournisseurId]
       ,[ribFournisseurId]
@@ -197,7 +197,7 @@ exports.virements = {
       ,@orderVirementId
       ,@montantVirement
       )`,
-  getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS_TEST]",
+  getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS]",
   getAll: `
   SELECT v.[id]
       ,[orderVirementId]
@@ -206,7 +206,7 @@ exports.virements = {
       ,[montantVirement],
       v.Etat,
       v.dateoperation
-  FROM  [dbo].[DAF_VIREMENTS_TEST] v ,
+  FROM  [dbo].[DAF_VIREMENTS] v ,
       [dbo].[DAF_RIB_Fournisseurs] rf,
       [dbo].[DAF_FOURNISSEURS] f
   where v.fournisseurId = f.id
@@ -215,7 +215,7 @@ exports.virements = {
   `,
   getDataFromLogFacture: `SELECT * FROM [ATNER_DW].[dbo].[Daf_facture_fusionner] where 1=1 `,
   createLogFacture: `
- INSERT INTO [dbo].[DAF_LOG_FACTURE_test]
+ INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]
            ,[CODECHT]
             ,[NOM]
@@ -227,7 +227,7 @@ exports.virements = {
            ,[NETAPAYER]
            ,[orderVirementId])
      VALUES`,
-  update: `Update [dbo].[DAF_VIREMENTS_TEST]
+  update: `Update [dbo].[DAF_VIREMENTS]
             set Etat=@Etat,
             dateOperation=@dateOperation
             where id=@id`,
@@ -238,7 +238,7 @@ exports.virements = {
       ,rf.rib
       ,[montantVirement],
       v.Etat
-  FROM  [dbo].[DAF_VIREMENTS_TEST] v ,
+  FROM  [dbo].[DAF_VIREMENTS] v ,
       [dbo].[DAF_RIB_Fournisseurs] rf,
       [dbo].[DAF_FOURNISSEURS] f
   where v.fournisseurId = f.id
@@ -247,15 +247,15 @@ exports.virements = {
  `,
 
   updateLogFactureWhenAnnuleV:
-    "update [dbo].[DAF_LOG_FACTURE_test] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
+    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
 };
 
 exports.logFactures = {
-  getLogFactureCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_LOG_FACTURE_test]
+  getLogFactureCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_LOG_FACTURE]
        where
       NETAPAYER<>0
     `,
-  getLogFactures: `SELECT * FROM [dbo].[DAF_LOG_FACTURE_test] where 1=1 and
+  getLogFactures: `SELECT * FROM [dbo].[DAF_LOG_FACTURE] where 1=1 and
 
       NETAPAYER<>0`,
 };
@@ -469,7 +469,7 @@ exports.all = {
   rf.rib,awt.nom as "banque"
   from faovchantier  f
 left join (SElect * from DAF_RIB_ATNER) awt ON awt.id =f.ribAtner
-left join (select * from DAF_VIREMENTS_test ) p on p.orderVirementId=f.orderVirementId
+left join (select * from DAF_VIREMENTS ) p on p.orderVirementId=f.orderVirementId
 left join (select * from DAF_RIB_Fournisseurs) rf on rf.FournisseurId=f.idfournisseur
 where f.numeroFacture not like '%-%'`,
 
@@ -477,7 +477,7 @@ where f.numeroFacture not like '%-%'`,
     select count(*) as count
     from faovchantier  f
     left join DAF_RIB_ATNER awt on f.ribAtner=awt.id
-    left join DAF_VIREMENTS_test p on p.orderVirementId=f.orderVirementId
+    left join DAF_VIREMENTS p on p.orderVirementId=f.orderVirementId
     left join DAF_RIB_Fournisseurs rf on rf.FournisseurId=f.idfournisseur
     where
      f.numeroFacture not like '%-%'
