@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/fournisseurs", getFournisseursCount, getFournissuers);
 router.get("/allfournisseurs", getFournisseursCount, getAllFournissuers);
-router.post("/createfournisseur", createFournisseurs);
+router.post("/fournisseurs", createFournisseurs);
 router.get("/fournisseursribvalid", getFournisseursCount, FournisseursRibValid);
 router.get(
   "/allfournisseursvalid",
