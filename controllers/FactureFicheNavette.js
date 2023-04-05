@@ -87,7 +87,7 @@ exports.createfacture = async (req, res) => {
       .request()
       .input("codechantier", getSql().Char, req.body.codechantier)
       .input("idFacture", getSql().Numeric, req.body.idFacture)
-      .input("ficheNavette", getSql().Numeric, req.body.ficheNavette)
+      .input("ficheNavette", getSql().Char, req.body.ficheNavette)
       .query(factureFicheNavette.create);
     console.log("errour");
     res.json({
