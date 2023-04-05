@@ -370,7 +370,7 @@ where d.id=f.iddesignation  and fou.id=f.idfournisseur  and deletedAt is  not nu
 [dbo].[DAF_factureNavette] fn
    where
    fn.idFacture=f.id   and
-   f.id not in (select facture from DAF_LOG_FACTURE_paye)
+   f.id not in (select facture from DAF_LOG_FACTURE)
    and
 
   and idfournisseur in(select id from [dbo].[DAF_FOURNISSEURS] where id=@id)`,
