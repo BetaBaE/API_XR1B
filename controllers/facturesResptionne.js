@@ -55,7 +55,9 @@ exports.getfactureres = async (req, res) => {
     if (filter.Datefin) {
       queryFilter += ` and DateFacture < '${filter.Datefin}'`;
     }
-
+    if (filter.LIBELLE) {
+      queryFilter += ` and upper(ch.LIBELLE) like(upper('%${filter.LIBELLE}%'))`;
+    }
     console.log(queryFilter);
     const pool = await getConnection();
     // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
@@ -95,51 +97,47 @@ exports.getfactureresById = async (req, res) => {
 };
 exports.createfacture = async (req, res) => {
   const {
-    numeroFacture,
-    BonCommande,
-    TTC,
-    fullName,
-    fournisseur,
-    chantier,
-    DateFacture,
-    iddesignation,
-  } = req.body;
-  try {
-    const pool = await getConnection();
-    await pool
-      .request()
-      .input("numeroFacture", getSql().Char, new String(req.body.numeroFacture))
-      .input("TTC", getSql().Numeric(10, 2), req.body.TTC)
-      .input("BonCommande", getSql().Char, new String(req.body.BonCommande))
-      .input("DateFacture", getSql().Date, req.body.DateFacture)
-      .input("idfournisseur", getSql().Int, req.body.idfournisseur)
-      .input("chantier", getSql().VarChar, new String(req.body.chantier))
-      .input("fullName", getSql().VarChar, req.body.fullName)
-      .input("iddesignation", getSql().Int, req.body.iddesignation)
-      .query(factureres.createfacture);
-    console.log("errour");
-    res.json({
-      id: "",
       numeroFacture,
       BonCommande,
       TTC,
-      fournisseur,
-      chantier,
-      DateFacture,
       fullName,
-      iddesignation,
-    });
+      fournisseur,
+      codechantier,
+      DateFacture,
+      iddesignation
+  } = req.body;
+  try {
+      const pool = await getConnection();
+      await pool
+          .request()
+          .input("numeroFacture", getSql().Char, new String(req.body.numeroFacture))
+          .input("TTC", getSql().Numeric(10, 2), req.body.TTC)
+          .input("BonCommande", getSql().Char, new String(req.body.BonCommande))
+          .input("DateFacture", getSql().Date, req.body.DateFacture)
+          .input("idfournisseur", getSql().Int, req.body.idfournisseur)
+          .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
+          .input("fullName", getSql().VarChar, req.body.fullName)
+          .input("iddesignation", getSql().Int, req.body.iddesignation)
+          .query(factureres.createfacture)
+      console.log("errour");
+      res.json({
+          id: "",
+          numeroFacture,
+          BonCommande,
+          TTC,
+          fournisseur,
+          codechantier,
+          DateFacture,
+          fullName,
+          codechantier,
+          iddesignation,
+      });
   } catch (error) {
-    switch (error.originalError.info.number) {
-      case 547:
-        error.message = "date invalid";
-        break;
-      case 2627:
-        error.message = "déja existe";
-        break;
-    }
-    res.status(500);
-    res.send(error.message);
+  
+   
+        
+      res.status(500);
+      res.send( error.message);
   }
 };
 exports.updatefactureRes = async (req, res) => {

@@ -280,10 +280,13 @@ d.designation as "designation" ,
 fou.nom as "nom",
 fou.CodeFournisseur,
 f.verifiyMidelt,
-f.updatedBy
+f.updatedBy,
+ch.LIBELLE
+
 FROM [dbo].[factureresptionne] f
 inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
 inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+left join [dbo].[chantier] ch on ch.id=f.codechantier
 where deletedAt is null`,
   getcountfactureres: `
 SELECT COUNT(*) as count
@@ -291,14 +294,15 @@ FROM [dbo].[factureresptionne] f
 inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
 inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
 where deletedAt is null`,
-  createfacture: `INSERT INTO [dbo].[factureresptionne](
+createfacture: `INSERT INTO [dbo].[factureresptionne](
   [numeroFacture]
 ,[BonCommande]
 ,[TTC]
 ,[idfournisseur]
 ,[DateFacture]
 ,[iddesignation]
-,[fullName]
+,[fullName],
+[codechantier]
 )
   values  (
      @numeroFacture
@@ -308,6 +312,8 @@ where deletedAt is null`,
     ,@DateFacture
     ,@iddesignation
     ,@fullName
+    ,@codechantier
+
     )`,
   getOne: `select
 f.id,
@@ -338,10 +344,9 @@ WHERE id = @id `,
 SET  deletedAt=getDate(),
 numeroFacture='----'+CAST(id as varchar(20))  +'----'
 WHERE id = @id `,
-  getfacturebyfournisseurnom: `select * from [dbo].[factureresptionne]
-where deletedAt is null and idfournisseur
- in(select id from [dbo].[DAF_FOURNISSEURS] where nom=@nom)
- `,
+getfacturebyfournisseurnom: `select * from [dbo].[factureresptionne] 
+  where deletedAt is null and idfournisseur
+   in(select id from [dbo].[DAF_FOURNISSEURS] where id=@nom)`,
   gethistoriquefacture: `SELECT f.id
 ,f.numeroFacture
 ,f.BonCommande
@@ -399,57 +404,27 @@ WHERE id = @id `,
 };
 exports.factureFicheNavette = {
   create: `INSERT INTO [dbo].[DAF_factureNavette]
-  ([codechantier],
-    [idFacture],
-    [ficheNavette])
-  VALUES (@codechantier,@idFacture,@ficheNavette) `,
+    ([codechantier]
+      ,[montantAvance],
+      [idfournisseur],
+      [idFacture],
+      [ficheNavette])
+    VALUES (@codechantier,@montantAvance,@idfournisseur,
+      
+      @idFacture,@ficheNavette) `,
 
-  get: `seLECT fn.idfacturenavette as id
-  ,f.numeroFacture
-  ,f.BonCommande
-  ,f.TTC
-  ,f.DateFacture
-  ,f.HT,ch.LIBELLE as "chantier"
-  ,f.MontantTVA,
-  d.designation as "designation" ,
-  fou.nom as "nom",
-  fn.ficheNavette as "ficheNavette",
-  fou.CodeFournisseur
-  FROM [dbo].[factureresptionne] f ,  [dbo].[FactureDesignation] d,
-  [dbo].[DAF_FOURNISSEURS] fou,[dbo].[DAF_factureNavette] fn , [dbo].[chantier] ch
-  where d.id=f.iddesignation  and fou.id=f.idfournisseur
-and fn.codechantier=ch.CODEAFFAIRE
-  and f.id=fn.idFacture
-  and deletedAt is null `,
+    get: `select * from [dbo].[ficheNavette] WHERE 1=1   `,
 
-  getCount: `seLECT COUNT(*) as count
-  FROM [dbo].[factureresptionne] f ,  [dbo].[FactureDesignation] d,
-  [dbo].[DAF_FOURNISSEURS] fou,[dbo].[DAF_factureNavette] fn , [dbo].[chantier] ch
-  where d.id=f.iddesignation  and fou.id=f.idfournisseur
-and fn.codechantier=ch.CODEAFFAIRE
-  and f.id=fn.idFacture
-  and deletedAt is   null `,
-  getOne: `seLECT fn.idfacturenavette as id
-  ,f.numeroFacture
-  ,f.BonCommande
-  ,f.TTC
-  ,f.DateFacture
-  ,f.HT,ch.LIBELLE as "chantier"
-  ,f.MontantTVA,
-  d.designation as "designation" ,
-  fou.nom as "nom",
-  fn.ficheNavette as "ficheNavette",
-  fou.CodeFournisseur
-  FROM [dbo].[factureresptionne] f ,  [dbo].[FactureDesignation] d,
-  [dbo].[DAF_FOURNISSEURS] fou,[dbo].[DAF_factureNavette] fn , [dbo].[chantier] ch
-  where d.id=f.iddesignation  and fou.id=f.idfournisseur
-and fn.codechantier=ch.CODEAFFAIRE
-  and f.id=fn.idFacture
-  and deletedAt is null
-  and fn.idfacturenavette=@id`,
-  update: `update [dbo].[DAF_factureNavette]
-      set ficheNavette=@ficheNavette
-      where idfacturenavette=@id`,
+
+    getCount: `seLECT COUNT(*) as count
+    FROM  [dbo].[ficheNavette] `,
+    getOne: `select * from ficheNavette where id=@id`,
+   update: `update [dbo].[DAF_factureNavette] 
+        set ficheNavette=@ficheNavette,
+              idfacture=@idFacture,
+              idfournisseur=@idfournisseur,
+              codechantier=@codechantier
+        where idfacturenavette=@id `
 };
 
 exports.designation = {
@@ -466,7 +441,7 @@ exports.all = {
   f.designation ,f.ficheNavette , f.codechantier,f.dateExecution as "Dateexecution",
   f.ribAtner, f.etat, f.total,
   f.orderVirementId,f.chantier,p.dateOperation,p.Etat,
-  rf.rib,awt.nom as "banque"
+  rf.rib,awt.nom as "banque",f.montantAvance
   from faovchantier  f
 left join (SElect * from DAF_RIB_ATNER) awt ON awt.id =f.ribAtner
 left join (select * from DAF_VIREMENTS ) p on p.orderVirementId=f.orderVirementId
