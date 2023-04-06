@@ -134,8 +134,19 @@ exports.createfacture = async (req, res) => {
       });
   } catch (error) {
   
-   
-        
+  switch (error.originalError.info.number) {
+      case 547:
+        error.message = "date invalid";
+        break;
+      case 2627:
+        error.message = "déja existe";
+        break;
+    }
+    res.status(500);
+    res.send(error.message);
+
+
+
       res.status(500);
       res.send( error.message);
   }
