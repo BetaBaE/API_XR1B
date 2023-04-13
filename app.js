@@ -34,7 +34,13 @@ const chantier = require("./routers/Chantier");
 const factureRes = require("./routers/FactureRes");
 const ficheNavette = require("./routers/FactureFicheNavette");
 const all = require("./routers/all");
+const cheque = require("./routers/Cheque");
+const espece = require("./routers/Espece");
 
+const avancevirement = require("./routers/AvanceVirementroute");
+const avancecheque = require("./routers/AvancechequeRoute");
+
+const avanceespece = require("./routers/AvanceEspeceRoute");
 app.use("/", fournissues);
 app.use("/", ribTemporaire);
 app.use("/", ribFournisseurs);
@@ -48,6 +54,11 @@ app.use("/", chantier);
 app.use("/", factureRes);
 app.use("/", ficheNavette);
 app.use("/", all);
+app.use("/", cheque);
+app.use("/", espece);
+app.use("/", avancevirement);
+app.use("/", avancecheque);
+app.use("/", avanceespece);
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`Node API listening to port : ${port}`);

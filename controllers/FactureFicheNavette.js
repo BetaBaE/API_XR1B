@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { factureFicheNavette } = require("../database/querys");
+const { factureFicheNavette, factures } = require("../database/querys");
 
 exports.getFactureCount = async (req, res, next) => {
   try {
@@ -107,10 +107,7 @@ exports.createfacture = async(req, res) => {
           idfournisseur
       });
   } catch (error) {
-       if(error.originalError.info.number=2627) {
-        error.message = "déja existe";
-         res.set(  error.message)
-        }
+      
 
       res.status(500);
       res.send(error.message);
@@ -216,3 +213,23 @@ exports.updatenavette = async (req, res) => {
     res.send(error.message);
   }
 };
+
+
+exports.getficheNavetteByfournisseur = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().VarChar, req.params.id)
+      .query(factures.getficheNavetebyfournisseur);
+
+    res.set("Content-Range", `factures 0-1/1`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+

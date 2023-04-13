@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { virements } = require("../database/querys");
+const {  cheque } = require("../database/querys");
 
 const MontantFixed = (num) => {
   return parseFloat(num.toFixed(2));
@@ -48,11 +48,11 @@ async function getFactureFromView(facturelist) {
       .request()
 
       .query(
-        `${virements.getDataFromLogFacture} and id in('${facturelistString}')`
+        `${cheque.getDataFromLogFacture} and id in('${facturelistString}')`
       );
     console.log(
       "test",
-      `${virements.getDataFromLogFacture} and id in('${facturelistString}')`
+      `${cheque.getDataFromLogFacture} and id in('${facturelistString}')`
     );
     return result.recordset;
   } catch (error) {
@@ -74,21 +74,22 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
         HT,
         MontantTVA,
         NETAPAYER,
+        
       },
       i
     ) => {
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}' ,'paiement virement'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}','paiement virement')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}','en cours','paiement cheque'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}','en cours','paiement cheque')`);
     }
   );
-  console.log(`${virements.createLogFacture} '${query}'`);
+  console.log(`${cheque.createLogFacture} '${query}'`);
   console.log(`${query}`);
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .query(`${virements.createLogFacture}${query}`);
+      .query(`${cheque.createLogFacture}${query}`);
   } catch (error) {
     console.error(error.message);
   }
@@ -104,7 +105,7 @@ async function AddToTotalOv(number, id) {
       // .input("montantVirement", getSql().Numeric, number)
       // .input("id", getSql().VarChar, id)
       .query(
-        `update [DAF_Order_virements_test] set total = total+${number} where id ='${id}'`
+        `update [DAF_Order_virements] set total = total+${number} where id ='${id}'`
       );
 
     return result.recordset;
@@ -134,7 +135,7 @@ async function updateLogFactureWhenAnnuleVirement(idov, nom) {
       .request()
       .input("orderVirementId", getSql().VarChar, idov)
       .input("nom", getSql().VarChar, nom)
-      .query(virements.updateLogFactureWhenAnnuleV);
+      .query(cheque.updateLogFactureWhenAnnuleV);
     return result.recordset;
   } catch (error) {
     console.error(error.message);
@@ -144,7 +145,7 @@ async function updateLogFactureWhenAnnuleVirement(idov, nom) {
 exports.getVirementCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(virements.getCount);
+    const result = await pool.request().query(cheque.getCount);
     req.count = result.recordset[0].count;
     // res.json({ count: res.conut });
     next();
@@ -163,26 +164,29 @@ exports.createVirements = async (req, res) => {
   let ArrayOfFacture = await getFactureFromView(facturelist);
   insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
   console.log(req.body, Totale);
-  console.log("virement", virements.create);
+  console.log("virement", cheque.create);
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
 
-      .input("orderVirementId", getSql().VarChar, req.body.orderVirementId)
+      .input("orderVirementId", getSql().Int, req.body.orderVirementId)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
-      .input("ribFournisseurId", getSql().Int, req.body.ribFournisseurId)
+    
       .input("montantVirement", getSql().Float, Totale)
-      .query(virements.create);
-    await AddToTotalOv(Totale, req.body.orderVirementId);
+
+      .input("numerocheque", getSql().Char, req.body.numerocheque)
+      .input("datecheque", getSql().Date, req.body.datecheque)
+    
+      .input("dateecheance", getSql().Date, req.body.dateecheance)
+      .query(cheque.create);
+
     res.json({ id: "" });
   } catch (error) {
-    //error.originalError.info.name="déja existe"
-  
-
-res.status(500);
-res.send(error.message);
-}
+   console.log(error.message)
+    res.send(error.message);
+    res.status(500);
+  }
   // return res.json([{ id: "id" }]);
 };
 
@@ -199,24 +203,39 @@ exports.getVirements = async (req, res) => {
     console.log(filter);
 
     let queryFilter = "";
-    if (filter.orderVirementId) {
-      queryFilter += ` and upper(orderVirementId) like(upper('%${filter.orderVirementId}%'))`;
+    if (filter.numerocheque) {
+      queryFilter += ` and upper(numerocheque) like(upper('%${filter.numerocheque}%'))`;
     }
     if (filter.nom) {
-      queryFilter += ` and upper(f.nom) like(upper('%${filter.nom}%'))`;
+      queryFilter += ` and upper(rf.nom) like(upper('%${filter.nom}%'))`;
     }
-    if (filter.rib) {
-      queryFilter += ` and rf.rib like('%${filter.rib}%')`;
+    if (filter.fournisseur) {
+      queryFilter += ` and upper(f.nom) like(upper('%${filter.fournisseur}%'))`;
     }
-    if (filter.Etat) {
-      queryFilter += ` and upper(v.Etat) like(upper('%${filter.Etat}%'))`;
+    if (filter.CodeFournisseur) {
+      queryFilter += ` and f.CodeFournisseur like('%${filter.CodeFournisseur}%')`;
+    }
+    if (filter.datechequeMin) {
+      queryFilter += ` and datecheque >'${filter.datechequeMin}'`;
+    }
+
+    if (filter.datechequeMax) {
+      queryFilter += ` and datecheque < '${filter.datechequeMax}'`;
+    }
+
+    if (filter.dateecheanceMin) {
+      queryFilter += ` and dateecheance >'${filter.dateecheanceMin}'`;
+    }
+
+    if (filter.dateecheanceMax) {
+      queryFilter += ` and dateecheance < '${filter.dateecheanceMax}'`;
     }
 
     console.log(queryFilter);
 
     const pool = await getConnection();
     const result = await pool.request().query(
-      `${virements.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+      `${cheque.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
         OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
     res.set(
@@ -233,24 +252,18 @@ exports.getVirements = async (req, res) => {
 
 exports.updateVirmeents = async (req, res) => {
   console.log(req.body);
-  const { montantVirement, Etat, orderVirementId, nom, dateOperation } =
+  const {  dateOperation } =
     req.body;
-  if (montantVirement == null || orderVirementId == null || nom == null) {
-    return res.status(400).json({ error: "all fields are required!" });
-  }
+ 
   try {
     const pool = await getConnection();
 
     await pool
       .request()
-      .input("etat", getSql().VarChar, Etat)
       .input("dateOperation", getSql().Date, dateOperation)
       .input("id", getSql().Int, req.params.id)
-      .query(virements.update);
-    if (Etat === "Annuler") {
-      MiunsFromTotalOv(montantVirement, orderVirementId);
-      updateLogFactureWhenAnnuleVirement(orderVirementId, nom);
-    }
+      .query(cheque.update);
+  
     res.json({
       id: req.params.id,
     });
@@ -266,7 +279,7 @@ exports.getOneVirementById = async (req, res) => {
     const result = await pool
       .request()
       .input("id", getSql().Int, req.params.id)
-      .query(virements.getOne);
+      .query(cheque.getOne);
 
     res.set("Content-Range", `virement 0-1/1`);
 

@@ -69,20 +69,20 @@ exports.getAllFournissuers = async (req, res) => {
 };
 
 exports.createFournisseurs = async (req, res) => {
-  const { codeFournisseur, nom } = req.body;
+  const { CodeFournisseur, nom } = req.body;
 
   try {
     const pool = await getConnection();
 
     await pool
       .request()
-      .input("CodeFournisseur", getSql().VarChar, codeFournisseur)
+      .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
       id: "",
-      codeFournisseur,
+      CodeFournisseur,
       nom,
     });
   } catch (error) {

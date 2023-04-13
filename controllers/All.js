@@ -26,64 +26,64 @@ exports.getall = async(req, res) => {
         console.log(filter);
         let queryFilter = "";
         if (filter.chantier) {
-            queryFilter += `and upper(f.chantier) like(upper('%${filter.chantier}%'))`;
+            queryFilter += `and upper(chantier) like(upper('%${filter.chantier}%'))`;
         }
         if (filter.BonCommande) {
-            queryFilter += `and upper(f.BonCommande) like(upper('%${filter.BonCommande}%'))`;
+            queryFilter += `and upper(BonCommande) like(upper('%${filter.BonCommande}%'))`;
         }
         if (filter.designation) {
-            queryFilter += `and upper(f.designation) like(upper('%${filter.designation}%'))`;
+            queryFilter += `and upper(designation) like(upper('%${filter.designation}%'))`;
         }
         if (filter.DateFactureMin) {
-            queryFilter += ` and f.DateFacture > '${filter.DateFactureMin}'`;
+            queryFilter += ` and DateFacture > '${filter.DateFactureMin}'`;
         }
 
         if (filter.DateFacturemax) {
-            queryFilter += ` and f.DateFacture < '${filter.DateFacturemax}'`;
+            queryFilter += ` and DateFacture < '${filter.DateFacturemax}'`;
         }
         if (filter.DateFacturemax && filter.DateFactureMin) {
-            queryFilter += ` and f.DateFacture between '${filter.DateFactureMin}' and  '${filter.DateFacturemax}' `;
+            queryFilter += ` and DateFacture between '${filter.DateFactureMin}' and  '${filter.DateFacturemax}' `;
         }
         if (filter.dateOperationMin) {
-            queryFilter += ` and p.dateOperation > '${filter.dateOperationMin}'`;
+            queryFilter += ` and dateOperation > '${filter.dateOperationMin}'`;
         }
 
         if (filter.DateFacturemax) {
-            queryFilter += ` and p.dateOperation < '${filter.DateFacturemax}'`;
+            queryFilter += ` and dateOperation < '${filter.DateFacturemax}'`;
         }
         if (filter.DateFacturemax && filter.dateOperationMin) {
-            queryFilter += ` and p.dateOperation between '${filter.dateOperationMin}' and  '${filter.DateFacturemax}' `;
+            queryFilter += ` and dateOperation between '${filter.dateOperationMin}' and  '${filter.DateFacturemax}' `;
         }
         if (filter.numerofacture) {
-            queryFilter += `and upper(f.numeroFacture) like(upper('%${filter.numerofacture}%'))`;
+            queryFilter += `and upper(numeroFacture) like(upper('%${filter.numerofacture}%'))`;
         }
         if (filter.CodeFournisseur) {
-            queryFilter += `and upper(f.CodeFournisseur) like(upper('%${filter.CodeFournisseur}%'))`;
+            queryFilter += `and upper(CodeFournisseur) like(upper('%${filter.CodeFournisseur}%'))`;
         }
 
         if (filter.fournisseur) {
-            queryFilter += `and upper(f.nom) like(upper('%${filter.fournisseur}%'))`;
+            queryFilter += `and upper(nom) like(upper('%${filter.fournisseur}%'))`;
         }
 
         if (filter.ordervirement) {
-            queryFilter += `and upper(f.orderVirementId) like(upper('%${filter.ordervirement}%'))`;
+            queryFilter += `and upper(modepaiement) like(upper('%${filter.ordervirement}%'))`;
         }
         if (filter.ficheNavette) {
-            queryFilter += `and upper(f.ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
+            queryFilter += `and upper(ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
         }
         if (filter.dateExecutiondebut) {
-            queryFilter += ` and f.dateExecution > '${filter.dateExecutiondebut}'`;
+            queryFilter += ` and dateExecution > '${filter.dateExecutiondebut}'`;
         }
 
         if (filter.Dateexecusionfin) {
-            queryFilter += ` and f.dateExecution < '${filter.Dateexecusionfin}'`;
+            queryFilter += ` and dateExecution < '${filter.Dateexecusionfin}'`;
         }
         if (filter.DateFacturemax && filter.dateExecutiondebut) {
-            queryFilter += ` and f.dateExecution between '${filter.dateExecutiondebut}' and  '${filter.DateFacturemax}' `;
+            queryFilter += ` and dateExecution between '${filter.dateExecutiondebut}' and  '${filter.DateFacturemax}' `;
         }
 
         if (filter.banque) {
-            queryFilter += ` and awt.nom< '${filter.banque}'`;
+            queryFilter += ` and  upper(banque) like(upper('%${filter.banque}%'))`;
         }
         console.log(queryFilter);
         const pool = await getConnection();

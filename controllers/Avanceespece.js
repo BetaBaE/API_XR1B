@@ -1,42 +1,44 @@
 const { getConnection, getSql } = require("../database/connection");
-const { virements } = require("../database/querys");
+const { avanceespece  } = require("../database/querys");
+
 
 const MontantFixed = (num) => {
   return parseFloat(num.toFixed(2));
 };
+
 
 async function calculSumFactures(facturelist) {
   let facturelistString = facturelist.join("','");
 
   console.log(facturelist.join("','"));
   try {
-    console.log(`SELECT  SUM(netapayer) as Totale
-  FROM(
-    select sum(TTC) as netapayer from [dbo].[Daf_facture_fusion]
-	  where MontantFacture is null
-    and id in ('${facturelistString}')
-        UNION ALL
-	  select sum(MontantFacture) as netapayer from [dbo].[Daf_facture_fusion]
-    where MontantFacture is not null
-    and id in ('${facturelistString}')
-    ) sum `);
-    const pool = await getConnection();
-    const result = await pool.request()
-      .query(` SELECT   SUM(netapayer)  as Totale
-  FROM(
-    select sum(TTC) as netapayer from [dbo].[Daf_facture_fusion]
-	  where MontantFacture is null
-    and id in ('${facturelistString}')
-        UNION ALL
-	  select sum(TTC) as netapayer from [dbo].[Daf_facture_fusion]
-    where MontantFacture is not null
-    and id in ('${facturelistString}')
-    ) sum `);
+      console.log(`SELECT  SUM(netapayer) as Totale
+FROM(
+  select sum(montantAvance) as netapayer from [dbo].[ficheNavette]
+  where montantAvance is not null
+  and id in ('${facturelistString}')
+      UNION ALL
+  select sum(montantAvance) as netapayer from [dbo].[ficheNavette]
+  where montantAvance is not null
+  and id in ('${facturelistString}')
+  ) sum `);
+      const pool = await getConnection();
+      const result = await pool.request()
+          .query(` SELECT   SUM(netapayer)  as Totale
+FROM(
+  select sum(montantAvance) as netapayer from [dbo].[ficheNavette]
+  where montantAvance is not null
+  and id in ('${facturelistString}')
+      UNION ALL
+  select sum(montantAvance) as netapayer from [dbo].[ficheNavette]
+  where montantAvance is not null
+  and id in ('${facturelistString}')
+  ) sum `);
 
-    return result.recordset[0];
+      return result.recordset[0];
   } catch (error) {
-    console.error(error.message);
-    // res.status(500);
+      console.error(error.message);
+      // res.status(500);
   }
 }
 async function getFactureFromView(facturelist) {
@@ -48,11 +50,11 @@ async function getFactureFromView(facturelist) {
       .request()
 
       .query(
-        `${virements.getDataFromLogFacture} and id in('${facturelistString}')`
+        `${avanceespece.getDataFromLogFacture} and id in('${facturelistString}')`
       );
     console.log(
       "test",
-      `${virements.getDataFromLogFacture} and id in('${facturelistString}')`
+      `${avanceespece.getDataFromLogFacture} and id in('${facturelistString}')`
     );
     return result.recordset;
   } catch (error) {
@@ -73,22 +75,23 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
         TTC,
         HT,
         MontantTVA,
-        NETAPAYER,
+        montantAvance,
+        
       },
       i
     ) => {
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}' ,'paiement virement'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}','paiement virement')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${0}','${0}','${0}','${montantAvance}','${orderVirementId}','Reglee','avance espece'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${0}','${0}','${0}','${montantAvance}','${orderVirementId}','Reglee','avance espece')`);
     }
   );
-  console.log(`${virements.createLogFacture} '${query}'`);
+  console.log(`${avanceespece.createLogFacture} '${query}'`);
   console.log(`${query}`);
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .query(`${virements.createLogFacture}${query}`);
+      .query(`${avanceespece.createLogFacture}${query}`);
   } catch (error) {
     console.error(error.message);
   }
@@ -104,7 +107,7 @@ async function AddToTotalOv(number, id) {
       // .input("montantVirement", getSql().Numeric, number)
       // .input("id", getSql().VarChar, id)
       .query(
-        `update [DAF_Order_virements_test] set total = total+${number} where id ='${id}'`
+        `update [DAF_Order_virements] set total = total+${number} where id ='${id}'`
       );
 
     return result.recordset;
@@ -134,7 +137,7 @@ async function updateLogFactureWhenAnnuleVirement(idov, nom) {
       .request()
       .input("orderVirementId", getSql().VarChar, idov)
       .input("nom", getSql().VarChar, nom)
-      .query(virements.updateLogFactureWhenAnnuleV);
+      .query(cheque.updateLogFactureWhenAnnuleV);
     return result.recordset;
   } catch (error) {
     console.error(error.message);
@@ -144,7 +147,7 @@ async function updateLogFactureWhenAnnuleVirement(idov, nom) {
 exports.getVirementCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(virements.getCount);
+    const result = await pool.request().query(avanceespece.getCount);
     req.count = result.recordset[0].count;
     // res.json({ count: res.conut });
     next();
@@ -163,26 +166,24 @@ exports.createVirements = async (req, res) => {
   let ArrayOfFacture = await getFactureFromView(facturelist);
   insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
   console.log(req.body, Totale);
-  console.log("virement", virements.create);
+  console.log("virement", avanceespece.create);
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
 
-      .input("orderVirementId", getSql().VarChar, req.body.orderVirementId)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
-      .input("ribFournisseurId", getSql().Int, req.body.ribFournisseurId)
+    
       .input("montantVirement", getSql().Float, Totale)
-      .query(virements.create);
-    await AddToTotalOv(Totale, req.body.orderVirementId);
+
+   
+      .query(avanceespece.create);
     res.json({ id: "" });
   } catch (error) {
-    //error.originalError.info.name="déja existe"
-  
-
-res.status(500);
-res.send(error.message);
-}
+   console.log(error.message)
+    res.send(error.message);
+    res.status(500);
+  }
   // return res.json([{ id: "id" }]);
 };
 
@@ -199,24 +200,31 @@ exports.getVirements = async (req, res) => {
     console.log(filter);
 
     let queryFilter = "";
-    if (filter.orderVirementId) {
-      queryFilter += ` and upper(orderVirementId) like(upper('%${filter.orderVirementId}%'))`;
+   
+    if (filter.fournisseur) {
+      queryFilter += ` and upper(f.nom) like(upper('%${filter.fournisseur}%'))`;
     }
-    if (filter.nom) {
-      queryFilter += ` and upper(f.nom) like(upper('%${filter.nom}%'))`;
+    if (filter.CodeFournisseur) {
+      queryFilter += ` and f.CodeFournisseur like('%${filter.CodeFournisseur}%')`;
     }
-    if (filter.rib) {
-      queryFilter += ` and rf.rib like('%${filter.rib}%')`;
+
+    if (filter.datechequeMax) {
+      queryFilter += ` and datecheque < '${filter.datechequeMax}'`;
     }
-    if (filter.Etat) {
-      queryFilter += ` and upper(v.Etat) like(upper('%${filter.Etat}%'))`;
+
+    if (filter.dateecheanceMin) {
+      queryFilter += ` and dateecheance >'${filter.dateecheanceMin}'`;
+    }
+
+    if (filter.dateecheanceMax) {
+      queryFilter += ` and dateecheance < '${filter.dateecheanceMax}'`;
     }
 
     console.log(queryFilter);
 
     const pool = await getConnection();
     const result = await pool.request().query(
-      `${virements.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+      `${avanceespece.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
         OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
     res.set(
@@ -246,7 +254,7 @@ exports.updateVirmeents = async (req, res) => {
       .input("etat", getSql().VarChar, Etat)
       .input("dateOperation", getSql().Date, dateOperation)
       .input("id", getSql().Int, req.params.id)
-      .query(virements.update);
+      .query(avanceespece.update);
     if (Etat === "Annuler") {
       MiunsFromTotalOv(montantVirement, orderVirementId);
       updateLogFactureWhenAnnuleVirement(orderVirementId, nom);
@@ -266,7 +274,7 @@ exports.getOneVirementById = async (req, res) => {
     const result = await pool
       .request()
       .input("id", getSql().Int, req.params.id)
-      .query(virements.getOne);
+      .query(avanceespece.getOne);
 
     res.set("Content-Range", `virement 0-1/1`);
 

@@ -133,22 +133,21 @@ exports.createfacture = async (req, res) => {
           iddesignation,
       });
   } catch (error) {
-  
+    
   switch (error.originalError.info.number) {
-      case 547:
+    case 547:
         error.message = "date invalid";
         break;
       case 2627:
         error.message = "déja existe";
         break;
     }
+    
     res.status(500);
     res.send(error.message);
+console.log(error.message)
 
 
-
-      res.status(500);
-      res.send( error.message);
   }
 };
 exports.updatefactureRes = async (req, res) => {
@@ -161,7 +160,10 @@ exports.updatefactureRes = async (req, res) => {
       .request()
 
       .input("id", getSql().Int, req.params.id)
-      .input("verifiyMidelt", getSql().VarChar, "vérifié")
+  
+    
+      .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
+  
       .query(factureres.delete);
 
     res.json({
@@ -173,12 +175,12 @@ exports.updatefactureRes = async (req, res) => {
       chantier,
     });
   } catch (error) {
-    /*      //error.originalError.info.name="déja existe"
+        //error.originalError.info.name="déja existe"
          if(error.originalError.info.number=2627) {
          //  error.originalError.info.name="déja existe"
            error.message="déja supprimé"
            res.set( error.originalError.info.name)
-          }*/
+          }
 
     res.status(500);
     res.send(error.message);
