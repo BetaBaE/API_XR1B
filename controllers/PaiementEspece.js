@@ -169,7 +169,7 @@ exports.createVirements = async (req, res) => {
   try {
     const pool = await getConnection();
     if (Totale>5000) {
-      throw new Error("Erreur dans la fonction mère");
+      throw new Error("Erreur dans le paiement");
     }
     const result = await pool
       .request()
