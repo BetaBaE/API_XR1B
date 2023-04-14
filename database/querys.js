@@ -348,7 +348,13 @@ where deletedAt is null and f.id=@id`,
     "select count(*) from  [dbo].[factureresptionne] where numeroFacture =@numeroFacture and BonCommande =@BonCommande",
   delete: `UPDATE [dbo].[factureresptionne]
 SET  
-
+numeroFacture=@numeroFacture,
+BonCommande=@BonCommande,
+TTC=@TTC,
+fournisseur=@fournisseur,
+codechantier=@codechantier,
+DateFacture=@DateFacture,
+iddesignation=@iddesignation,
 codechantier=@codechantier
 WHERE id = @id `,
 

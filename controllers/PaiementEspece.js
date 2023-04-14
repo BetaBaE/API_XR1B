@@ -163,28 +163,25 @@ exports.createVirements = async (req, res) => {
   let { Totale } = await calculSumFactures(facturelist);
   //let num = MontantFixed(Totale);
   let ArrayOfFacture = await getFactureFromView(facturelist);
-  insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
+
   console.log(req.body, Totale);
   console.log("virement", espece.create);
   try {
     const pool = await getConnection();
+    if (Totale>5000) {
+      throw new Error("Erreur dans la fonction mère");
+    }
     const result = await pool
       .request()
-
-      .input("fournisseurId", getSql().Int, req.body.fournisseurId)
-    
+      .input("fournisseurId", getSql().Int, req.body.fournisseurId)   
       .input("montantVirement", getSql().Float, Totale)
-
-   
       .query(espece.create);
+   
+      insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
     res.json({ id: "" });
   } catch (error) {
     
-    switch (error.originalError.info.number) {
-      case 547:
-          error.message = "ce paiement dépace les limites";
-          break;
-      }
+   
       
       res.status(500);
       res.send(error.message);

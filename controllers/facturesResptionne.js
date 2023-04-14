@@ -151,7 +151,13 @@ console.log(error.message)
   }
 };
 exports.updatefactureRes = async (req, res) => {
-  const { numeroFacture, BonCommande, DateFacture, fournisseur, chantier } =
+  const {  numeroFacture,
+    BonCommande,
+    TTC,
+    fournisseur,
+    codechantier,
+    DateFacture,
+    iddesignation} =
     req.body;
   try {
     const pool = await getConnection();
@@ -161,8 +167,14 @@ exports.updatefactureRes = async (req, res) => {
 
       .input("id", getSql().Int, req.params.id)
   
-    
+      .input("numeroFacture", getSql().Char, new String(req.body.numeroFacture))
+      .input("TTC", getSql().Numeric(10, 2), req.body.TTC)
+      .input("BonCommande", getSql().Char, new String(req.body.BonCommande))
+      .input("DateFacture", getSql().Date, req.body.DateFacture)
+      .input("idfournisseur", getSql().Int, req.body.idfournisseur)
       .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
+
+      .input("iddesignation", getSql().Int, req.body.iddesignation)
   
       .query(factureres.delete);
 
@@ -170,9 +182,11 @@ exports.updatefactureRes = async (req, res) => {
       id: req.params.id,
       numeroFacture,
       BonCommande,
-      DateFacture,
+      TTC,
       fournisseur,
-      chantier,
+      codechantier,
+      DateFacture,
+      iddesignation
     });
   } catch (error) {
         //error.originalError.info.name="déja existe"
