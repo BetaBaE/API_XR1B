@@ -154,7 +154,7 @@ exports.updatefactureRes = async (req, res) => {
   const {  numeroFacture,
     BonCommande,
     TTC,
-    fournisseur,
+    idfournisseur,
     codechantier,
     DateFacture,
     iddesignation} =
@@ -183,19 +183,13 @@ exports.updatefactureRes = async (req, res) => {
       numeroFacture,
       BonCommande,
       TTC,
-      fournisseur,
+      idfournisseur,
       codechantier,
       DateFacture,
       iddesignation
     });
   } catch (error) {
-        //error.originalError.info.name="déja existe"
-         if(error.originalError.info.number=2627) {
-         //  error.originalError.info.name="déja existe"
-           error.message="déja supprimé"
-           res.set( error.originalError.info.name)
-          }
-
+  
     res.status(500);
     res.send(error.message);
   }

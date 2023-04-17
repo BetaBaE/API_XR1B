@@ -160,15 +160,8 @@ exports.factures = {
   getOne: `SELECT * FROM [dbo].[DAF_FA_VC] where id=@id`,
   getAllFactures: `SELECT * FROM [dbo].[DAF_FA_VC]
   order by nom , datedoc `,
-  getfacturebyfournisseurid: `Select fa.*  from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
-
-  where
-  f.id=@id and
-  fa.CODEDOCUTIL not in (SELECT  CODEDOCUTIL
-  FROM [dbo].[DAF_LOG_FACTURE]
-  WHERE [etat] in ('En cours','Reglee' ))
-   and  fa.nom=f.nom
-  order by fa.DateFacture`,
+  getfacturebyfournisseurid: `select * from facturenonpayefournisseur where idfournisseur=@id
+  `,
   getficheNavetebyfournisseur: `select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[ficheNavette] fa
   where
    f.id=@id and
@@ -351,8 +344,8 @@ SET
 numeroFacture=@numeroFacture,
 BonCommande=@BonCommande,
 TTC=@TTC,
-fournisseur=@fournisseur,
-codechantier=@codechantier,
+idfournisseur=@idfournisseur,
+
 DateFacture=@DateFacture,
 iddesignation=@iddesignation,
 codechantier=@codechantier
@@ -454,7 +447,7 @@ exports.designation = {
      where id=@id `,
 };
 exports.all = {
-  getAll: `select * from  voir  where numeroFacture not like '%-%'`,
+  getAll: `select distinct * from  voir  where numeroFacture not like '%-%'`,
 
   getAllcount: `
     select count(*) as count
