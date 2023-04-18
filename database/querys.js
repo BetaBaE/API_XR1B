@@ -160,7 +160,17 @@ exports.factures = {
   getOne: `SELECT * FROM [dbo].[DAF_FA_VC] where id=@id`,
   getAllFactures: `SELECT * FROM [dbo].[DAF_FA_VC]
   order by nom , datedoc `,
-  getfacturebyfournisseurid: `select * from facturenonpayefournisseur where idfournisseur=@id
+  getfacturebyfournisseurid: `Select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+  where
+  f.id=@id and not
+  EXISTS (SELECT  CODEDOCUTIL,nom
+  FROM [dbo].[DAF_LOG_FACTURE] lf
+  where fa.CODEDOCUTIL=lf.CODEDOCUTIL
+
+  and fa.nom=lf.NOM
+ )
+   and  fa.nom=f.nom
+  order by fa.DateFacture
   `,
   getficheNavetebyfournisseur: `select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[ficheNavette] fa
   where
@@ -424,7 +434,16 @@ exports.factureFicheNavette = {
       
       @idFacture,@ficheNavette) `,
 
-    get: `select * from [dbo].[ficheNavette] WHERE 1=1   `,
+    get: `select fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.montantAvance,
+    fich.DateFacture,fich.TTC,fich.HT,fich.designation,fich.montantAvance, fich.numeroFacture,fich.ficheNavette
+    
+    , case  
+
+    when ch.LIBELLE  is null then  fich.LIBELLE
+    else  ch.LIBELLE		
+        end as libelle from [dbo].[ficheNavette] fich left join 
+    chantier ch on fich.LIBELLE=ch.LIBELLE
+    `,
 
 
     getCount: `seLECT COUNT(*) as count

@@ -78,7 +78,7 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
       i
     ) => {
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}' ,'paiement virement'),`)
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom},'${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}' ,'paiement virement'),`)
         : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}','paiement virement')`);
     }
   );
