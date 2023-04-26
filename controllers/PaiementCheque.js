@@ -252,7 +252,7 @@ exports.getVirements = async (req, res) => {
 
 exports.updateVirmeents = async (req, res) => {
   console.log(req.body);
-  const {  dateOperation } =
+  const {  dateOperation,Etat } =
     req.body;
  
   try {
@@ -261,6 +261,7 @@ exports.updateVirmeents = async (req, res) => {
     await pool
       .request()
       .input("dateOperation", getSql().Date, dateOperation)
+      .input("Etat", getSql().VarChar, Etat)
       .input("id", getSql().Int, req.params.id)
       .query(cheque.update);
   

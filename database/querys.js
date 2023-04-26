@@ -533,7 +533,8 @@ exports.cheque = {
      VALUES`,
   update: `Update [dbo].[DAF_cheque]
             set 
-            dateOperation=@dateOperation
+            dateOperation=@dateOperation,
+            Etat=@Etat
             where id=@id`,
   getOne: `
   SELECT v.[id]
