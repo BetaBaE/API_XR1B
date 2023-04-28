@@ -51,7 +51,7 @@ async function getFactureFromView(facturelist) {
         `${virements.getDataFromLogFacture} and id in('${facturelistString}')`
       );
     console.log(
-      "test",
+      "get",
       `${virements.getDataFromLogFacture} and id in('${facturelistString}')`
     );
     return result.recordset;

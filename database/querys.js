@@ -434,15 +434,18 @@ exports.factureFicheNavette = {
       
       @idFacture,@ficheNavette) `,
 
-    get: `select fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.montantAvance,
-    fich.DateFacture,fich.TTC,fich.HT,fich.designation,fich.montantAvance, fich.numeroFacture,fich.ficheNavette
+    get: `select fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,
+    fich.DateFacture,fich.TTC,fich.HT,fich.designation, fich.numeroFacture,fich.ficheNavette
     
     , case  
 
     when ch.LIBELLE  is null then  fich.LIBELLE
     else  ch.LIBELLE		
-        end as libelle from [dbo].[ficheNavette] fich left join 
-    chantier ch on fich.LIBELLE=ch.LIBELLE
+        end as libelle from [dbo].[ficheNavette] fich 
+		left join 
+   (select * from chantier) ch on fich.LIBELLE=ch.LIBELLE
+
+	where   1=1 
     `,
 
 
