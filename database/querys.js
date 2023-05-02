@@ -368,7 +368,9 @@ numeroFacture='----'+CAST(id as varchar(20))  +'----'
 WHERE id = @id `,
 getfacturebyfournisseurnom: `select * from [dbo].[factureresptionne] 
   where deletedAt is null and idfournisseur
-   in(select id from [dbo].[DAF_FOURNISSEURS] where id=@nom)`,
+   in(select id from [dbo].[DAF_FOURNISSEURS] where id=@nom)
+   and id not in (select idfacture from DAF_factureNavette)
+   `,
   gethistoriquefacture: `SELECT f.id
 ,f.numeroFacture
 ,f.BonCommande
