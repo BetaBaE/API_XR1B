@@ -285,11 +285,12 @@ f.id,
 f.fullName
 ,f.numeroFacture
 ,f.BonCommande
-,f.TTC,
+,
+FORMAT(f.TTC,'#,###.00') AS TTC,
 f.createdDate
-,f.DateFacture
-,f.HT
-,f.MontantTVA,
+,f.DateFacture,
+FORMAT(f.HT,'#,###.00') AS HT,
+FORMAT(f.MontantTVA,'#,###.00') AS MontantTVA,
 d.designation as "designation" ,
 fou.nom as "nom",
 fou.CodeFournisseur,
@@ -434,7 +435,7 @@ exports.factureFicheNavette = {
       
       @idFacture,@ficheNavette) `,
 
-    get: `select fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,
+    get: `select fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,fich.MontantTVA,
     fich.DateFacture,fich.TTC,fich.HT,fich.designation, fich.numeroFacture,fich.ficheNavette
     
     , case  
