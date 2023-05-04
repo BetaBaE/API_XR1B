@@ -472,12 +472,13 @@ exports.designation = {
      where id=@id `,
 };
 exports.all = {
-  getAll: `select distinct * from  voir  where numeroFacture not like '%-%'`,
+  getAll: `
+  select distinct * from  voir  where numeroFacture  not  like '%-'`,
 
   getAllcount: `
     select count(*) as count
     from voir  
-   where  numeroFacture not like '%-%'
+      where numeroFacture  not  like '%-'
     
     `,
 };
