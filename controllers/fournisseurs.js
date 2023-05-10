@@ -86,9 +86,22 @@ exports.createFournisseurs = async (req, res) => {
       nom,
     });
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
+    
+    switch (error.originalError.info.number) {
+      case 547:
+          error.message = "date invalid";
+          break;
+        case 2627:
+          error.message = "déja existe";
+          break;
+      }
+      
+      res.status(500);
+      res.send(error.message);
+  console.log(error.message)
+  
+  
+    }
 };
 
 exports.getRibsFournisseurValid = async (req, res) => {
