@@ -286,7 +286,7 @@ f.fullName
 ,f.numeroFacture
 ,f.BonCommande
 ,
-FORMAT(f.TTC,'#,###.00') AS TTC,
+f.TTC AS TTC,
 f.createdDate
 ,f.DateFacture,
 FORMAT(f.HT,'#,###.00') AS HT,
