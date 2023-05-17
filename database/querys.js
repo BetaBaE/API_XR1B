@@ -289,8 +289,8 @@ f.fullName
 f.TTC AS TTC,
 f.createdDate
 ,f.DateFacture,
-FORMAT(f.HT,'#,###.00') AS HT,
-FORMAT(f.MontantTVA,'#,###.00') AS MontantTVA,
+f.HT,
+f.MontantTVA
 d.designation as "designation" ,
 fou.nom as "nom",
 fou.CodeFournisseur,
