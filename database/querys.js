@@ -290,7 +290,7 @@ f.TTC AS TTC,
 f.createdDate
 ,f.DateFacture,
 f.HT,
-f.MontantTVA
+f.MontantTVA,
 d.designation as "designation" ,
 fou.nom as "nom",
 fou.CodeFournisseur,
