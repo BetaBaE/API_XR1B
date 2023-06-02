@@ -6,12 +6,12 @@ const { getFactureresCount, getfactureres, createfacture, getfactureresById, upd
 
 
 const router = express.Router();
-router.get("/facturesres",getFactureresCount ,getfactureres);
-router.get("/facturesres/:id", getfactureresById);
+router.get("/f",getFactureresCount ,getfactureres);
+router.get("/f/:id", getfactureresById);
 
-router.post("/facturesres", createfacture);
+router.post("/f", createfacture);
 
-router.put("/facturesres/:id", updatefactureRes);
+router.put("/f/:id", updatefactureRes);
 
 router.get("/facturebyfournisseur/:nom", getfacturebyfournisseur);
 router.get("/designation", getdesignations);
