@@ -8,8 +8,8 @@ const {
 } = require("../controllers/factures");
 
 const router = express.Router();
-router.get("/facturesres", getFacturesCount, getFactures);
-router.get("/facturesres/:id", getFacturesById);
+router.get("/factures", getFacturesCount, getFactures);
+router.get("/factures/:id", getFacturesById);
 router.get("/allfactures", getFacturesCount, getAllFactures);
 router.get("/getfacturebyfournisseurid/:id", getfacturebyfournisseurid);
 

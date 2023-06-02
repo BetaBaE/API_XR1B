@@ -291,12 +291,7 @@ f.id,
 f.fullName
 ,f.numeroFacture
 ,f.BonCommande
-<<<<<<< HEAD
-,f.TTC,
-=======
-,
-f.TTC AS TTC,
->>>>>>> a691b06029064a20efe205d981ccd8b7fe1f3ce4
+,f.TTC AS TTC,
 f.createdDate
 ,f.DateFacture,
 f.HT,
