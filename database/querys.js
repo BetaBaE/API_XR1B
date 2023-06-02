@@ -291,11 +291,16 @@ f.id,
 f.fullName
 ,f.numeroFacture
 ,f.BonCommande
+<<<<<<< HEAD
 ,f.TTC,
+=======
+,
+f.TTC AS TTC,
+>>>>>>> a691b06029064a20efe205d981ccd8b7fe1f3ce4
 f.createdDate
 ,f.DateFacture,
-FORMAT(f.HT,'#,###.00') AS HT,
-FORMAT(f.MontantTVA,'#,###.00') AS MontantTVA,
+f.HT,
+f.MontantTVA,
 d.designation as "designation" ,
 fou.nom as "nom",
 fou.CodeFournisseur,
