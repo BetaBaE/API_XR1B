@@ -115,9 +115,9 @@ exports.createfacture = async (req, res) => {
           .input("BonCommande", getSql().Char, new String(req.body.BonCommande))
           .input("DateFacture", getSql().Date, req.body.DateFacture)
           .input("idfournisseur", getSql().Int, req.body.idfournisseur)
-          .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
           .input("fullName", getSql().VarChar, req.body.fullName)
           .input("iddesignation", getSql().Int, req.body.iddesignation)
+          .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
           .query(factureres.createfacture)
       console.log("errour");
       res.json({
@@ -151,13 +151,7 @@ console.log(error.message)
   }
 };
 exports.updatefactureRes = async (req, res) => {
-  const {  numeroFacture,
-    BonCommande,
-    TTC,
-    idfournisseur,
-    codechantier,
-    DateFacture,
-    iddesignation} =
+  const { numeroFacture} =
     req.body;
   try {
     const pool = await getConnection();
@@ -166,30 +160,21 @@ exports.updatefactureRes = async (req, res) => {
       .request()
 
       .input("id", getSql().Int, req.params.id)
-  
-      .input("numeroFacture", getSql().Char, new String(req.body.numeroFacture))
-      .input("TTC", getSql().Numeric(10, 2), req.body.TTC)
-      .input("BonCommande", getSql().Char, new String(req.body.BonCommande))
-      .input("DateFacture", getSql().Date, req.body.DateFacture)
-      .input("idfournisseur", getSql().Int, req.body.idfournisseur)
-      .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
 
-      .input("iddesignation", getSql().Int, req.body.iddesignation)
-  
       .query(factureres.delete);
 
     res.json({
       id: req.params.id,
-      numeroFacture,
-      BonCommande,
-      TTC,
-      idfournisseur,
-      codechantier,
-      DateFacture,
-      iddesignation
+      numeroFacture
     });
   } catch (error) {
-  
+    /*      //error.originalError.info.name="déja existe"
+         if(error.originalError.info.number=2627) {
+         //  error.originalError.info.name="déja existe"
+           error.message="déja supprimé"
+           res.set( error.originalError.info.name)
+          }*/
+
     res.status(500);
     res.send(error.message);
   }
@@ -406,5 +391,42 @@ exports.updatefacturevalider = async (req, res) => {
 
     res.status(500);
     res.send(error.message);
+  }
+};
+
+
+exports.getsumfacturebyfournisseurwithoutfn = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .query(factureres.getsumfacturebyfournisseurwithoutfn);
+
+    res.set("Content-Range", `factures 0-1/1`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+exports.getsumfacturebyfournisseurwithfn = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .query(factureres.getsumfacturebyfournisseurwithfn);
+
+    res.set("Content-Range", `factures 0-1/1`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
   }
 };

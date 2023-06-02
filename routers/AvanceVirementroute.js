@@ -8,9 +8,9 @@ const {
 } = require("../controllers/AvanceVirement");
 
 const router = express.Router();
-router.post("/AvanceVirement", createVirements);
-router.get("/AvanceVirement", getVirementCount, getVirements);
-router.get("/AvanceVirement/:id", getOneVirementById);
-router.put("/AvanceVirement/:id", updateVirmeents);
+router.post("/VirementAvance", createVirements);
+router.get("/VirementAvance", getVirementCount, getVirements);
+router.get("/VirementAvance/:id", getOneVirementById);
+router.put("/VirementAvance/:id", updateVirmeents);
 
 module.exports = router;

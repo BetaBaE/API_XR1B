@@ -97,6 +97,7 @@ exports.createfacture = async(req, res) => {
           .input("idfournisseur", getSql().Int, req.body.idfournisseur)
           .input("montantAvance", getSql().Numeric(10, 2), req.body.montantAvance)
           .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
+          .input("Bcommande", getSql().VarChar, req.body.Bcommande)
           .query(factureFicheNavette.create);
       console.log("errour");
       res.json({
@@ -232,4 +233,22 @@ exports.getficheNavetteByfournisseur = async (req, res) => {
   }
 };
 
+exports.getavanceByfournisseur = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("idfournisseur", getSql().VarChar, req.params.idfournisseur)
+      .query(factureFicheNavette.getavancebyfournisseur);
 
+    if (result.recordset) {
+      res.set("Content-Range", `factures 0-1/1`);
+      res.json(result.recordset);
+    } else {
+      res.json([]); // Return an empty array if there are no results
+    }
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};

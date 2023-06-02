@@ -277,7 +277,13 @@ exports.chantiers = {
   getChantiers: "select * from chantier where  CODEAFFAIRE is  not null",
   getcountChantier:
     "select count(*) from chantier where  CODEAFFAIRE is  not null",
-};
+  getChantiersbyfactureid :`SELECT * from chantier
+  where  id in(
+  select codechantier from factureresptionne
+  where id=@id
+  )  `
+
+  };
 
 exports.factureres = {
   getfactureres: `select
@@ -285,8 +291,7 @@ f.id,
 f.fullName
 ,f.numeroFacture
 ,f.BonCommande
-,
-FORMAT(f.TTC,'#,###.00') AS TTC,
+,f.TTC,
 f.createdDate
 ,f.DateFacture,
 FORMAT(f.HT,'#,###.00') AS HT,
@@ -328,7 +333,6 @@ createfacture: `INSERT INTO [dbo].[factureresptionne](
     ,@iddesignation
     ,@fullName
     ,@codechantier
-
     )`,
   getOne: `select
 f.id,
@@ -351,23 +355,17 @@ where deletedAt is null and f.id=@id`,
   alreadyexist:
     "select count(*) from  [dbo].[factureresptionne] where numeroFacture =@numeroFacture and BonCommande =@BonCommande",
   delete: `UPDATE [dbo].[factureresptionne]
-SET  
-numeroFacture=@numeroFacture,
-BonCommande=@BonCommande,
-TTC=@TTC,
-idfournisseur=@idfournisseur,
+  SET  deletedAt=getDate(),
+  numeroFacture='----'+CAST(id as varchar(20))  +'----'
 
-DateFacture=@DateFacture,
-iddesignation=@iddesignation,
-codechantier=@codechantier
-WHERE id = @id `,
+   WHERE id = @id `,
 
   edit: `UPDATE [dbo].[factureresptionne]
 SET  deletedAt=getDate(),
 numeroFacture='----'+CAST(id as varchar(20))  +'----'
 WHERE id = @id `,
 getfacturebyfournisseurnom: `select * from [dbo].[factureresptionne] 
-  where deletedAt is null and idfournisseur
+  where deletedAt is null and idfournisseur 
    in(select id from [dbo].[DAF_FOURNISSEURS] where id=@nom)
    and id not in (select idfacture from DAF_factureNavette)
    `,
@@ -425,6 +423,30 @@ where d.id=f.iddesignation  and fou.id=f.idfournisseur  and deletedAt is  not nu
   updatedBy=@updatedBy,
   BonCommande=@BonCommande
 WHERE id = @id `,
+getsumfacturebyfournisseurwithoutfn:`Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+where fa.ficheNavette is null and
+f.id=@id and not
+EXISTS (SELECT  CODEDOCUTIL,nom
+FROM [dbo].[DAF_LOG_FACTURE] lf
+where fa.CODEDOCUTIL=lf.CODEDOCUTIL
+
+and fa.nom=lf.NOM
+)
+ and  fa.nom=f.nom
+`,
+getsumfacturebyfournisseurwithfn:`Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+where fa.ficheNavette is not null and
+f.id=@id and not
+EXISTS (SELECT  CODEDOCUTIL,nom
+FROM [dbo].[DAF_LOG_FACTURE] lf
+where fa.CODEDOCUTIL=lf.CODEDOCUTIL
+
+and fa.nom=lf.NOM
+)
+ and  fa.nom=f.nom
+
+`
+
 };
 exports.factureFicheNavette = {
   create: `INSERT INTO [dbo].[DAF_factureNavette]
@@ -432,10 +454,12 @@ exports.factureFicheNavette = {
       ,[montantAvance],
       [idfournisseur],
       [idFacture],
-      [ficheNavette])
+      [ficheNavette],
+      [Bcommande]
+      )
     VALUES (@codechantier,@montantAvance,@idfournisseur,
       
-      @idFacture,@ficheNavette) `,
+      @idFacture,@ficheNavette,@Bcommande) `,
 
     get: `select fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,fich.MontantTVA,
     fich.DateFacture,fich.TTC,fich.HT,fich.designation, fich.numeroFacture,fich.ficheNavette
@@ -460,7 +484,12 @@ exports.factureFicheNavette = {
               idfacture=@idFacture,
               idfournisseur=@idfournisseur,
               codechantier=@codechantier
-        where idfacturenavette=@id `
+        where idfacturenavette=@id `,
+getavancebyfournisseur:`select * from DAF_factureNavette
+where Bcommande is not null
+and idFacture=0 and idfournisseur=@idfournisseur`
+
+
 };
 
 exports.designation = {
@@ -667,7 +696,7 @@ VALUES
   )`,
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_virementAvance]",
   getAll: `
-SELECT v.[id]
+  SELECT v.[id]
   ,[orderVirementId]
   ,f.nom
   ,rf.rib
@@ -677,9 +706,8 @@ SELECT v.[id]
 FROM  [dbo].[DAF_virementAvance] v ,
   [dbo].[DAF_RIB_Fournisseurs] rf,
   [dbo].[DAF_FOURNISSEURS] f
-where v.fournisseurId = f.id
-and v.ribFournisseurId = rf.id
-and 1=1
+  where v.fournisseurId=f.CodeFournisseur
+  and v.ribFournisseurId = rf.id
 `,
   getDataFromLogFacture: `SELECT * FROM [dbo].[ficheNavette] where 1=1 `,
   createLogFacture: `

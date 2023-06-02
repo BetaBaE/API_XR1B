@@ -51,4 +51,20 @@ exports.getChantiers= async (req, res) => {
       res.send(error.message);
     }
   };
+  exports.getchantierbyfactureid = async (req, res) => {
+    try {
+      const pool = await getConnection();
   
+      const result = await pool
+        .request()
+        .input("id", getSql().Int, req.params.id)
+        .query(chantiers.getChantiersbyfactureid);
+  
+      res.set("Content-Range", `cahntier 0-1/1`);
+  
+      res.json(result.recordset);
+    } catch (error) {
+      res.send(error.message);
+      res.status(500);
+    }
+  };
