@@ -60,7 +60,7 @@ exports.getFacture = async (req, res) => {
 
     const result = await pool.request().query(
       `${factureFicheNavette.get} ${queryFilter} Order by ${sort[0]} ${sort[1]}
-      `
+      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
     console.log(req.count);
