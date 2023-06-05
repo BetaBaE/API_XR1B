@@ -416,7 +416,8 @@ INNER JOIN [dbo].[DAF_FOURNISSEURS] fou ON fou.id = f.idfournisseur
 WHERE deletedAt IS NULL 
 AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
 `,
-  getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[factureresptionne] where deletedAt is null and verifiyMidelt is null`,
+  getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[factureresptionne] WHERE deletedAt IS NULL 
+  AND (verifiyMidelt IS NULL OR BonCommande IS NULL OR BonCommande = '')`,
 
   validerfacture: `UPDATE [dbo].[factureresptionne]
   SET  verifiyMidelt=@verifiyMidelt,
