@@ -396,26 +396,26 @@ where d.id=f.iddesignation  and fou.id=f.idfournisseur  and deletedAt is  not nu
    and
 
   and idfournisseur in(select id from [dbo].[DAF_FOURNISSEURS] where id=@id)`,
-  getfacturevalider: `select
+  getfacturevalider: `SELECT 
   f.id,
-  f.fullName
-  ,f.numeroFacture
-  ,f.BonCommande
-  ,f.TTC
-  ,f.DateFacture
-
-  ,f.HT
-  ,f.MontantTVA,
-  d.designation as "designation" ,
-  fou.nom as "nom",
+  f.fullName,
+  f.numeroFacture,
+  f.BonCommande,
+  f.TTC,
+  f.DateFacture,
+  f.HT,
+  f.MontantTVA,
+  d.designation AS "designation",
+  fou.nom AS "nom",
   fou.CodeFournisseur,
   f.verifiyMidelt,
   f.createdDate
-  FROM [dbo].[factureresptionne] f
-
-  inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
-  inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
-  where deletedAt is null and f.verifiyMidelt is null`,
+FROM [dbo].[factureresptionne] f
+INNER JOIN [dbo].[FactureDesignation] d ON d.id = f.iddesignation
+INNER JOIN [dbo].[DAF_FOURNISSEURS] fou ON fou.id = f.idfournisseur
+WHERE deletedAt IS NULL 
+AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
+`,
   getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[factureresptionne] where deletedAt is null and verifiyMidelt is null`,
 
   validerfacture: `UPDATE [dbo].[factureresptionne]
