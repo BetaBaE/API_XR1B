@@ -157,40 +157,6 @@ exports.getVirementCount = async (req, res, next) => {
   }
 };
 
-exports.createVirements = async (req, res) => {
-  // console.log(req.body);
-  let { facturelist } = req.body;
-  let { Totale } = await calculSumFactures(facturelist);
-  //let num = MontantFixed(Totale);
-  let ArrayOfFacture = await getFactureFromView(facturelist);
-
-  console.log(req.body, Totale);
-  console.log("virement", espece.create);
-  try {
-    const pool = await getConnection();
-    if (Totale>5000) {
-      throw new Error("Erreur dans le paiement");
-    }
-    const result = await pool
-      .request()
-      .input("fournisseurId", getSql().Int, req.body.fournisseurId)   
-      .input("montantVirement", getSql().Float, Totale)
-      .query(espece.create);
-   
-      insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
-    res.json({ id: "" });
-  } catch (error) {
-    
-   
-      
-      res.status(500);
-      res.send(error.message);
-  console.log(error.message)
-  
-  
-    }
-
-};
 
 exports.getVirements = async (req, res) => {
   try {
@@ -287,5 +253,35 @@ exports.getOneVirementById = async (req, res) => {
   } catch (error) {
     res.send(error.message);
     res.status(500);
+  }
+};
+exports.createVirements = async (req, res) => {
+  let { facturelist } = req.body;
+  let { Totale } = await calculSumFactures(facturelist);
+  let ArrayOfFacture = await getFactureFromView(facturelist);
+
+  console.log(req.body, Totale);
+  console.log("virement", espece.create);
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("fournisseurId", getSql().Int, req.body.fournisseurId)   
+      .input("montantVirement", getSql().Float, Totale)
+      .query(espece.create);
+   
+    insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
+    res.json({ id: "" });
+  } catch (error) {
+    switch (error.originalError.info.number) {
+      case 547:
+        error.message = "vous avez dépassé le plafond de paiement";
+        res.status(500).send(error.message);
+        break;
+      default:
+        res.status(500).send(error.message);
+    }
+    console.log(error.message);
   }
 };
