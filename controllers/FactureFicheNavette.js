@@ -31,7 +31,7 @@ exports.getFacture = async (req, res) => {
       queryFilter += ` and upper(fich.ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
     }
     if (filter.chantier) {
-      queryFilter += ` and upper(LIBELLE) like(upper('%${filter.chantier}%'))`;
+      queryFilter += ` and upper(fich.LIBELLE) like(upper('%${filter.chantier}%'))`;
     }
 
     if (filter.BonCommande) {
