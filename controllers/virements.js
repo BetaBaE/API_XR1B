@@ -104,7 +104,7 @@ async function AddToTotalOv(number, id) {
       // .input("montantVirement", getSql().Numeric, number)
       // .input("id", getSql().VarChar, id)
       .query(
-        `update [DAF_Order_virements_test] set total = total+${number} where id ='${id}'`
+        `update [DAF_Order_virements] set total = total+${number} where id ='${id}'`
       );
 
     return result.recordset;
