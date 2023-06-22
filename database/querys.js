@@ -462,7 +462,7 @@ exports.factureFicheNavette = {
       
       @idFacture,@ficheNavette,@Bcommande) `,
 
-    get: `select fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,fich.MontantTVA,
+    get: `select distinct fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,fich.MontantTVA,
     fich.DateFacture,fich.TTC,fich.HT,fich.designation, fich.numeroFacture,fich.ficheNavette
     
     , case  
@@ -473,7 +473,6 @@ exports.factureFicheNavette = {
 		left join 
    (select * from chantier) ch on fich.LIBELLE=ch.LIBELLE
 
-	where   1=1 
     `,
 
 
@@ -483,8 +482,7 @@ exports.factureFicheNavette = {
    update: `update [dbo].[DAF_factureNavette] 
         set ficheNavette=@ficheNavette,
               idfacture=@idFacture,
-              idfournisseur=@idfournisseur,
-              codechantier=@codechantier
+              codechantier=@CODEAFFAIRE
         where idfacturenavette=@id `,
 getavancebyfournisseur:`select * from DAF_factureNavette
 where Bcommande is not null
@@ -495,7 +493,7 @@ and idFacture=0 and idfournisseur=@idfournisseur`
 
 exports.designation = {
   getdesignationCount:
-    "SELECT COUNT(*) as count FROM [dbo].[FactureDesignation]",
+    "SELECT COUNT(*) as cogetficheNavettebyfournisseurunt FROM [dbo].[FactureDesignation]",
   getDesignation: "SELECT * FROM [dbo].[FactureDesignation] where 1=1 ",
   getdesignationbynom: `SELECT *
      FROM [dbo].[FactureDesignation]

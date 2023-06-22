@@ -168,12 +168,7 @@ exports.updatefactureRes = async (req, res) => {
       numeroFacture
     });
   } catch (error) {
-    /*      //error.originalError.info.name="déja existe"
-         if(error.originalError.info.number=2627) {
-         //  error.originalError.info.name="déja existe"
-           error.message="déja supprimé"
-           res.set( error.originalError.info.name)
-          }*/
+   
 
     res.status(500);
     res.send(error.message);

@@ -41,16 +41,10 @@ exports.getall = async(req, res) => {
         if (filter.DateFacturemax) {
             queryFilter += ` and DateFacture < '${filter.DateFacturemax}'`;
         }
-        if (filter.DateFacturemax && filter.DateFactureMin) {
-            queryFilter += ` and DateFacture between '${filter.DateFactureMin}' and  '${filter.DateFacturemax}' `;
-        }
-        if (filter.dateOperationMin) {
-            queryFilter += ` and dateOperation > '${filter.dateOperationMin}'`;
-        }
+      
+        
 
-        if (filter.DateFacturemax) {
-            queryFilter += ` and dateOperation < '${filter.DateFacturemax}'`;
-        }
+       
         if (filter.DateFacturemax && filter.dateOperationMin) {
             queryFilter += ` and dateOperation between '${filter.dateOperationMin}' and  '${filter.DateFacturemax}' `;
         }

@@ -31,37 +31,35 @@ exports.getFacture = async (req, res) => {
       queryFilter += ` and upper(fich.ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
     }
     if (filter.chantier) {
-      queryFilter += ` and upper(LIBELLE) like(upper('%${filter.chantier}%'))`;
+      queryFilter += ` and upper(fich.LIBELLE) like(upper('%${filter.chantier}%'))`;
     }
-
+    
     if (filter.BonCommande) {
       queryFilter += ` and upper(BonCommande)  like('%${filter.BonCommande}%')`;
     }
     if (filter.fournisseur) {
-      queryFilter += ` and upper(nom) like(upper('%${filter.fournisseur}%'))`;
+      queryFilter += ` and upper(fich.nom) like(upper('%${filter.fournisseur}%'))`;
     }
-    if (filter.source) {
-      queryFilter += ` and upper(source) like(upper('%${filter.source}%'))`;
-    }
+    
     if (filter.designation) {
       queryFilter += ` and upper(designation) like(upper('%${filter.designation}%'))`;
     }
-
+    
     if (filter.numeroFacture) {
       queryFilter += ` and upper(numeroFacture)  like('%${filter.numeroFacture}%')`;
     }
     if (filter.CodeFournisseur) {
       queryFilter += ` and upper(CodeFournisseur) like(upper('%${filter.CodeFournisseur}%'))`;
     }
-
-    console.log(queryFilter);
-
+    
+    // Modifier la construction de la clause WHERE
+    let whereClause = queryFilter ? `WHERE 1=1${queryFilter}` : "";
     const pool = await getConnection();
-
     const result = await pool.request().query(
-      `${factureFicheNavette.get} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+      `${factureFicheNavette.get} ${whereClause} Order by ${sort[0]} ${sort[1]}
       OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
+    
 
     console.log(req.count);
     res.set(
@@ -95,7 +93,7 @@ exports.createfacture = async(req, res) => {
           .input("codechantier", getSql().Char, new String(req.body.codechantier))
           .input("idFacture", getSql().Int, req.body.idFacture)
           .input("idfournisseur", getSql().Int, req.body.idfournisseur)
-          .input("montantAvance", getSql().Numeric(10, 2), req.body.montantAvance)
+          .input("montantAvance", getSql().Numeric, req.body.montantAvance)
           .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
           .input("Bcommande", getSql().VarChar, req.body.Bcommande)
           .query(factureFicheNavette.create);
@@ -108,10 +106,20 @@ exports.createfacture = async(req, res) => {
           idfournisseur
       });
   } catch (error) {
+    
+    switch (error.originalError.info.number) {
+      case 547:
+          error.message = "date invalid";
+          break;
+        case 2627:
+          error.message = "déja existe";
+          break;
+      }
       
-
       res.status(500);
       res.send(error.message);
+  console.log(error.message)
+  
   }
 
 };
@@ -181,7 +189,7 @@ exports.getfactureresById = async (req, res) => {
 };
 
 exports.updatenavette = async (req, res) => {
-  const { ficheNavette,idFacture,idfournisseur,codechantier } = req.body;
+  const { ficheNavette,idFacture,CODEAFFAIRE } = req.body;
   try {
     const pool = await getConnection();
 
@@ -191,27 +199,32 @@ exports.updatenavette = async (req, res) => {
       .input("id", getSql().Int, req.params.id)
       .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
       .input("idFacture", getSql().Int, req.body.idFacture)
-      .input("idfournisseur", getSql().Int, req.body.idfournisseur)
-      .input("codechantier", getSql().VarChar, req.body.codechantier)
+    
+      .input("CODEAFFAIRE", getSql().VarChar, req.body.CODEAFFAIRE)
       .query(factureFicheNavette.update);
 
     res.json({
       id: req.params.id,
       ficheNavette,
       idFacture,
-      idfournisseur,
-      codechantier
+  
+      CODEAFFAIRE
     });
   } catch (error) {
-    /*      //error.originalError.info.name="déja existe"
-         if(error.originalError.info.number=2627) {
-         //  error.originalError.info.name="déja existe"
-           error.message="déja supprimé"
-           res.set( error.originalError.info.name)
-          }*/
-
-    res.status(500);
-    res.send(error.message);
+    
+    switch (error.originalError.info.number) {
+      case 547:
+          error.message = "date invalid";
+          break;
+        case 2627:
+          error.message = "déja existe";
+          break;
+      }
+      
+      res.status(500);
+      res.send(error.message);
+  console.log(error.message)
+  
   }
 };
 
