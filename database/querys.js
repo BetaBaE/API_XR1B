@@ -301,7 +301,7 @@ fou.nom as "nom",
 fou.CodeFournisseur,
 f.verifiyMidelt,
 f.updatedBy,
-ch.LIBELLE
+ch.LIBELLE as LIBELLE
 
 FROM [dbo].[factureresptionne] f
 inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
