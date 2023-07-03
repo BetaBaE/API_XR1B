@@ -37,14 +37,9 @@ exports.getall = async(req, res) => {
         if (filter.DateFactureMin) {
             queryFilter += ` and DateFacture > '${filter.DateFactureMin}'`;
         }
-
         if (filter.DateFacturemax) {
             queryFilter += ` and DateFacture < '${filter.DateFacturemax}'`;
         }
-      
-        
-
-       
         if (filter.DateFacturemax && filter.dateOperationMin) {
             queryFilter += ` and dateOperation between '${filter.dateOperationMin}' and  '${filter.DateFacturemax}' `;
         }
@@ -54,11 +49,9 @@ exports.getall = async(req, res) => {
         if (filter.CodeFournisseur) {
             queryFilter += `and upper(CodeFournisseur) like(upper('%${filter.CodeFournisseur}%'))`;
         }
-
         if (filter.fournisseur) {
             queryFilter += `and upper(nom) like(upper('%${filter.fournisseur}%'))`;
         }
-
         if (filter.ordervirement) {
             queryFilter += `and upper(modepaiement) like(upper('%${filter.ordervirement}%'))`;
         }
@@ -68,26 +61,21 @@ exports.getall = async(req, res) => {
         if (filter.dateExecutiondebut) {
             queryFilter += ` and dateExecution > '${filter.dateExecutiondebut}'`;
         }
-
         if (filter.Dateexecusionfin) {
             queryFilter += ` and dateExecution < '${filter.Dateexecusionfin}'`;
         }
         if (filter.DateFacturemax && filter.dateExecutiondebut) {
             queryFilter += ` and dateExecution between '${filter.dateExecutiondebut}' and  '${filter.DateFacturemax}' `;
         }
-
         if (filter.banque) {
             queryFilter += ` and  upper(banque) like(upper('%${filter.banque}%'))`;
         }
         console.log(queryFilter);
         const pool = await getConnection();
-        // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
-
         const result = await pool.request().query(
             `${all.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
-    OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+              OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
         );
-
         console.log(req.count);
         res.set(
             "Content-Range",

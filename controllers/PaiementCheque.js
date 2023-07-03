@@ -74,13 +74,13 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
         HT,
         MontantTVA,
         NETAPAYER,
-        
+        id
       },
       i
     ) => {
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}','en cours','paiement cheque'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${HT}','${MontantTVA}','${NETAPAYER}','${orderVirementId}','en cours','paiement cheque')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','Reglee','paiement espece','${DateFacture === null ? id : 0}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','Reglee','paiement espece','${DateFacture === null ? id : 0}')`);
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);

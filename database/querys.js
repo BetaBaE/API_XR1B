@@ -135,7 +135,7 @@ exports.ordervirements = {
     and v.ribFournisseurId = rf.id
     and Etat = 'En cours'
     and [orderVirementId] = @ovId`,
-  updateVirements: `update [dbo].[DAF_VIREMENTS] set Etat = 'Reglee'
+  updateVirements: `update [dbo].[ordervirements] set Etat = 'Reglee'
                       where orderVirementId = @id`,
 
   updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee'
@@ -172,14 +172,11 @@ exports.factures = {
    and  fa.nom=f.nom
   order by fa.DateFacture
   `,
-  getficheNavetebyfournisseur: `select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[ficheNavette] fa
-  where
-   f.id=@id and
- fa.id not in (SELECT  idfactureNavette
- FROM [dbo].[DAF_LOG_FACTURE]
-WHERE [etat] in ('En cours','Reglee' ))
-and fa.nom= f.nom 
-and   fa.numeroFacture  is null
+  getficheNavetebyfournisseur: `SELECT fa.*
+  FROM [dbo].[DAF_FOURNISSEURS] f
+  INNER JOIN [dbo].[DAF_factureNavette] fa ON f.id = @id
+  WHERE fa.idfacturenavette NOT IN (SELECT idfactureNavette FROM [dbo].[DAF_LOG_FACTURE])
+  
 `
 
 };
@@ -239,7 +236,8 @@ exports.virements = {
            ,[TOTTVANET]
            ,[NETAPAYER]
            ,[orderVirementId]
-           ,[modepaiement])
+           ,[modepaiement],
+           [idfactureNavette])
      VALUES`,
   update: `Update [dbo].[DAF_VIREMENTS]
             set Etat=@Etat,
@@ -265,13 +263,28 @@ exports.virements = {
 };
 
 exports.logFactures = {
-  getLogFactureCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_LOG_FACTURE]
-       where
-      NETAPAYER<>0
+  getLogFactureCount: `SELECT COUNT(*) as count
+  FROM  [dbo].[DAF_LOG_FACTURE] lf 
+  inner join [dbo].[DAF_factureNavette] fn
+  on fn.idfacturenavette=lf.idfactureNavette
+  inner join  [dbo].[DAF_FOURNISSEURS]  fou
+  on fou.id=fn.idfournisseur 
+  inner join  chantier ch  on
+  ch.id=fn.codechantier
     `,
-  getLogFactures: `SELECT * FROM [dbo].[DAF_LOG_FACTURE] where 1=1 and
-
-      NETAPAYER<>0`,
+  getLogFactures: `SELECT distinct fn.Bcommande,fn.montantAvance, fn.idfacturenavette as id,
+  fou.CodeFournisseur,fou.nom,
+  ch.LIBELLE, ch.CODEAFFAIRE,
+  lf.etat ,lf.modepaiement,fn.ficheNavette
+  FROM  [dbo].[DAF_LOG_FACTURE] lf 
+  inner join [dbo].[DAF_factureNavette] fn
+  on fn.idfacturenavette=lf.idfactureNavette
+  inner join  [dbo].[DAF_FOURNISSEURS]  fou
+  
+  on fou.id=fn.idfournisseur 
+  
+  inner join  chantier ch  on
+  ch.id=fn.codechantier`,
 };
 exports.chantiers = {
   getChantiers: "select * from chantier where  CODEAFFAIRE is  not null",
@@ -425,7 +438,7 @@ AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
   BonCommande=@BonCommande
 WHERE id = @id `,
 getsumfacturebyfournisseurwithoutfn:`Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
-where fa.ficheNavette is null and
+where fa.ficheNavette is null  and fa.DateFacture is not null  and 
 f.id=@id and not
 EXISTS (SELECT  CODEDOCUTIL,nom
 FROM [dbo].[DAF_LOG_FACTURE] lf
@@ -436,7 +449,7 @@ and fa.nom=lf.NOM
  and  fa.nom=f.nom
 `,
 getsumfacturebyfournisseurwithfn:`Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
-where fa.ficheNavette is not null and
+where fa.ficheNavette is not null and fa.DateFacture is not null and 
 f.id=@id and not
 EXISTS (SELECT  CODEDOCUTIL,nom
 FROM [dbo].[DAF_LOG_FACTURE] lf
@@ -446,7 +459,8 @@ and fa.nom=lf.NOM
 )
  and  fa.nom=f.nom
 
-`
+`, 
+
 
 };
 exports.factureFicheNavette = {
@@ -486,7 +500,20 @@ exports.factureFicheNavette = {
         where idfacturenavette=@id `,
 getavancebyfournisseur:`select * from DAF_factureNavette
 where Bcommande is not null
-and idFacture=0 and idfournisseur=@idfournisseur`
+and idFacture=0 and idfournisseur=@idfournisseur`,
+
+getsumavancebyforurnisseur:`Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+where fa.ficheNavette is not null and fa.DateFacture is  null and 
+f.id=@id and not
+EXISTS (SELECT  CODEDOCUTIL,nom
+FROM [dbo].[DAF_LOG_FACTURE] lf
+where fa.CODEDOCUTIL=lf.CODEDOCUTIL
+
+and fa.nom=lf.NOM
+)
+ and  fa.nom=f.nom
+
+`
 
 
 };
@@ -562,8 +589,8 @@ exports.cheque = {
            ,[NETAPAYER]
            ,[orderVirementId],
             [etat],
-            [modepaiement]
-     
+            [modepaiement],
+            [idfactureNavette]
            )
      VALUES`,
   update: `Update [dbo].[DAF_cheque]
@@ -640,7 +667,8 @@ exports.espece = {
            ,[NETAPAYER]
            ,[orderVirementId],
            [etat],
-           [modepaiement]
+           [modepaiement],
+           [idfactureNavette]
            )
      VALUES`,
   update: `Update [dbo].[DAF_VIREMENTS]

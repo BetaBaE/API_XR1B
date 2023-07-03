@@ -24,23 +24,21 @@ exports.getLogFactures = async (req, res) => {
     filter = JSON.parse(filter);
     console.log(filter);
     let queryFilter = "";
-    if (filter.CODEDOCUTIL) {
-      queryFilter += ` and upper(CODEDOCUTIL) like(upper('%${filter.CODEDOCUTIL}%'))`;
+    if (filter.Bcommande) {
+      queryFilter += ` and upper(fn.Bcommande) like(upper('%${filter.Bcommande}%'))`;
     }
-    if (filter.CODECHT) {
-      queryFilter += ` and upper(CODECHT) like(upper('%${filter.CODECHT}%'))`;
+    if (filter.CodeFournisseur) {
+      queryFilter += ` and upper(fou.CodeFournisseur) like(upper('%${filter.CodeFournisseur}%'))`;
     }
-    if (filter.NOM) {
-      queryFilter += ` and upper(NOM) like(upper('%${filter.NOM}%'))`;
+    if (filter.nom) {
+      queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
     }
-    if (filter.LIBREGLEMENT) {
-      queryFilter += ` and upper(LIBREGLEMENT) like(upper('%${filter.LIBREGLEMENT}%'))`;
+    if (filter.ficheNavette) {
+      queryFilter += ` and upper(fn.ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
     }
-    if (filter.orderVirementId) {
-      queryFilter += ` and upper(orderVirementId) like(upper('%${filter.orderVirementId}%'))`;
-    }
-    if (filter.etat) {
-      queryFilter += ` and upper(etat) like(upper('%${filter.etat}%'))`;
+    
+    if (filter.LIBELLE) {
+      queryFilter += ` and upper(ch.LIBELLE) like(upper('%${filter.LIBELLE}%'))`;
     }
 
     console.log(queryFilter);

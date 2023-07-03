@@ -1,5 +1,5 @@
 const express = require("express");
-const { createfacture, getFactureCount, getFacture, getfactureresById, updatenavette, getficheNavetteByfournisseur, getavanceByfournisseur } = require("../controllers/FactureFicheNavette");
+const { createfacture, getFactureCount, getFacture, getfactureresById, updatenavette, getficheNavetteByfournisseur, getavanceByfournisseur, getsumavancebyfournisseurwithfn } = require("../controllers/FactureFicheNavette");
 
 
 const router = express.Router();
@@ -15,4 +15,15 @@ router.get("/getficheNavettebyfournisseur/:id", getficheNavetteByfournisseur);
 
 
 router.get("/getavancebyfournisseur/:idfournisseur", getavanceByfournisseur);
+
+
+
+
+
+router.get("/getsumavancebyfournisseur/:id",getsumavancebyfournisseurwithfn);
+
+
+
+
+
 module.exports = router;

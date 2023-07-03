@@ -144,26 +144,4 @@ exports.FournisseursRibValid = async (req, res) => {
   }
 };
 
-exports.PrintOrderVirement = async (req, res) => {
-  let printData = {
-    header: {},
-    body: [],
-  };
-  let filter = req.query.ordervirment || "{}";
-  filter = JSON.parse(filter);
 
-  try {
-    const pool = await getConnection();
-
-    const result = await pool
-      .request()
-      .input("ovId", getSql().VarChar, filter.id)
-      .query(Fournisseurs.FournisseursRibValid);
-    res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
-
-    res.json(result.recordset);
-  } catch (error) {
-    res.send(error.message);
-    res.status(500);
-  }
-};
