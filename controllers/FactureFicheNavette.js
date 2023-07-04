@@ -204,13 +204,14 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   }
 };
 exports.updatenavette = async (req, res) => {
-  const { ficheNavette, idFacture, CODEAFFAIRE } = req.body;
+  const { ficheNavette, idFacture, CODEAFFAIRE, montantAvance: inputMontantAvance } = req.body;
   try {
     const pool = await getConnection();
     const updateFactureQuery = `
       UPDATE DAF_factureNavette
-      SET ficheNavette = @ficheNavette ,
-          idFacture=@idFacture
+      SET ficheNavette = @ficheNavette,
+          idFacture = @idFacture,
+          montantAvance = @montantAvance
       WHERE idfacturenavette = @id
     `;
     await pool
@@ -218,6 +219,7 @@ exports.updatenavette = async (req, res) => {
       .input("id", getSql().Int, req.params.id)
       .input("ficheNavette", getSql().VarChar, ficheNavette)
       .input("idFacture", getSql().Int, idFacture)
+      .input("montantAvance", getSql().Int, inputMontantAvance)
       .query(updateFactureQuery);
 
     const getMontantAvanceQuery = `
@@ -225,16 +227,13 @@ exports.updatenavette = async (req, res) => {
       FROM DAF_factureNavette
       WHERE idFacture = @idFacture
     `;
-console.log('id',idFacture)
 
     const result = await pool
       .request()
       .input("idFacture", getSql().Int, idFacture)
       .query(getMontantAvanceQuery);
+    const updatedMontantAvance = result.recordset[0].montantAvance;
 
-    const montantAvance = result.recordset[0].montantAvance;
-
-    // Récupérer le TTC de la table FactureReceptionne
     const getTtcQuery = `
       SELECT TTC
       FROM factureresptionne
@@ -245,12 +244,15 @@ console.log('id',idFacture)
       .input("idFacture", getSql().Int, idFacture)
       .query(getTtcQuery);
 
-    const ttc = ttcResult.recordset[0].TTC;
+    let ttc = 0;
+    if (ttcResult.recordset.length > 0) {
+      ttc = ttcResult.recordset[0]?.TTC || 0;
+    }
 
-    // Calculer le NetAPayer en soustrayant le montant de l'avance de la valeur TTC
-    const netAPayer = ttc - montantAvance;
+    // Calculate the NetAPayer by subtracting the advance amount from the TTC value
+    const netAPayer = ttc - updatedMontantAvance;
 
-    // Mettre à jour le champ NetAPayer dans la table FactureReceptionne
+    // Update the NetAPayer field in the factureresptionne table
     const updateQuery = `
       UPDATE factureresptionne
       SET NetAPayer = @netAPayer
@@ -268,7 +270,8 @@ console.log('id',idFacture)
       id: req.params.id,
       ficheNavette,
       idFacture,
-      CODEAFFAIRE
+      CODEAFFAIRE,
+      montantAvance: updatedMontantAvance
     });
   } catch (error) {
     res.status(500);

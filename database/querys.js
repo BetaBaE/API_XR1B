@@ -496,7 +496,8 @@ exports.factureFicheNavette = {
    update: `update [dbo].[DAF_factureNavette] 
         set ficheNavette=@ficheNavette,
               idfacture=@idFacture,
-              codechantier=@CODEAFFAIRE
+              codechantier=@CODEAFFAIRE,
+              montantAvance=@montantAvance
         where idfacturenavette=@id `,
 getavancebyfournisseur:`select * from DAF_factureNavette
 where Bcommande is not null
