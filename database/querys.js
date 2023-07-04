@@ -166,7 +166,7 @@ exports.factures = {
   EXISTS (SELECT  CODEDOCUTIL,nom
   FROM [dbo].[DAF_LOG_FACTURE] lf
   where fa.CODEDOCUTIL=lf.CODEDOCUTIL
-
+  and lf.etat <>'Annulé'
   and fa.nom=lf.NOM
  )
    and  fa.nom=f.nom
