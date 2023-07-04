@@ -135,8 +135,8 @@ exports.ordervirements = {
     and v.ribFournisseurId = rf.id
     and Etat = 'En cours'
     and [orderVirementId] = @ovId`,
-  updateVirements: `update [dbo].[ordervirements] set Etat = 'Reglee'
-                      where orderVirementId = @id`,
+  updateVirements: `update [dbo].[DAF_Order_virements] set Etat = 'Reglee'
+                      where id = @id`,
 
   updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee'
                         where orderVirementId = @id`,
