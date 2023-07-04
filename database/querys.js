@@ -588,7 +588,6 @@ exports.cheque = {
            ,[TOTTVANET]
            ,[NETAPAYER]
            ,[orderVirementId],
-            [etat],
             [modepaiement],
             [idfactureNavette]
            )
