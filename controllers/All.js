@@ -52,8 +52,9 @@ exports.getall = async(req, res) => {
         if (filter.fournisseur) {
             queryFilter += `and upper(nom) like(upper('%${filter.fournisseur}%'))`;
         }
-        if (filter.ordervirement) {
-            queryFilter += `and upper(modepaiement) like(upper('%${filter.ordervirement}%'))`;
+        if (filter.modepaiement) {
+          
+            queryFilter += ` and modepaiement = '${filter.modepaiement}'`
         }
         if (filter.ficheNavette) {
             queryFilter += `and upper(ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
@@ -69,6 +70,10 @@ exports.getall = async(req, res) => {
         }
         if (filter.banque) {
             queryFilter += ` and  upper(banque) like(upper('%${filter.banque}%'))`;
+        }
+        if (filter.etat) {
+          
+            queryFilter += ` and etat = '${filter.etat}'`
         }
         console.log(queryFilter);
         const pool = await getConnection();

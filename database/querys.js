@@ -590,7 +590,8 @@ exports.cheque = {
            ,[NETAPAYER]
            ,[orderVirementId],
             [modepaiement],
-            [idfactureNavette]
+            [idfactureNavette],
+            [numerocheque]
            )
      VALUES`,
   update: `Update [dbo].[DAF_cheque]
@@ -615,8 +616,11 @@ and v.orderVirementId = rf.id
     and v.[id] = @id
  `,
 
-  updateLogFactureWhenAnnuleV:
-    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
+ updateLogFactureWhenAnnuleV:
+ "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [numerocheque] =@numerocheque",
+
+updateLogFactureWhenRegleeV:
+"update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee' where [numerocheque] =@numerocheque",
 };
 
 

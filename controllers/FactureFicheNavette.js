@@ -204,13 +204,17 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   }
 };
 exports.updatenavette = async (req, res) => {
-  const { ficheNavette, idFacture, CODEAFFAIRE, montantAvance: inputMontantAvance } = req.body;
+  const { ficheNavette, idFacture, CODEAFFAIRE, montantAvance: inputMontantAvance
+    ,idfournisseur
+    
+  } = req.body;
   try {
     const pool = await getConnection();
     const updateFactureQuery = `
       UPDATE DAF_factureNavette
       SET ficheNavette = @ficheNavette,
           idFacture = @idFacture,
+          idfournisseur=@idfournisseur,
           montantAvance = @montantAvance
       WHERE idfacturenavette = @id
     `;

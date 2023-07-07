@@ -60,7 +60,7 @@ async function getFactureFromView(facturelist) {
   }
 }
 
-async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
+async function insertFactureInLog(ArrayOfFacture, orderVirementId,numerocheque) {
   let query = ` `;
   ArrayOfFacture.forEach(
     (
@@ -79,8 +79,8 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
       i
     ) => {
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}')`);
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);
@@ -95,52 +95,42 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
   }
 }
 
-async function AddToTotalOv(number, id) {
-  try {
-    // let num = MontantFixed(number);
 
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      // .input("montantVirement", getSql().Numeric, number)
-      // .input("id", getSql().VarChar, id)
-      .query(
-        `update [DAF_Order_virements] set total = total+${number} where id ='${id}'`
-      );
-
-    return result.recordset;
-  } catch (error) {
-    console.error(error.message);
-  }
-}
-async function MiunsFromTotalOv(number, id) {
-  try {
-    // let num = MontantFixed(number);
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .query(
-        `update [DAF_Order_virements] set total = total-${number} where id ='${id}'`
-      );
-    return result.recordset;
-  } catch (error) {
-    console.error(error.message);
-  }
-}
-
-async function updateLogFactureWhenAnnuleVirement(idov, nom) {
+async function updateLogFactureWhenAnnuleVirement(numerocheque) {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .input("orderVirementId", getSql().VarChar, idov)
-      .input("nom", getSql().VarChar, nom)
+      .input("numerocheque", getSql().VarChar, numerocheque)
+     
       .query(cheque.updateLogFactureWhenAnnuleV);
+
+      console.log(`${cheque.updateLogFactureWhenAnnuleV}` + "ma requete")
     return result.recordset;
   } catch (error) {
     console.error(error.message);
   }
 }
+
+
+
+async function updateLogFactureWhenRegleeV(numerocheque) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("numerocheque", getSql().VarChar, numerocheque)
+     
+      .query(cheque.updateLogFactureWhenRegleeV);
+
+    
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+
 
 exports.getVirementCount = async (req, res, next) => {
   try {
@@ -162,7 +152,7 @@ exports.createVirements = async (req, res) => {
   let { Totale } = await calculSumFactures(facturelist);
   //let num = MontantFixed(Totale);
   let ArrayOfFacture = await getFactureFromView(facturelist);
-  insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
+  insertFactureInLog(ArrayOfFacture, req.body.orderVirementId,req.body.numerocheque);
   console.log(req.body, Totale);
   console.log("virement", cheque.create);
   try {
@@ -252,7 +242,7 @@ exports.getVirements = async (req, res) => {
 
 exports.updateVirmeents = async (req, res) => {
   console.log(req.body);
-  const {  dateOperation,Etat } =
+  const {  dateOperation,Etat,numerocheque } =
     req.body;
  
   try {
@@ -263,8 +253,15 @@ exports.updateVirmeents = async (req, res) => {
       .input("dateOperation", getSql().Date, dateOperation)
       .input("Etat", getSql().VarChar, Etat)
       .input("id", getSql().Int, req.params.id)
+      .input("numerocheque", getSql().VarChar, numerocheque)
+
       .query(cheque.update);
-  
+      if (Etat === "Annuler") {
+        updateLogFactureWhenAnnuleVirement(numerocheque);
+      }
+      if (Etat === "Reglee") {
+        updateLogFactureWhenRegleeV(numerocheque);
+      }
     res.json({
       id: req.params.id,
     });
