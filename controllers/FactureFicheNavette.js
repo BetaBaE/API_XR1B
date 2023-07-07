@@ -223,6 +223,7 @@ exports.updatenavette = async (req, res) => {
       .input("id", getSql().Int, req.params.id)
       .input("ficheNavette", getSql().VarChar, ficheNavette)
       .input("idFacture", getSql().Int, idFacture)
+      .input("idfournisseur", getSql().Int, idfournisseur)
       .input("montantAvance", getSql().Int, inputMontantAvance)
       .query(updateFactureQuery);
 
