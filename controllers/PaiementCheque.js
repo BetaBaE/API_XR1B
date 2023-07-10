@@ -63,24 +63,11 @@ async function getFactureFromView(facturelist) {
 async function insertFactureInLog(ArrayOfFacture, orderVirementId,numerocheque) {
   let query = ` `;
   ArrayOfFacture.forEach(
-    (
-      {
-        CODEDOCUTIL,
-        chantier,
-        nom,
-        LIBREGLEMENT,
-        DateFacture,
-        TTC,
-        HT,
-        MontantTVA,
-        NETAPAYER,
-        id
-      },
-      i
-    ) => {
+    async ({ CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, NETAPAYER, id }, i)=> {
+      const escapedNom = nom?.replaceAll(/'/g, "''");
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}')`);
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);

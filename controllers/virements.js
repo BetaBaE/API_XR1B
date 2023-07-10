@@ -62,25 +62,15 @@ async function getFactureFromView(facturelist) {
 
 async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
   let query = ` `;
+ 
   ArrayOfFacture.forEach(
-    (
-      {
-        CODEDOCUTIL,
-        chantier,
-        nom,
-        LIBREGLEMENT,
-        DateFacture,
-        TTC,
-        HT,
-        MontantTVA,
-        NETAPAYER,
-        id
-      },
-      i
-    ) => {
+    // ...
+    async ({ CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, NETAPAYER, id }, i) => {
+      const escapedNom = nom?.replaceAll(/'/g, "''");
+
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${nom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}')`);
     }
   );
   console.log(`${virements.createLogFacture} '${query}'`);
@@ -94,7 +84,6 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
     console.error(error.message);
   }
 }
-
 async function AddToTotalOv(number, id) {
   try {
     // let num = MontantFixed(number);

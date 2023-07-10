@@ -205,7 +205,7 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
 };
 exports.updatenavette = async (req, res) => {
   const { ficheNavette, idFacture, CODEAFFAIRE, montantAvance: inputMontantAvance
-    ,idfournisseur
+    ,idfournisseur,codechantier
     
   } = req.body;
   try {
@@ -214,6 +214,7 @@ exports.updatenavette = async (req, res) => {
       UPDATE DAF_factureNavette
       SET ficheNavette = @ficheNavette,
           idFacture = @idFacture,
+          codechantier=@codechantier,
           idfournisseur=@idfournisseur,
           montantAvance = @montantAvance
       WHERE idfacturenavette = @id
@@ -222,6 +223,7 @@ exports.updatenavette = async (req, res) => {
       .request()
       .input("id", getSql().Int, req.params.id)
       .input("ficheNavette", getSql().VarChar, ficheNavette)
+      .input("codechantier", getSql().VarChar, codechantier)
       .input("idFacture", getSql().Int, idFacture)
       .input("idfournisseur", getSql().Int, idfournisseur)
       .input("montantAvance", getSql().Int, inputMontantAvance)
