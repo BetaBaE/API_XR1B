@@ -109,7 +109,7 @@ exports.createfacture = async (req, res) => {
       await pool
         .request()
         .input("codechantier", getSql().VarChar, req.body.codechantier)
-        .input("montantAvance", getSql().Float(8,2), parseFloat(req.body.montantAvance.replace(',', '.')))
+        .input("montantAvance", getSql().Float(8,2), req.body.montantAvance)
 
         .input("idfournisseur", getSql().Int, req.body.idfournisseur)
         .input("idFacture", getSql().Int, req.body.idFacture)
