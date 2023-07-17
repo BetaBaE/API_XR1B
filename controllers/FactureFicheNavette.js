@@ -88,7 +88,7 @@ exports.createfacture = async (req, res) => {
     const pool = await getConnection();
 
     // Vérification si la composition existe déjà dans la table daf_factureNavette
-    const existingCompositionQuery = `SELECT * FROM daf_factureNavette WHERE codechantier = @codechantier AND ficheNavette = @ficheNavette AND Bcommande = @Bcommande and idfournisseur=0`;
+    const existingCompositionQuery = `SELECT * FROM daf_factureNavette WHERE codechantier = @codechantier AND ficheNavette = @ficheNavette AND Bcommande = @Bcommande`;
     const existingCompositionResult = await pool
       .request()
       .input("codechantier", getSql().VarChar, req.body.codechantier)
@@ -103,8 +103,12 @@ exports.createfacture = async (req, res) => {
     
       const insertQuery = `
         INSERT INTO [dbo].[DAF_factureNavette]
-        ([codechantier], [montantAvance], [idfournisseur], [idFacture], [ficheNavette], [Bcommande])
-        VALUES (@codechantier, @montantAvance, @idfournisseur, @idFacture, @ficheNavette, @Bcommande)
+        ([codechantier], [montantAvance], [idfournisseur], [idFacture], [ficheNavette],[Bcommande]
+          ,[fullname]
+          )
+  
+        VALUES 
+        (@codechantier, @montantAvance, @idfournisseur, @idFacture, @ficheNavette, @Bcommande,@fullName)
       `;
       await pool
         .request()
@@ -114,6 +118,7 @@ exports.createfacture = async (req, res) => {
         .input("idfournisseur", getSql().Int, req.body.idfournisseur)
         .input("idFacture", getSql().Int, req.body.idFacture)
         .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
+        .input("fullName", getSql().VarChar, req.body.fullName)
         .input("Bcommande", getSql().VarChar, req.body.Bcommande)
         .query(insertQuery);
 
@@ -287,3 +292,59 @@ exports.updatenavette = async (req, res) => {
     console.log(error.message);
   }
 };
+/*$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+^^$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+*/
+
+
+exports.correction = async (req, res) => {
+  const { ficheNavette, idFacture, CODEAFFAIRE, montantAvance
+    ,idfournisseur,codechantier,BonCommande
+    
+  } = req.body;
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .input("ficheNavette", getSql().VarChar, ficheNavette)
+      .input("codechantier", getSql().VarChar, codechantier)
+      .input("idFacture", getSql().Int, idFacture)
+      .input("idfournisseur", getSql().Int, idfournisseur)
+      .input("montantAvance", getSql().Int, montantAvance)
+      .input("BonCommande", getSql().VarChar, BonCommande)
+      .query(factureFicheNavette.update);
+      
+
+    res.json({
+      id: req.params.id,
+      ficheNavette,
+      idFacture,
+      CODEAFFAIRE,
+      montantAvance
+    });
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+    console.log(error.message);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

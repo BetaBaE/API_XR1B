@@ -354,7 +354,6 @@ f.fullName
 ,f.BonCommande
 ,f.TTC
 ,f.DateFacture
-
 ,f.HT
 ,f.MontantTVA,
 d.designation as "designation" ,
@@ -409,7 +408,8 @@ where d.id=f.iddesignation  and fou.id=f.idfournisseur  and deletedAt is  not nu
    and
 
   and idfournisseur in(select id from [dbo].[DAF_FOURNISSEURS] where id=@id)`,
-  getfacturevalider: `SELECT 
+  getfacturevalider: `	SELECT DISTINCT
+  ch.LIBELLE,
   f.id,
   f.fullName,
   f.numeroFacture,
@@ -423,11 +423,30 @@ where d.id=f.iddesignation  and fou.id=f.idfournisseur  and deletedAt is  not nu
   fou.CodeFournisseur,
   f.verifiyMidelt,
   f.createdDate
-FROM [dbo].[factureresptionne] f
-INNER JOIN [dbo].[FactureDesignation] d ON d.id = f.iddesignation
-INNER JOIN [dbo].[DAF_FOURNISSEURS] fou ON fou.id = f.idfournisseur
-WHERE deletedAt IS NULL 
-AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
+FROM 
+  [dbo].[factureresptionne] f
+  INNER JOIN [dbo].[FactureDesignation] d ON d.id = f.iddesignation
+  INNER JOIN [dbo].[DAF_FOURNISSEURS] fou ON fou.id = f.idfournisseur
+  LEFT JOIN [dbo].[chantier] ch ON ch.id = f.codechantier
+WHERE 
+  f.deletedAt IS NULL 
+  AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
+  AND (
+    EXISTS (
+      SELECT CODEDOCUTIL
+      FROM DAF_LOG_FACTURE
+      WHERE etat = 'en cours'
+      AND nom = fou.nom
+      AND CODEDOCUTIL = f.numeroFacture
+    )
+    OR EXISTS (
+      SELECT CODEDOCUTIL
+      FROM DAF_LOG_FACTURE
+      WHERE etat = 'en cours'
+    )
+  )
+
+
 `,
   getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[factureresptionne] WHERE deletedAt IS NULL 
   AND (verifiyMidelt IS NULL OR BonCommande IS NULL OR BonCommande = '')`,
@@ -478,8 +497,13 @@ exports.factureFicheNavette = {
 
     get: `select distinct fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,fich.MontantTVA,
     fich.DateFacture,fich.TTC,fich.HT,fich.designation, fich.numeroFacture,fich.ficheNavette
-    
-    , case  
+   
+    ,fich.fullname, case  
+	when fich.numeroFacture is null then  'avance'
+	when fich.deletedAt is not null then 'facture annulé'
+	else 'normal'
+	end as etat
+	,case  
 
     when ch.LIBELLE  is null then  fich.LIBELLE
     else  ch.LIBELLE		
@@ -496,8 +520,9 @@ exports.factureFicheNavette = {
    update: `update [dbo].[DAF_factureNavette] 
         set ficheNavette=@ficheNavette,
               idfacture=@idFacture,
-              codechantier=@CODEAFFAIRE,
-              montantAvance=@montantAvance
+              codechantier=@codechantier,
+              montantAvance=@montantAvance,
+              Bcommande=@BonCommande
         where idfacturenavette=@id `,
 getavancebyfournisseur:`select * from DAF_factureNavette
 where Bcommande is not null
