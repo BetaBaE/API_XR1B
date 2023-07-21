@@ -88,12 +88,14 @@ exports.createfacture = async (req, res) => {
     const pool = await getConnection();
 
     // Vérification si la composition existe déjà dans la table daf_factureNavette
-    const existingCompositionQuery = `SELECT * FROM daf_factureNavette WHERE codechantier = @codechantier AND ficheNavette = @ficheNavette AND Bcommande = @Bcommande`;
+    const existingCompositionQuery = `SELECT * FROM daf_factureNavette WHERE codechantier = @codechantier 
+    AND ficheNavette = @ficheNavette AND Bcommande = @Bcommande and idfournisseur=@idfournisseur`;
     const existingCompositionResult = await pool
       .request()
       .input("codechantier", getSql().VarChar, req.body.codechantier)
       .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
       .input("Bcommande", getSql().VarChar, req.body.Bcommande)
+      .input("idfournisseur", getSql().Int, req.body.idfournisseur)
       .query(existingCompositionQuery);
 
     if (existingCompositionResult.recordset.length > 0) {
