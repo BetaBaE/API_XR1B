@@ -89,19 +89,20 @@ exports.createfacture = async (req, res) => {
 
    
     const existingCompositionQuery = `SELECT *
-    FROM daf_factureNavette
-    WHERE codechantier = @codechantier
-      AND ficheNavette = @ficheNavette
-      AND Bcommande = @Bcommande
-      AND idfournisseur = @idfournisseur
-      AND NOT EXISTS (
+    FROM daf_factureNavette AS dfn1
+    WHERE dfn1.codechantier = @codechantier
+      AND dfn1.ficheNavette = @ficheNavette
+      AND dfn1.Bcommande = @Bcommande
+      AND dfn1.idfournisseur = @idfournisseur
+      AND  EXISTS (
         SELECT 1
-        FROM daf_factureNavette
-        WHERE codechantier = @codechantier
-          AND ficheNavette = @ficheNavette
-          AND Bcommande = @Bcommande
-          AND idfournisseur <> @idfournisseur
+        FROM daf_factureNavette AS dfn2
+        WHERE dfn2.codechantier = dfn1.codechantier
+          AND dfn2.ficheNavette = dfn1.ficheNavette
+          AND dfn2.Bcommande = dfn1.Bcommande
+          AND dfn2.idfournisseur <> dfn1.idfournisseur
       );
+    
     `;
     const existingCompositionResult = await pool
       .request()
