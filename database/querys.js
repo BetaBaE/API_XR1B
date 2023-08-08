@@ -144,6 +144,13 @@ exports.ordervirements = {
   updateDateExecution: `update [dbo].[DAF_Order_virements] set dateExecution = GETDATE()
                             where id = @id`,
 
+
+  updatvirementRegler: `update [dbo].[DAF_VIREMENTS] set Etat = 'Reglee'
+                            where orderVirementId = @id`,
+      
+
+
+
   updateVirementsAnnuler: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé'
                       where orderVirementId = @id`,
 

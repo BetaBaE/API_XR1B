@@ -189,6 +189,14 @@ exports.updateOrderVirements = async (req, res) => {
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateDateExecution);
+
+        await pool
+        .request()
+        .input("id", getSql().VarChar, req.params.id)
+        .query(ordervirements.updatvirementRegler);
+
+
+
     } else if (etat == "Annule") {
       await pool
         .request()
