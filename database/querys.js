@@ -561,18 +561,17 @@ exports.designation = {
 };
 exports.all = {
   getAll: `
-  select distinct * from  voir  where numeroFacture  not  like '%-'`,
+  select distinct * from  allfacture  where numeroFacture  not  like '%-'`,
 
   getAllcount: `
     select count(*) as count
-    from voir  
+    from allfacture  
       where numeroFacture  not  like '%-'
     
     `,
 };
 
 exports.cheque = {
-  
   create: `
   INSERT INTO [dbo].[DAF_cheque]
       (
