@@ -502,21 +502,35 @@ exports.factureFicheNavette = {
       
       @idFacture,@ficheNavette,@Bcommande) `,
 
-    get: `select distinct fich.id,  fich.BonCommande, fich.CodeFournisseur,fich.montantAvance,fich.nom,fich.MontantTVA,
-    fich.DateFacture,fich.TTC,fich.HT,fich.designation, fich.numeroFacture,fich.ficheNavette
-   
-    ,fich.fullname, case  
-	when fich.numeroFacture is null then  'avance'
-	when fich.deletedAt is not null then 'facture annulé'
-	else 'normal'
-	end as etat
-	,case  
+    get: `
+    SELECT DISTINCT
+    fich.id,
+    fich.BonCommande,
+    fich.CodeFournisseur,
+    fich.montantAvance,
+    fich.nom,
+    fich.MontantTVA,
+    fich.DateFacture,
+    fich.TTC,
+    fich.HT,
+    fich.designation,
+    fich.numeroFacture,
+    fich.ficheNavette,
+    fich.fullname,
+	fich.deletedAt,
+    CASE
+        WHEN fich.numeroFacture IS NULL THEN 'avance'
+        when fich.deletedAt is not null then  'facture annulé'
+		else 'normal'
+    END AS etat,
+    CASE
+        WHEN ch.LIBELLE IS NULL THEN fich.LIBELLE
+        ELSE ch.LIBELLE
+    END AS libelle
+FROM [dbo].[ficheNavette] fich
+LEFT JOIN (SELECT * FROM chantier) ch ON fich.LIBELLE = ch.LIBELLE
+where fich.deletedAt is  null
 
-    when ch.LIBELLE  is null then  fich.LIBELLE
-    else  ch.LIBELLE		
-        end as libelle from [dbo].[ficheNavette] fich 
-		left join 
-   (select * from chantier) ch on fich.LIBELLE=ch.LIBELLE
 
     `,
 

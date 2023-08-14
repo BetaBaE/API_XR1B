@@ -81,78 +81,84 @@ exports.createfacture = async (req, res) => {
     idFacture,
     ficheNavette,
     idfournisseur,
-    montantAvance
+    montantAvance,
+    service,
+    fullName,
+    numeroficheNavette,
+    Bcommande
   } = req.body;
 
   try {
     const pool = await getConnection();
 
-   
-    const existingCompositionQuery = `SELECT *
-    FROM daf_factureNavette AS dfn1
-    WHERE dfn1.codechantier = @codechantier
-      AND dfn1.ficheNavette = @ficheNavette
-      AND dfn1.Bcommande = @Bcommande
-      AND dfn1.idfournisseur = @idfournisseur
-      AND  EXISTS (
-        SELECT 1
-        FROM daf_factureNavette AS dfn2
-        WHERE dfn2.codechantier = dfn1.codechantier
-          AND dfn2.ficheNavette = dfn1.ficheNavette
-          AND dfn2.Bcommande = dfn1.Bcommande
-          AND dfn2.idfournisseur <> dfn1.idfournisseur
-      );
-    
+    const existingCompositionQuery = `
+      SELECT *
+      FROM daf_factureNavette AS dfn1
+      WHERE dfn1.codechantier = @codechantier
+        AND dfn1.ficheNavette = @ficheNavette
+        AND dfn1.Bcommande = @Bcommande
+        AND dfn1.idfournisseur = @idfournisseur
+        AND EXISTS (
+          SELECT 1
+          FROM daf_factureNavette AS dfn2
+          WHERE dfn2.codechantier = dfn1.codechantier
+            AND dfn2.ficheNavette = dfn1.ficheNavette
+            AND dfn2.Bcommande = dfn1.Bcommande
+            AND dfn2.idfournisseur <> dfn1.idfournisseur
+        );
     `;
+
     const existingCompositionResult = await pool
       .request()
-      .input("codechantier", getSql().VarChar, req.body.codechantier)
-      .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
-      .input("Bcommande", getSql().VarChar, req.body.Bcommande)
-      .input("idfournisseur", getSql().Int, req.body.idfournisseur)
+      .input("codechantier", getSql().VarChar, codechantier)
+      .input("ficheNavette", getSql().VarChar, ficheNavette)
+      .input("Bcommande", getSql().VarChar, Bcommande)
+      .input("idfournisseur", getSql().Int, idfournisseur)
       .query(existingCompositionQuery);
 
     if (existingCompositionResult.recordset.length > 0) {
       // La composition existe déjà, renvoyer une réponse d'erreur
       res.status(400).json({ message: "La composition existe déjà dans la table daf_factureNavette" });
     } else {
-    
+      let modifiedFicheNavette = ficheNavette;
+
+      if (service) {
+        modifiedFicheNavette = `admin/${new Date().getFullYear()}/${service}/${ficheNavette}`;
+      }
+
       const insertQuery = `
         INSERT INTO [dbo].[DAF_factureNavette]
-        ([codechantier], [montantAvance], [idfournisseur], [idFacture], [ficheNavette],[Bcommande]
-          ,[fullname]
-          )
-  
+        ([codechantier], [montantAvance], [idfournisseur], [idFacture], [ficheNavette], [Bcommande], [fullname])
         VALUES 
-        (@codechantier, @montantAvance, @idfournisseur, @idFacture, @ficheNavette, @Bcommande,@fullName)
+        (@codechantier, @montantAvance, @idfournisseur, @idFacture, @modifiedFicheNavette, @Bcommande, @fullName)
       `;
+
       await pool
         .request()
-        .input("codechantier", getSql().VarChar, req.body.codechantier)
-        .input("montantAvance",getSql().Numeric(10, 2), req.body.montantAvance)
-
-        .input("idfournisseur", getSql().Int, req.body.idfournisseur)
-        .input("idFacture", getSql().Int, req.body.idFacture)
-        .input("ficheNavette", getSql().VarChar, req.body.ficheNavette)
-        .input("fullName", getSql().VarChar, req.body.fullName)
-        .input("Bcommande", getSql().VarChar, req.body.Bcommande)
+        .input("codechantier", getSql().VarChar, codechantier)
+        .input("montantAvance", getSql().Numeric(10, 2), montantAvance)
+        .input("idfournisseur", getSql().Int, idfournisseur)
+        .input("idFacture", getSql().Int, idFacture)
+        .input("modifiedFicheNavette", getSql().VarChar, modifiedFicheNavette)
+        .input("Bcommande", getSql().VarChar, Bcommande)
+        .input("fullName", getSql().VarChar, fullName)
         .query(insertQuery);
 
       res.json({
         id: "",
         codechantier,
         idFacture,
-        ficheNavette,
+        ficheNavette: modifiedFicheNavette,
         idfournisseur,
         montantAvance
       });
     }
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    res.status(500).send(error.message);
     console.log(error.message);
   }
 };
+
 
 
 
