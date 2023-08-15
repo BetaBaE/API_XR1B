@@ -17,7 +17,7 @@ exports.getFactureCount = async (req, res, next) => {
 exports.getFacture = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["dateFacture" , "desc"]';
+    let sort = req.query.sort || '["id" , "desc"]';
     let filter = req.query.filter || "{}";
 
     range = JSON.parse(range);
@@ -28,28 +28,28 @@ exports.getFacture = async (req, res) => {
     let queryFilter = "";
 
     if (filter.ficheNavette) {
-      queryFilter += ` and upper(fich.ficheNavette) like(upper('%${filter.ficheNavette}%'))`;
+      queryFilter += ` and upper(fich.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
     }
     if (filter.chantier) {
-      queryFilter += ` and upper(fich.LIBELLE) like(upper('%${filter.chantier}%'))`;
+      queryFilter += ` and upper(fich.LIBELLE) like (upper('%${filter.chantier}%'))`;
     }
     
     if (filter.BonCommande) {
-      queryFilter += ` and upper(BonCommande)  like('%${filter.BonCommande}%')`;
+      queryFilter += ` and upper(BonCommande)  like ('%${filter.BonCommande}%')`;
     }
     if (filter.fournisseur) {
-      queryFilter += ` and upper(fich.nom) like(upper('%${filter.fournisseur}%'))`;
+      queryFilter += ` and upper(fich.nom) like (upper('%${filter.fournisseur}%'))`;
     }
     
     if (filter.designation) {
-      queryFilter += ` and upper(designation) like(upper('%${filter.designation}%'))`;
+      queryFilter += ` and upper(designation) like (upper('%${filter.designation}%'))`;
     }
     
     if (filter.numeroFacture) {
-      queryFilter += ` and upper(numeroFacture)  like('%${filter.numeroFacture}%')`;
+      queryFilter += ` and upper(fich.numeroFacture)  like ('%${filter.numeroFacture}%')`;
     }
     if (filter.CodeFournisseur) {
-      queryFilter += ` and upper(CodeFournisseur) like(upper('%${filter.CodeFournisseur}%'))`;
+      queryFilter += ` and upper(CodeFournisseur) like (upper('%${filter.CodeFournisseur}%'))`;
     }
     
     // Modifier la construction de la clause WHERE
@@ -71,6 +71,7 @@ exports.getFacture = async (req, res) => {
     res.json(result.recordset);
   } catch (error) {
     res.status(500);
+    console.log(error.message)
     res.send(error.message);
   }
 };
