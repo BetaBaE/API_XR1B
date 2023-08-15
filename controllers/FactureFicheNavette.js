@@ -53,7 +53,7 @@ exports.getFacture = async (req, res) => {
     }
     
     // Modifier la construction de la clause WHERE
-    let whereClause = queryFilter ? `WHERE 1=1${queryFilter}` : "";
+    let whereClause = queryFilter ? `${queryFilter}` : "";
     const pool = await getConnection();
     const result = await pool.request().query(
       `${factureFicheNavette.get} ${whereClause} Order by ${sort[0]} ${sort[1]}

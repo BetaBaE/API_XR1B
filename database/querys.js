@@ -529,7 +529,7 @@ exports.factureFicheNavette = {
     END AS libelle
 FROM [dbo].[ficheNavette] fich
 LEFT JOIN (SELECT * FROM chantier) ch ON fich.LIBELLE = ch.LIBELLE
-
+where fich.deletedAt is  null
     `,
 
 
