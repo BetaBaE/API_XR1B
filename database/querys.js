@@ -573,7 +573,32 @@ exports.designation = {
 };
 exports.all = {
   getAll: `
-  select distinct * from  allfacture  where numeroFacture  not  like '%-'`,
+  select distinct 
+  [id]
+      ,[BonCommande]
+      ,[chantier]
+      ,[DateFacture]
+      ,[TTC]
+      ,[HT]
+      ,[numeroFacture]
+      ,[MontantTVA]
+      ,[CodeFournisseur]
+      ,[nom]
+      ,[datecheque]
+      ,[dateecheance]
+      ,[ficheNavette]
+      ,[dateOperation]
+      ,[modepaiement]
+      ,[banque]
+      ,[designation]
+      ,[numerocheque]
+      ,[montantAvance]
+      ,[etat]
+	  , CASE WHEN etat = 'pas encore' THEN CONCAT( DATEDIFF(DAY, DateFacture, GETDATE()) , 'jour')	  
+	  ELSE NULL   'pas encore'
+	  END AS dateechancefacture
+  
+  from  allfacture  where numeroFacture  not  like '%-'`,
 
   getAllcount: `
     select count(*) as count
