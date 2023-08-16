@@ -572,33 +572,35 @@ exports.designation = {
      where id=@id `,
 };
 exports.all = {
-  getAll: `
-  select distinct 
+  getAll: `SELECT DISTINCT 
   [id]
-      ,[BonCommande]
-      ,[chantier]
-      ,[DateFacture]
-      ,[TTC]
-      ,[HT]
-      ,[numeroFacture]
-      ,[MontantTVA]
-      ,[CodeFournisseur]
-      ,[nom]
-      ,[datecheque]
-      ,[dateecheance]
-      ,[ficheNavette]
-      ,[dateOperation]
-      ,[modepaiement]
-      ,[banque]
-      ,[designation]
-      ,[numerocheque]
-      ,[montantAvance]
-      ,[etat]
-	  , CASE WHEN etat = 'pas encore' THEN CONCAT( DATEDIFF(DAY, DateFacture, GETDATE()) , 'jour')	  
-	  ELSE NULL   'pas encore'
-	  END AS dateechancefacture
-  
-  from  allfacture  where numeroFacture  not  like '%-'`,
+  ,[BonCommande]
+  ,[chantier]
+  ,[DateFacture]
+  ,[TTC]
+  ,[HT]
+  ,[numeroFacture]
+  ,[MontantTVA]
+  ,[CodeFournisseur]
+  ,[nom]
+  ,[datecheque]
+  ,[dateecheance]
+  ,[ficheNavette]
+  ,[dateOperation]
+  ,[modepaiement]
+  ,[banque]
+  ,[designation]
+  ,[numerocheque]
+  ,[montantAvance]
+  ,[etat]
+, CASE 
+      WHEN etat = 'pas encore' THEN CONCAT(DATEDIFF(DAY, DateFacture, GETDATE()), ' jour')	  
+      ELSE NULL
+    END AS dateechancefacture
+FROM allfacture
+WHERE numeroFacture NOT LIKE '%-'
+
+`,
 
   getAllcount: `
     select count(*) as count
