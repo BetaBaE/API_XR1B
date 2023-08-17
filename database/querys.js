@@ -572,33 +572,33 @@ exports.designation = {
      where id=@id `,
 };
 exports.all = {
-  getAll: `SELECT DISTINCT 
+  getAll: `  select distinct 
   [id]
-  ,[BonCommande]
-  ,[chantier]
-  ,[DateFacture]
-  ,[TTC]
-  ,[HT]
-  ,[numeroFacture]
-  ,[MontantTVA]
-  ,[CodeFournisseur]
-  ,[nom]
-  ,[datecheque]
-  ,[dateecheance]
-  ,[ficheNavette]
-  ,[dateOperation]
-  ,[modepaiement]
-  ,[banque]
-  ,[designation]
-  ,[numerocheque]
-  ,[montantAvance]
-  ,[etat]
-, CASE 
-      WHEN etat = 'pas encore' THEN CONCAT(DATEDIFF(DAY, DateFacture, GETDATE()), ' jour')	  
-      ELSE NULL
-    END AS dateechancefacture
-FROM allfacture
-WHERE numeroFacture NOT LIKE '%-'
+      ,[BonCommande]
+      ,[chantier]
+      ,[DateFacture]
+      ,[TTC]
+      ,[HT]
+      ,[numeroFacture]
+      ,[MontantTVA]
+      ,[CodeFournisseur]
+      ,[nom]
+      ,[datecheque]
+      ,[dateecheance]
+      ,[ficheNavette]
+      ,[dateOperation]
+      ,[modepaiement]
+      ,[banque]
+      ,[designation]
+      ,[numerocheque]
+      ,[montantAvance]
+      ,[etat]
+	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
+	  ELSE NULL  
+
+	  END AS nbrJour
+  
+  from  allfacture  where numeroFacture  not  like '%-'
 
 `,
 
