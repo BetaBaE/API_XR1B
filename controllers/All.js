@@ -72,8 +72,11 @@ exports.getall = async(req, res) => {
             queryFilter += ` and  upper(banque) like(upper('%${filter.banque}%'))`;
         }
         if (filter.etat) {
-          
             queryFilter += ` and etat = '${filter.etat}'`
+        }
+
+        if (filter.numerocheque) {
+            queryFilter += ` and numerocheque = '${filter.numerocheque}'`
         }
         console.log(queryFilter);
         const pool = await getConnection();
