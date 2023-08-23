@@ -281,7 +281,7 @@ exports.logFactures = {
     `,
   getLogFactures: `SELECT distinct fn.Bcommande,fn.montantAvance, fn.idfacturenavette as id,
   fou.CodeFournisseur,fou.nom,
-  ch.LIBELLE, ch.CODEAFFAIRE,
+  ch.LIBELLE, ch.id,
   lf.etat ,lf.modepaiement,fn.ficheNavette
   FROM  [dbo].[DAF_LOG_FACTURE] lf 
   inner join [dbo].[DAF_factureNavette] fn
@@ -294,9 +294,9 @@ exports.logFactures = {
   ch.id=fn.codechantier`,
 };
 exports.chantiers = {
-  getChantiers: "select * from chantier where  CODEAFFAIRE is  not null",
+  getChantiers: "select * from chantier",
   getcountChantier:
-    "select count(*) from chantier where  CODEAFFAIRE is  not null",
+    "select count(*) from chantier",
   getChantiersbyfactureid: `SELECT * from chantier
   where  id in(
   select codechantier from factureresptionne

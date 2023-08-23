@@ -233,7 +233,7 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   }
 };
 exports.updatenavette = async (req, res) => {
-  const { ficheNavette, idFacture, CODEAFFAIRE, montantAvance: inputMontantAvance
+  const { ficheNavette, idFacture,  montantAvance: inputMontantAvance
     ,idfournisseur,codechantier
     
   } = req.body;
@@ -306,7 +306,7 @@ exports.updatenavette = async (req, res) => {
       id: req.params.id,
       ficheNavette,
       idFacture,
-      CODEAFFAIRE,
+      codechantier,
       montantAvance: updatedMontantAvance
     });
   } catch (error) {
@@ -315,13 +315,8 @@ exports.updatenavette = async (req, res) => {
     console.log(error.message);
   }
 };
-/*$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-^^$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-*/
-
-
 exports.correction = async (req, res) => {
-  const { ficheNavette, idFacture, CODEAFFAIRE, montantAvance
+  const { ficheNavette, idFacture,montantAvance
     ,idfournisseur,codechantier,BonCommande
     
   } = req.body;
@@ -343,7 +338,7 @@ exports.correction = async (req, res) => {
       id: req.params.id,
       ficheNavette,
       idFacture,
-      CODEAFFAIRE,
+      codechantier,
       montantAvance
     });
   } catch (error) {
