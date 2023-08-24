@@ -525,7 +525,7 @@ exports.PrintOrderVirement = async (req, res) => {
     html_to_pdf.generatePdf(file, options).then((pdfBuffer) => {
       console.log("PDF Buffer:-", pdfBuffer);
       let pdfPath =
-        "\\\\10.200.1.20\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\OV\\" +
+        "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\OV\\" +
         printData.header[0].id +
         " " +
         concat +
