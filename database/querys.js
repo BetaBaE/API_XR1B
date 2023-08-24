@@ -1,8 +1,8 @@
 exports.Fournisseurs = {
   getAllFournisseurs: `SELECT * FROM DAF_FOURNISSEURS WHERE 1=1`,
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
-  createFournisseur: `INSERT INTO DAF_FOURNISSEURS( CodeFournisseur, nom )
-     VALUES( @CodeFournisseur, @nom )`,
+  createFournisseur: `INSERT INTO DAF_FOURNISSEURS( CodeFournisseur, nom, DateEcheance )
+     VALUES( @CodeFournisseur, @nom,@DateEcheance )`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
@@ -10,6 +10,12 @@ exports.Fournisseurs = {
   AND rf.validation = 'validé' AND f.nom not in (SELECT
  distinct [NOM]
   FROM [dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and orderVirementId =@ovId)`,
+  getOne:`select * from DAF_FOURNISSEURS where id=@id`,
+  update:`update DAF_FOURNISSEURS 
+  set DateEcheance=@DateEcheance 
+      where id=@id
+  `
+
 };
 
 exports.ribTemporaire = {
@@ -572,7 +578,7 @@ exports.designation = {
      where id=@id `,
 };
 exports.all = {
-  getAll: `  select distinct 
+  getAll: `select distinct 
   [id]
       ,[BonCommande]
       ,[chantier]
@@ -599,7 +605,6 @@ exports.all = {
 	  END AS nbrJour
   
   from  allfacture  where numeroFacture  not  like '%-'
-
 `,
 
   getAllcount: `
@@ -608,6 +613,50 @@ exports.all = {
       where numeroFacture  not  like '%-'
     
     `,
+
+getfactureechu:`select distinct 
+[id]
+,[BonCommande]
+,[chantier]
+,[DateFacture]
+,[TTC]
+,[HT]
+,[numeroFacture]
+,[MontantTVA]
+,[CodeFournisseur]
+,[nom]
+,[datecheque]
+,[dateecheance]
+,[ficheNavette]
+,[dateOperation]
+,[modepaiement]
+,[banque]
+,[designation]
+,[numerocheque]
+,[montantAvance]
+,[etat]
+, CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
+ELSE NULL  
+END AS nbrJour
+from  allfacture fl  
+where 
+etat = 'pas encore' AND
+DateFacture  > DATEADD(day,45,GETDATE())
+
+and
+numeroFacture  not  like '%-'
+`,
+getgetfactureechucout:`
+select count(*) as count
+from allfacture  
+where
+DateFacture  > DATEADD(day,45,GETDATE())
+
+and
+numeroFacture  not  like '%-'
+
+`
+
 };
 
 exports.cheque = {

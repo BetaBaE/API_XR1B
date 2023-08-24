@@ -69,7 +69,7 @@ exports.getAllFournissuers = async (req, res) => {
 };
 
 exports.createFournisseurs = async (req, res) => {
-  const { CodeFournisseur, nom } = req.body;
+  const { CodeFournisseur, nom ,DateEcheance } = req.body;
 
   try {
     const pool = await getConnection();
@@ -78,12 +78,14 @@ exports.createFournisseurs = async (req, res) => {
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
+      .input("DateEcheance", getSql().Date, DateEcheance)
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
       id: "",
       CodeFournisseur,
       nom,
+      DateEcheance
     });
   } catch (error) {
     
@@ -145,3 +147,48 @@ exports.FournisseursRibValid = async (req, res) => {
 };
 
 
+
+
+
+exports.getfournisseurById = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().VarChar, req.params.id)
+      .query(Fournisseurs.getOne);
+
+    res.set("Content-Range", `factures 0-1/1`);
+
+    res.json(result.recordset[0]);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+
+exports.updatefournisseur = async (req, res) => {
+  const { DateEcheance} =
+    req.body;
+  try {
+    const pool = await getConnection();
+
+    await pool
+      .request()
+
+      .input("id", getSql().Int, req.params.id)
+      .input("DateEcheance", getSql().Date, DateEcheance)
+      .query(Fournisseurs.update);
+
+    res.json({
+      id: req.params.id,
+      DateEcheance
+    });
+  } catch (error) {
+   
+
+    res.status(500);
+    res.send(error.message);
+  }
+};

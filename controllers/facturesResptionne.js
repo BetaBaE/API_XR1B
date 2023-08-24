@@ -150,6 +150,7 @@ console.log(error.message)
 
   }
 };
+
 exports.updatefactureRes = async (req, res) => {
   const { numeroFacture} =
     req.body;
