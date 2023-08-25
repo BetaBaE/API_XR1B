@@ -116,7 +116,7 @@ exports.getallCountechu = async(req, res, next) => {
   exports.getallechu= async(req, res) => {
       try {
           let range = req.query.range || "[0,9]";
-          let sort = req.query.sort || '["nbrJour" , "DESC"]';
+          let sort = req.query.sort || '["id" , "DESC"]';
           let filter = req.query.filter || "{}";
           range = JSON.parse(range);
           sort = JSON.parse(sort);

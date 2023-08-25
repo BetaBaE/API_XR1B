@@ -635,26 +635,23 @@ getfactureechu:`select distinct
 ,[numerocheque]
 ,[montantAvance]
 ,[etat]
-, CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
-ELSE NULL  
-END AS nbrJour
+, 
+CONVERT(date,DATEADD(DAY, 45, DateFacture))as  dateechu
 from  allfacture fl  
 where 
-etat = 'pas encore' AND
-DateFacture  > DATEADD(day,45,GETDATE())
-
+etat = 'pas encore'
 and
 numeroFacture  not  like '%-'
+AND DateFacture>='2023/07/01'
 `,
 getgetfactureechucout:`
 select count(*) as count
 from allfacture  
-where
-DateFacture  > DATEADD(day,45,GETDATE())
-
+where 
+etat = 'pas encore'
 and
 numeroFacture  not  like '%-'
-
+AND DateFacture>='2023/07/01'
 `
 
 };
