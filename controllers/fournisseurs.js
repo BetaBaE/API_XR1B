@@ -78,7 +78,7 @@ exports.createFournisseurs = async (req, res) => {
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
-      .input("DateEcheance", getSql().Date, DateEcheance)
+      .input("DateEcheance", getSql().Int, DateEcheance)
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
