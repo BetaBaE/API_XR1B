@@ -443,22 +443,6 @@ FROM
 WHERE 
   f.deletedAt IS NULL 
   AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
-  AND (
-    EXISTS (
-      SELECT CODEDOCUTIL
-      FROM DAF_LOG_FACTURE
-      WHERE etat = 'en cours'
-      AND nom = fou.nom
-      AND CODEDOCUTIL = f.numeroFacture
-    )
-    OR EXISTS (
-      SELECT CODEDOCUTIL
-      FROM DAF_LOG_FACTURE
-      WHERE etat = 'en cours'
-    )
-  )
-
-
 `,
   getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[factureresptionne] WHERE deletedAt IS NULL 
   AND (verifiyMidelt IS NULL OR BonCommande IS NULL OR BonCommande = '')`,
