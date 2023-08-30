@@ -1,19 +1,35 @@
 const { getConnection, getSql } = require("../database/connection");
 const { all } = require("../database/querys");
-
-
-exports.getallCount = async(req, res, next) => {
-  try {
+exports.getallCountexport = async (req, res) => {
+    try {
       const pool = await getConnection();
       const result = await pool.request().query(all.getAllcount);
-      req.count = result.recordset[0].count;
-      next();
-  } catch (error) {
-      res.status(500);
-      console.log(error.message);
-      res.send(error.message);
-  }
-};
+      const count = result.recordset[0].count; 
+      res.status(200).json({ count }); 
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).json({ error: error.message }); 
+    }
+  };
+  exports.getallCount = async(req, res, next) => {
+    try {
+        const pool = await getConnection();
+        const result = await pool.request().query(all.getAllcount);
+        req.count = result.recordset[0].count;
+        next();
+    } catch (error) {
+        res.status(500);
+        console.log(error.message);
+        res.send(error.message);
+    }
+  };
+
+
+
+
+
+
+
 
 exports.getall = async(req, res) => {
     try {

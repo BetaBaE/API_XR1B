@@ -287,13 +287,12 @@ exports.logFactures = {
     `,
   getLogFactures: `SELECT distinct fn.Bcommande,fn.montantAvance, fn.idfacturenavette as id,
   fou.CodeFournisseur,fou.nom,
-  ch.LIBELLE, ch.id,
+  ch.LIBELLE, ch.id as codechantier,
   lf.etat ,lf.modepaiement,fn.ficheNavette
   FROM  [dbo].[DAF_LOG_FACTURE] lf 
   inner join [dbo].[DAF_factureNavette] fn
   on fn.idfacturenavette=lf.idfactureNavette
   inner join  [dbo].[DAF_FOURNISSEURS]  fou
-  
   on fou.id=fn.idfournisseur 
   
   inner join  chantier ch  on
