@@ -76,6 +76,7 @@ exports.getFacture = async (req, res) => {
   }
 };
 
+
 exports.createfacture = async (req, res) => {
   const {
     codechantier,
@@ -161,8 +162,6 @@ exports.createfacture = async (req, res) => {
 };
 
 
-
-
 exports.getfactureresById = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -234,7 +233,7 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
 };
 exports.updatenavette = async (req, res) => {
   const { ficheNavette, idFacture,  montantAvance: inputMontantAvance
-    ,idfournisseur,codechantier
+    ,idfournisseur,codechantier,annulation
     
   } = req.body;
   try {
@@ -256,8 +255,8 @@ exports.updatenavette = async (req, res) => {
       .input("idFacture", getSql().Int, idFacture)
       .input("idfournisseur", getSql().Int, idfournisseur)
       .input("montantAvance", getSql().Int, inputMontantAvance)
-      .query(updateFactureQuery);
-
+      .input("annulation", getSql().VarChar, annulation)
+      
     const getMontantAvanceQuery = `
       SELECT montantAvance
       FROM DAF_factureNavette
@@ -317,8 +316,8 @@ exports.updatenavette = async (req, res) => {
 };
 exports.correction = async (req, res) => {
   const { ficheNavette, idFacture,montantAvance
-    ,idfournisseur,codechantier,BonCommande
-    
+    ,idfournisseur,codechantier,BonCommande,
+    annulation
   } = req.body;
   try {
     const pool = await getConnection();
@@ -331,15 +330,19 @@ exports.correction = async (req, res) => {
       .input("idfournisseur", getSql().Int, idfournisseur)
       .input("montantAvance", getSql().Int, montantAvance)
       .input("BonCommande", getSql().VarChar, BonCommande)
+      .input("annulation", getSql().VarChar, annulation)
       .query(factureFicheNavette.update);
-      
+      if (annulation === "Annuler") {
+        updateFNWhenAnnuleVirement(req.params.id);
+      }
 
     res.json({
       id: req.params.id,
       ficheNavette,
       idFacture,
       codechantier,
-      montantAvance
+      montantAvance,
+      annulation
     });
   } catch (error) {
     res.status(500);
@@ -350,8 +353,43 @@ exports.correction = async (req, res) => {
 
 
 
+exports.annulation = async (req, res) => {
+  const { id
+    
+  } = req.body;
+  try {
+    const pool = await getConnection();
+    await pool
+    .request()
+    .input("id", getSql().Int, id)
+    
+    .query(factureFicheNavette.annulationFn);
+
+    res.json({
+      message: "Annulation réussie",
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
+    console.error(error.message);
+  }
+};
 
 
+async function updateFNWhenAnnuleVirement(id) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().VarChar, id)
+     
+      .query(factureFicheNavette.annulationFn);
+
+      console.log(`${factureFicheNavette.annulationFn}` + "ma requete")
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
 
 
 

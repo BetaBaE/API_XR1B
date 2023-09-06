@@ -479,17 +479,22 @@ and fa.nom=lf.NOM
 
 };
 exports.factureFicheNavette = {
+  createBonlivraison:`INSERT INTO [dbo].[BonlivraisonTable]
+  ([Bonlivraison])
+VALUES
+  (@BonLivraison)`,
   create: `INSERT INTO [dbo].[DAF_factureNavette]
     ([codechantier]
       ,[montantAvance],
       [idfournisseur],
       [idFacture],
       [ficheNavette],
-      [Bcommande]
+      [Bcommande],
+      [Bonlivraison]
       )
     VALUES (@codechantier,@montantAvance,@idfournisseur,
       
-      @idFacture,@ficheNavette,@Bcommande) `,
+      @idFacture,@ficheNavette,@Bcommande,@Bonlivraison) `,
 
   get: `
     SELECT DISTINCT
@@ -507,6 +512,7 @@ exports.factureFicheNavette = {
     fich.ficheNavette,
     fich.fullname,
 	fich.deletedAt,
+  fich.annulation,
     CASE
         WHEN fich.numeroFacture IS NULL THEN 'avance'
         when fich.deletedAt is not null then  'facture annulé'
@@ -519,11 +525,13 @@ exports.factureFicheNavette = {
 FROM [dbo].[ficheNavette] fich
 LEFT JOIN (SELECT * FROM chantier) ch ON fich.LIBELLE = ch.LIBELLE
 where fich.deletedAt is  null
-    `,
+and fich.ficheNavette<>'Annuler'
+`,
 
 
   getCount: `seLECT COUNT(*) as count
-    FROM  [dbo].[ficheNavette] `,
+    FROM  [dbo].[ficheNavette]
+    WHERE  ficheNavette<>'Annuler' `,
   getOne: `select * from ficheNavette where id=@id`,
   update: `update [dbo].[DAF_factureNavette] 
         set ficheNavette=@ficheNavette,
@@ -547,9 +555,8 @@ and fa.nom=lf.NOM
 )
  and  fa.nom=f.nom
 
-`
-
-
+`,
+annulationFn: `update DAF_factureNavette  set  idfacture=0 ,  ficheNavette='Annuler' where idfacturenavette=@id`
 };
 
 exports.designation = {
@@ -1033,3 +1040,18 @@ exports.avanceespece = {
   updateLogFactureWhenAnnuleV:
     "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
 };
+exports.BonLivraison = {
+  getAllBl: `
+  SELECT * 
+  FROM BonlivraisonTable
+where 1=1
+
+  `,
+  getAllBlCount: `
+  SELECT   count(*)
+  FROM BonlivraisonTable
+  where 1=1
+  
+  `,
+};
+
