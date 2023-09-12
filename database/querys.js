@@ -181,8 +181,7 @@ exports.factures = {
   where fa.CODEDOCUTIL=lf.CODEDOCUTIL
   and lf.etat <>'Annulé'
   and fa.nom=lf.NOM
- )
-   and  fa.nom=f.nom
+ )and  fa.nom=f.nom
   order by fa.DateFacture
   `,
   getficheNavetebyfournisseur: `SELECT fa.*

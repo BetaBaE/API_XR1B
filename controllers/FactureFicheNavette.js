@@ -232,88 +232,115 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   }
 };
 exports.updatenavette = async (req, res) => {
-  const { ficheNavette, idFacture,  montantAvance: inputMontantAvance
-    ,idfournisseur,codechantier,annulation
-    
-  } = req.body;
   try {
-    const pool = await getConnection();
-    const updateFactureQuery = `
-      UPDATE DAF_factureNavette
-      SET ficheNavette = @ficheNavette,
-          idFacture = @idFacture,
-          codechantier=@codechantier,
-          idfournisseur=@idfournisseur,
-          montantAvance = @montantAvance
-      WHERE idfacturenavette = @id
-    `;
-    await pool
-      .request()
-      .input("id", getSql().Int, req.params.id)
-      .input("ficheNavette", getSql().VarChar, ficheNavette)
-      .input("codechantier", getSql().VarChar, codechantier)
-      .input("idFacture", getSql().Int, idFacture)
-      .input("idfournisseur", getSql().Int, idfournisseur)
-      .input("montantAvance", getSql().Int, inputMontantAvance)
-      .input("annulation", getSql().VarChar, annulation)
-      
-    const getMontantAvanceQuery = `
-      SELECT montantAvance
-      FROM DAF_factureNavette
-      WHERE idFacture = @idFacture
-    `;
-
-    const result = await pool
-      .request()
-      .input("idFacture", getSql().Int, idFacture)
-      .query(getMontantAvanceQuery);
-    const updatedMontantAvance = result.recordset[0].montantAvance;
-
-    const getTtcQuery = `
-      SELECT TTC
-      FROM factureresptionne
-      WHERE id = @idFacture
-    `;
-    const ttcResult = await pool
-      .request()
-      .input("idFacture", getSql().Int, idFacture)
-      .query(getTtcQuery);
-
-    let ttc = 0;
-    if (ttcResult.recordset.length > 0) {
-      ttc = ttcResult.recordset[0]?.TTC || 0;
-    }
-
-    // Calculate the NetAPayer by subtracting the advance amount from the TTC value
-    const netAPayer = ttc - updatedMontantAvance;
-
-    // Update the NetAPayer field in the factureresptionne table
-    const updateQuery = `
-      UPDATE factureresptionne
-      SET NetAPayer = @netAPayer
-      WHERE id = @idFacture
-    `;
-    await pool
-      .request()
-      .input("netAPayer", getSql().Float, netAPayer)
-      .input("idFacture", getSql().Int, idFacture)
-      .query(updateQuery);
-
-    console.log(`Updated NetAPayer for idFacture ${idFacture}: ${netAPayer}`);
-
-    res.json({
-      id: req.params.id,
+    const {
       ficheNavette,
       idFacture,
+      montantAvance: inputMontantAvance,
+      idfournisseur,
       codechantier,
-      montantAvance: updatedMontantAvance
-    });
+      annulation,
+    } = req.body;
+
+    // Vérifier si 'montantAvance' est spécifié dans la requête
+    if (req.body && req.body.montantAvance !== undefined) {
+      console.log("Montant Avance:", req.body.montantAvance);
+
+      const pool = await getConnection();
+
+      // Mettre à jour la DAF_factureNavette
+      const updateFactureQuery = `
+        UPDATE DAF_factureNavette
+        SET ficheNavette = @ficheNavette,
+            idFacture = @idFacture,
+            codechantier = @codechantier,
+            idfournisseur = @idfournisseur,
+            montantAvance = @montantAvance
+        WHERE idfacturenavette = @id
+      `;
+
+      await pool
+        .request()
+        .input("id", getSql().Int, req.params.id)
+        .input("ficheNavette", getSql().VarChar, ficheNavette)
+        .input("codechantier", getSql().VarChar, codechantier)
+        .input("idFacture", getSql().Int, idFacture)
+        .input("idfournisseur", getSql().Int, idfournisseur)
+        .input("montantAvance", getSql().Int, inputMontantAvance)
+        .input("annulation", getSql().VarChar, annulation)
+        .query(updateFactureQuery);
+
+      // Récupérer le montantAvance mis à jour
+      const getMontantAvanceQuery = `
+        SELECT montantAvance
+        FROM DAF_factureNavette
+        WHERE idFacture = @idFacture
+      `;
+
+      const result = await pool
+        .request()
+        .input("idFacture", getSql().Int, idFacture)
+        .query(getMontantAvanceQuery);
+
+      const updatedMontantAvance = result.recordset[0].montantAvance;
+
+      // Récupérer le TTC
+      const getTtcQuery = `
+        SELECT TTC
+        FROM factureresptionne
+        WHERE id = @idFacture
+      `;
+
+      const ttcResult = await pool
+        .request()
+        .input("idFacture", getSql().Int, idFacture)
+        .query(getTtcQuery);
+
+      let ttc = 0;
+
+      if (ttcResult.recordset.length > 0) {
+        ttc = ttcResult.recordset[0]?.TTC || 0;
+      }
+
+      // Calculer le NetAPayer en soustrayant le montantAvance du TTC
+      const netAPayer = ttc - updatedMontantAvance;
+
+      // Mettre à jour le champ NetAPayer dans la table factureresptionne
+      const updateQuery = `
+        UPDATE factureresptionne
+        SET NetAPayer = @netAPayer
+        WHERE id = @idFacture
+      `;
+
+      await pool
+        .request()
+        .input("netAPayer", getSql().Float, netAPayer)
+        .input("idFacture", getSql().Int, idFacture)
+        .query(updateQuery);
+
+      console.log(`NetAPayer mis à jour pour idFacture ${idFacture}: ${netAPayer}`);
+
+      // Répondre avec les données mises à jour
+      res.json({
+        id: req.params.id,
+        ficheNavette,
+        idFacture,
+        codechantier,
+        montantAvance: updatedMontantAvance,
+      });
+    } else {
+      // Si 'montantAvance' n'est pas spécifié, renvoyer une réponse d'erreur
+      res.status(400).json({ error: "Montant d'avance non spécifié dans la requête." });
+    }
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    // Gérer les erreurs
+    res.status(500).send(error.message);
     console.log(error.message);
   }
 };
+
+
+
 exports.correction = async (req, res) => {
   const { ficheNavette, idFacture,montantAvance
     ,idfournisseur,codechantier,BonCommande,
