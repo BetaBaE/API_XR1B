@@ -71,3 +71,24 @@ exports.getChantiers = async (req, res) => {
       res.status(500);
     }
   };
+
+  exports.getchantierbyBoncommande = async (req, res) => {
+    try {
+      const pool = await getConnection();
+  
+      const result = await pool
+        .request()
+        .input("Boncommande", getSql().VarChar, req.params.Boncommande)
+        .query(chantiers.getChantierbyBc);
+        console.log(`${chantiers.getChantierbyBc}`)
+        console.log(req.params.Boncommande)
+      res.set("Content-Range", `cahntier 0-1/1`);
+  
+      res.json(result.recordset);
+      console.log(result.recordset)
+    } catch (error) {
+      res.send(error.message);
+      res.status(500);
+    }
+  };
+

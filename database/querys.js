@@ -305,8 +305,11 @@ exports.chantiers = {
   where  id in(
   select codechantier from factureresptionne
   where id=@id
-  )  `
-
+  ) `,
+  getChantierbyBc:`select ch.LIBELLE as libelleChantier  from DAf_BonCommande_facture bc inner join chantier ch
+  on ch.CODEAFFAIRE=bc.CODEAFFAIRE
+  where bc.CODEDOCUTIL=@Boncommande
+  `
 };
 
 exports.factureres = {
@@ -889,6 +892,17 @@ and v.[id] = @id
 
 
 exports.avancecheque = {
+
+
+
+
+
+
+
+
+
+
+
 
   create: `
   INSERT INTO [dbo].[DAF_chequeavance]
