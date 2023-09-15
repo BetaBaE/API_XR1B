@@ -32,6 +32,7 @@ exports.getBonLivraison = async(req, res) => {
             `fournisseurs ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
         );
         res.json(result.recordset);
+        console.log(result.recordset)
     } catch (error) {
         res.status(500);
         res.send(error.message);

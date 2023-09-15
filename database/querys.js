@@ -1,8 +1,8 @@
 exports.Fournisseurs = {
   getAllFournisseurs: `SELECT * FROM DAF_FOURNISSEURS WHERE 1=1`,
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
-  createFournisseur: `INSERT INTO DAF_FOURNISSEURS( CodeFournisseur, nom, DateEcheance )
-     VALUES( @CodeFournisseur, @nom,@DateEcheance )`,
+  createFournisseur: `INSERT INTO DAF_FOURNISSEURS( CodeFournisseur, nom, DateEcheance,ICE,addresse,mail )
+     VALUES( @CodeFournisseur, @nom,@DateEcheance,@ICE,@registrecommerce,@addresse,@mail  )`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
@@ -10,9 +10,9 @@ exports.Fournisseurs = {
   AND rf.validation = 'validé' AND f.nom not in (SELECT
  distinct [NOM]
   FROM [dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and orderVirementId =@ovId)`,
-  getOne:`select * from DAF_FOURNISSEURS where id=@id`,
-  update:`update DAF_FOURNISSEURS 
-  set DateEcheance=@DateEcheance 
+  getOne: `select * from DAF_FOURNISSEURS where id=@id`,
+  update: `update DAF_FOURNISSEURS 
+  set DateEcheance=@DateEcheance
       where id=@id
   `
 
@@ -306,7 +306,7 @@ exports.chantiers = {
   select codechantier from factureresptionne
   where id=@id
   ) `,
-  getChantierbyBc:`select ch.LIBELLE as libelleChantier  from DAf_BonCommande_facture bc inner join chantier ch
+  getChantierbyBc: `select ch.LIBELLE as libelleChantier ,REDACTEUR  from DAf_BonCommande_facture bc inner join chantier ch
   on ch.CODEAFFAIRE=bc.CODEAFFAIRE
   where bc.CODEDOCUTIL=@Boncommande
   `
@@ -481,7 +481,7 @@ and fa.nom=lf.NOM
 
 };
 exports.factureFicheNavette = {
-  createBonlivraison:`INSERT INTO [dbo].[BonlivraisonTable]
+  createBonlivraison: `INSERT INTO [dbo].[BonlivraisonTable]
   ([Bonlivraison])
 VALUES
   (@BonLivraison)`,
@@ -499,39 +499,42 @@ VALUES
       @idFacture,@ficheNavette,@Bcommande,@Bonlivraison) `,
 
   get: `
-    SELECT DISTINCT
-    fich.id,
-    fich.BonCommande,
-    fich.CodeFournisseur,
-    fich.montantAvance,
-    fich.nom,
-    fich.MontantTVA,
-    fich.DateFacture,
-    fich.TTC,
-    fich.HT,
-    fich.designation,
-    fich.numeroFacture,
-    fich.ficheNavette,
-    fich.fullname,
-	fich.deletedAt,
+  SELECT DISTINCT
+  fich.id,
+  fich.BonCommande,
+  fich.CodeFournisseur,
+  fich.montantAvance,
+  fich.nom,
+  fich.MontantTVA,
+  fich.DateFacture,
+  fich.TTC,
+  fich.HT,
+  fich.designation,
+  fich.numeroFacture,
+  fich.ficheNavette,
+  fich.fullname,
+  fich.deletedAt,
   fich.annulation,
-    CASE
-        WHEN fich.numeroFacture IS NULL THEN 'avance'
-        when fich.deletedAt is not null then  'facture annulé'
-		else 'normal'
-    END AS etat,
-    CASE
-        WHEN ch.LIBELLE IS NULL THEN fich.LIBELLE
-        ELSE ch.LIBELLE
-    END AS libelle
+  CASE
+      WHEN fich.numeroFacture IS NULL THEN 'avance'
+      WHEN fich.deletedAt IS NOT NULL THEN 'facture annulée'
+      ELSE 'normal'
+  END AS etat,
+  CASE
+      WHEN ch.LIBELLE IS NULL THEN fich.LIBELLE
+      ELSE ch.LIBELLE
+  END AS libelle,
+  bl.Bonlivraison   as BonLivraison ,
+  bl.idfacturenavette
 FROM [dbo].[ficheNavette] fich
 LEFT JOIN (SELECT * FROM chantier) ch ON fich.LIBELLE = ch.LIBELLE
-where fich.deletedAt is  null
-and fich.ficheNavette<>'Annuler'
+LEFT JOIN [dbo].[BonlivraisonTable] bl ON fich.id = bl.idfacturenavette
+WHERE fich.deletedAt IS NULL
+AND fich.ficheNavette <> 'Annuler'
 `,
 
 
-  getCount: `seLECT COUNT(*) as count
+  getCount: `SELECT COUNT(*) as count
     FROM  [dbo].[ficheNavette]
     WHERE  ficheNavette<>'Annuler' `,
   getOne: `select * from ficheNavette where id=@id`,
@@ -558,7 +561,7 @@ and fa.nom=lf.NOM
  and  fa.nom=f.nom
 
 `,
-annulationFn: `update DAF_factureNavette  set  idfacture=0 ,  ficheNavette='Annuler' where idfacturenavette=@id`
+  annulationFn: `update DAF_factureNavette  set  idfacture=0 ,  ficheNavette='Annuler' where idfacturenavette=@id`
 };
 
 exports.designation = {
@@ -606,7 +609,7 @@ exports.all = {
     
     `,
 
-getfactureechu:`select distinct 
+  getfactureechu: `select distinct 
 [id]
 ,[BonCommande]
 ,[chantier]
@@ -636,7 +639,7 @@ and
 numeroFacture  not  like '%-'
 AND DateFacture>='2023/07/01'
 `,
-getgetfactureechucout:`
+  getgetfactureechucout: `
 select count(*) as count
 from allfacture  
 where 
@@ -895,15 +898,6 @@ exports.avancecheque = {
 
 
 
-
-
-
-
-
-
-
-
-
   create: `
   INSERT INTO [dbo].[DAF_chequeavance]
       (
@@ -1065,6 +1059,8 @@ where 1=1
   FROM BonlivraisonTable
   where 1=1
   
-  `,
+    `,
+  
+ 
 };
 

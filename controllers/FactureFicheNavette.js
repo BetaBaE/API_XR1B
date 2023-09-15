@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { factureFicheNavette, factures } = require("../database/querys");
+const { factureFicheNavette, factures, BonLivraison } = require("../database/querys");
 
 exports.getFactureCount = async (req, res, next) => {
   try {
@@ -13,7 +13,6 @@ exports.getFactureCount = async (req, res, next) => {
     res.send(error.message);
   }
 };
-
 exports.getFacture = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
@@ -23,8 +22,7 @@ exports.getFacture = async (req, res) => {
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
-    console.log(filter);
-    console.log(filter);
+
     let queryFilter = "";
 
     if (filter.ficheNavette) {
@@ -33,48 +31,50 @@ exports.getFacture = async (req, res) => {
     if (filter.chantier) {
       queryFilter += ` and upper(fich.LIBELLE) like (upper('%${filter.chantier}%'))`;
     }
-    
+
     if (filter.BonCommande) {
       queryFilter += ` and upper(BonCommande)  like ('%${filter.BonCommande}%')`;
     }
     if (filter.fournisseur) {
       queryFilter += ` and upper(fich.nom) like (upper('%${filter.fournisseur}%'))`;
     }
-    
+
     if (filter.designation) {
       queryFilter += ` and upper(designation) like (upper('%${filter.designation}%'))`;
     }
-    
+
     if (filter.numeroFacture) {
       queryFilter += ` and upper(fich.numeroFacture)  like ('%${filter.numeroFacture}%')`;
     }
     if (filter.CodeFournisseur) {
       queryFilter += ` and upper(CodeFournisseur) like (upper('%${filter.CodeFournisseur}%'))`;
     }
-    
-    // Modifier la construction de la clause WHERE
     let whereClause = queryFilter ? `${queryFilter}` : "";
     const pool = await getConnection();
     const result = await pool.request().query(
       `${factureFicheNavette.get} ${whereClause} Order by ${sort[0]} ${sort[1]}
       OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
-    
 
-    console.log(req.count);
+    
+    // const records = result.recordset.map(record => ({
+    //   ...record,
+    //   BonLivraison: record.BonLivraison ? record.BonLivraison.split(', ') : [],
+    //   idfacturenavette: typeof record.idfacturenavette === 'string' ? record.idfacturenavette.split(', ') : [],
+    // }));
+
     res.set(
       "Content-Range",
-      `facturefchantierfournisseur ${range[0]}-${range[1] + 1 - range[0]}/${
-        req.count
-      }`
+      `facturefchantierfournisseur ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
-    res.json(result.recordset);
+    res.json(records);
   } catch (error) {
     res.status(500);
-    console.log(error.message)
+    console.log(error.message);
     res.send(error.message);
   }
 };
+
 
 
 exports.createfacture = async (req, res) => {
@@ -419,7 +419,22 @@ async function updateFNWhenAnnuleVirement(id) {
 }
 
 
+exports.getBonLivraisonByFactureId = async (req, res) => {
+  const factureId = req.params.id;
 
+  try {
+   
+    const bonLivraisons = await BonLivraison.findAll({
+      where: { idFacture: factureId }, // Supposons que vous ayez un champ idFacture dans le modèle BonLivraison
+    });
+
+    res.json(bonLivraisons);
+    console.log("gh",bonLivraisons)
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
 
 
 

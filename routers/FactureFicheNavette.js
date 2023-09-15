@@ -1,5 +1,5 @@
 const express = require("express");
-const { createfacture, getFactureCount, getFacture, getfactureresById, updatenavette, getficheNavetteByfournisseur, getavanceByfournisseur, getsumavancebyfournisseurwithfn, correction, annulation } = require("../controllers/FactureFicheNavette");
+const { createfacture, getFactureCount, getFacture, getfactureresById, updatenavette, getficheNavetteByfournisseur, getavanceByfournisseur, getsumavancebyfournisseurwithfn, correction, annulation, getBonLivraisonByFactureId } = require("../controllers/FactureFicheNavette");
 const router = express.Router();
 router.post("/factureRech", createfacture);
 router.get("/factureRech/:id", getfactureresById);
@@ -12,4 +12,9 @@ router.get("/ModificationFichnavette", getFactureCount, getFacture);
 router.get("/ModificationFichnavette/:id", getfactureresById);
 router.put("/ModificationFichnavette/:id", correction);
 router.patch("/AnnulationFn", annulation);
+
+
+
+
+router.get('/factureRech/:factureId/BonLivraison', getBonLivraisonByFactureId);
 module.exports = router;
