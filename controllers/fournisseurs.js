@@ -69,7 +69,7 @@ exports.getAllFournissuers = async (req, res) => {
 };
 
 exports.createFournisseurs = async (req, res) => {
-  const { CodeFournisseur, nom ,DateEcheance } = req.body;
+  const { CodeFournisseur, nom ,Echeance,registrecommerce,mail,addresse,ICE} = req.body;
 
   try {
     const pool = await getConnection();
@@ -78,14 +78,16 @@ exports.createFournisseurs = async (req, res) => {
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
-      .input("DateEcheance", getSql().Int, DateEcheance)
+      .input("Echeance", getSql().Int, Echeance)
+      .input("ICE", getSql().VarChar, ICE)
+      .input("registrecommerce", getSql().VarChar, registrecommerce)
+      .input("addresse", getSql().VarChar, addresse)
+      .input("mail", getSql().VarChar, mail)
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
       id: "",
-      CodeFournisseur,
-      nom,
-      DateEcheance
+      CodeFournisseur, nom ,Echeance,registrecommerce,mail,addresse,ICE
     });
   } catch (error) {
     
@@ -169,7 +171,14 @@ exports.getfournisseurById = async (req, res) => {
 
 
 exports.updatefournisseur = async (req, res) => {
-  const { DateEcheance} =
+  const { CodeFournisseur,
+ nom,
+  Echeance,
+   ICE,
+registrecommerce,
+addresse,
+  mail
+} =
     req.body;
   try {
     const pool = await getConnection();
@@ -178,12 +187,24 @@ exports.updatefournisseur = async (req, res) => {
       .request()
 
       .input("id", getSql().Int, req.params.id)
-      .input("DateEcheance", getSql().Date, DateEcheance)
+     .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
+      .input("nom", getSql().VarChar, nom)
+      .input("Echeance", getSql().Int, Echeance)
+      .input("ICE", getSql().VarChar, ICE)
+      .input("registrecommerce", getSql().VarChar, registrecommerce)
+      .input("addresse", getSql().VarChar, addresse)
+      .input("mail", getSql().VarChar, mail)
       .query(Fournisseurs.update);
 
     res.json({
       id: req.params.id,
-      DateEcheance
+      CodeFournisseur,
+      nom,
+       Echeance,
+        ICE,
+     registrecommerce,
+     addresse,
+       mail
     });
   } catch (error) {
    

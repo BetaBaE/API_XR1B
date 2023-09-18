@@ -49,31 +49,32 @@ exports.getFacture = async (req, res) => {
     if (filter.CodeFournisseur) {
       queryFilter += ` and upper(CodeFournisseur) like (upper('%${filter.CodeFournisseur}%'))`;
     }
-    let whereClause = queryFilter ? `${queryFilter}` : "";
+    console.log(queryFilter);
     const pool = await getConnection();
+    // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
+
     const result = await pool.request().query(
-      `${factureFicheNavette.get} ${whereClause} Order by ${sort[0]} ${sort[1]}
-      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+      `${factureFicheNavette.get} ${queryFilter} Order by ${sort[0]} ${
+        sort[1]
+      }
+    OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
-    
-    // const records = result.recordset.map(record => ({
-    //   ...record,
-    //   BonLivraison: record.BonLivraison ? record.BonLivraison.split(', ') : [],
-    //   idfacturenavette: typeof record.idfacturenavette === 'string' ? record.idfacturenavette.split(', ') : [],
-    // }));
-
+    console.log(req.count);
     res.set(
       "Content-Range",
-      `facturefchantierfournisseur ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+      `facturesresptionne ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
-    res.json(records);
+    res.json(result.recordset);
   } catch (error) {
     res.status(500);
-    console.log(error.message);
     res.send(error.message);
   }
 };
+
+
+
+   
 
 
 

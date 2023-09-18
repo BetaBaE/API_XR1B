@@ -1,8 +1,8 @@
 exports.Fournisseurs = {
   getAllFournisseurs: `SELECT * FROM DAF_FOURNISSEURS WHERE 1=1`,
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
-  createFournisseur: `INSERT INTO DAF_FOURNISSEURS( CodeFournisseur, nom, DateEcheance,ICE,addresse,mail )
-     VALUES( @CodeFournisseur, @nom,@DateEcheance,@ICE,@registrecommerce,@addresse,@mail  )`,
+  createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,Echeance,ICE,registrecommerce,mail,addresse)
+     VALUES( @CodeFournisseur, @nom,@Echeance,@ICE,@registrecommerce,@mail,@addresse  )`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
@@ -491,12 +491,11 @@ VALUES
       [idfournisseur],
       [idFacture],
       [ficheNavette],
-      [Bcommande],
-      [Bonlivraison]
+      [Bcommande]
       )
     VALUES (@codechantier,@montantAvance,@idfournisseur,
       
-      @idFacture,@ficheNavette,@Bcommande,@Bonlivraison) `,
+      @idFacture,@ficheNavette,@Bcommande) `,
 
   get: `
   SELECT DISTINCT
@@ -523,12 +522,10 @@ VALUES
   CASE
       WHEN ch.LIBELLE IS NULL THEN fich.LIBELLE
       ELSE ch.LIBELLE
-  END AS libelle,
-  bl.Bonlivraison   as BonLivraison ,
-  bl.idfacturenavette
+  END AS libelle
+ 
 FROM [dbo].[ficheNavette] fich
 LEFT JOIN (SELECT * FROM chantier) ch ON fich.LIBELLE = ch.LIBELLE
-LEFT JOIN [dbo].[BonlivraisonTable] bl ON fich.id = bl.idfacturenavette
 WHERE fich.deletedAt IS NULL
 AND fich.ficheNavette <> 'Annuler'
 `,
