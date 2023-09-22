@@ -1,8 +1,8 @@
 exports.Fournisseurs = {
   getAllFournisseurs: `SELECT * FROM DAF_FOURNISSEURS WHERE 1=1`,
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
-  createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,Echeance,ICE,registrecommerce,mail,addresse)
-     VALUES( @CodeFournisseur, @nom,@Echeance,@ICE,@registrecommerce,@mail,@addresse  )`,
+  createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,Echeance,ICE,Identifiantfiscal,mail,addresse,echeanceloi,echeancereel)
+     VALUES(@CodeFournisseur, @nom,@Echeance,@ICE,@IF,@mail,@addresse,@echeanceloi,@echeancereel  )`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
@@ -12,10 +12,15 @@ exports.Fournisseurs = {
   FROM [dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and orderVirementId =@ovId)`,
   getOne: `select * from DAF_FOURNISSEURS where id=@id`,
   update: `update DAF_FOURNISSEURS 
-  set DateEcheance=@DateEcheance
+  set 
+     ICE=@ICE,
+     Identifiantfiscal=@IF,
+     mail=@mail,
+     addresse=@addresse,
+     echeanceloi=@echeanceloi,
+     echeancereel=@echeancereel
       where id=@id
   `
-
 };
 
 exports.ribTemporaire = {
@@ -313,28 +318,37 @@ exports.chantiers = {
 };
 
 exports.factureres = {
-  getfactureres: `select
-f.id,
-f.fullName
-,f.numeroFacture
-,f.BonCommande
-,f.TTC AS TTC,
-f.createdDate
-,f.DateFacture,
-f.HT,
-f.MontantTVA,
-d.designation as "designation" ,
-fou.nom as "nom",
-fou.CodeFournisseur,
-f.verifiyMidelt,
-f.updatedBy,
-ch.LIBELLE as LIBELLE
-
+  getfactureres: `SELECT
+  f.id,
+  f.fullName,
+  f.numeroFacture,
+  f.BonCommande,
+  f.TTC AS TTC,
+  f.createdDate,
+  f.DateFacture,
+  f.HT,
+  f.MontantTVA,
+  d.designation as "designation",
+  fou.nom as "nom",
+  fou.CodeFournisseur,
+  fou.echeancereel ,
+  f.verifiyMidelt,
+  f.updatedBy,
+  ch.LIBELLE as LIBELLE,
+  CASE
+WHEN RIGHT(fou.echeancereel, 2) = 'fm' THEN  
+          CONVERT(DATE, DATEADD(DAY, 
+              CAST(LEFT(fou.echeancereel, LEN(fou.echeancereel) - 2) AS INT), EOMONTH (DateFacture)))
+      
+  WHEN fou.echeancereel IS NULL THEN  CONVERT(DATE, DATEADD(DAY, 60, DateFacture))
+      ELSE CONVERT(DATE, DATEADD(DAY, CAST(fou.echeancereel AS INT), DateFacture))
+  END AS dateechu
 FROM [dbo].[factureresptionne] f
-inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
-inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
-left join [dbo].[chantier] ch on ch.id=f.codechantier
-where deletedAt is null`,
+INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
+INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
+WHERE deletedAt is null
+`,
   getcountfactureres: `
 SELECT COUNT(*) as count
 FROM [dbo].[factureresptionne] f
@@ -606,35 +620,32 @@ exports.all = {
     
     `,
 
-  getfactureechu: `select distinct 
-[id]
-,[BonCommande]
-,[chantier]
-,[DateFacture]
-,[TTC]
-,[HT]
-,[numeroFacture]
-,[MontantTVA]
-,[CodeFournisseur]
-,[nom]
-,[datecheque]
-,[dateecheance]
-,[ficheNavette]
-,[dateOperation]
-,[modepaiement]
-,[banque]
-,[designation]
-,[numerocheque]
-,[montantAvance]
-,[etat]
-, 
-CONVERT(date,DATEADD(DAY, 45, DateFacture))as  dateechu
-from  allfacture fl  
-where 
-etat = 'pas encore'
-and
-numeroFacture  not  like '%-'
-AND DateFacture>='2023/07/01'
+  getfactureechu: `select
+  f.id,
+  f.fullName
+  ,f.numeroFacture
+  ,f.BonCommande
+  ,f.TTC AS TTC,
+  f.createdDate
+  ,f.DateFacture,
+  f.HT,
+  f.MontantTVA,
+  d.designation as "designation" ,
+  fou.nom as "nom",
+  fou.CodeFournisseur,
+  fou.echeancereel as 'echeance reel',
+  f.verifiyMidelt,
+  f.updatedBy,
+  ch.LIBELLE as LIBELLE,
+  CASE
+          WHEN fou.echeancereel IS NULL THEN  CONVERT(DATE, DATEADD(DAY, 45,DateFacture))
+          ELSE CONVERT(DATE, DATEADD(DAY, CAST(fou.echeancereel AS INT), DateFacture))
+      END AS dateechu
+  FROM [dbo].[factureresptionne] f
+  inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
+  inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+  left join [dbo].[chantier] ch on ch.id=f.codechantier
+  where deletedAt is null
 `,
   getgetfactureechucout: `
 select count(*) as count

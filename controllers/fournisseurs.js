@@ -69,7 +69,10 @@ exports.getAllFournissuers = async (req, res) => {
 };
 
 exports.createFournisseurs = async (req, res) => {
-  const { CodeFournisseur, nom ,Echeance,registrecommerce,mail,addresse,ICE} = req.body;
+  const { CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE,
+    echeanceloi,
+    echeancereel
+  } = req.body;
 
   try {
     const pool = await getConnection();
@@ -80,14 +83,18 @@ exports.createFournisseurs = async (req, res) => {
       .input("nom", getSql().VarChar, nom)
       .input("Echeance", getSql().Int, Echeance)
       .input("ICE", getSql().VarChar, ICE)
-      .input("registrecommerce", getSql().VarChar, registrecommerce)
+      .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
+      .input("echeanceloi", getSql().VarChar, echeanceloi)
+      .input("echeancereel", getSql().VarChar, echeancereel)
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
       id: "",
-      CodeFournisseur, nom ,Echeance,registrecommerce,mail,addresse,ICE
+      CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE,echeanceloi,
+      echeancereel
+      
     });
   } catch (error) {
     
@@ -175,9 +182,11 @@ exports.updatefournisseur = async (req, res) => {
  nom,
   Echeance,
    ICE,
-registrecommerce,
+   IF,
 addresse,
-  mail
+  mail,
+  echeanceloi,
+  echeancereel
 } =
     req.body;
   try {
@@ -191,9 +200,11 @@ addresse,
       .input("nom", getSql().VarChar, nom)
       .input("Echeance", getSql().Int, Echeance)
       .input("ICE", getSql().VarChar, ICE)
-      .input("registrecommerce", getSql().VarChar, registrecommerce)
+      .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
+      .input("echeanceloi", getSql().VarChar, echeanceloi)
+      .input("echeancereel", getSql().VarChar, echeancereel)
       .query(Fournisseurs.update);
 
     res.json({
@@ -202,9 +213,11 @@ addresse,
       nom,
        Echeance,
         ICE,
-     registrecommerce,
+        IF,
      addresse,
-       mail
+       mail,
+       echeanceloi,
+       echeancereel
     });
   } catch (error) {
    

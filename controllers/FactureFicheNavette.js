@@ -111,16 +111,28 @@ exports.createfacture = async (req, res) => {
         );
     `;
 
+    
+    const existingCompositionAvance = ` SELECT COUNT(*)
+      FROM daf_factureNavette AS dfn1
+      WHERE 
+         dfn1.ficheNavette = @ficheNavette
+        AND dfn1.Bcommande = @Bcommande
+        AND dfn1.idfournisseur = @idfournisseur
+     group by  dfn1.ficheNavette,
+					 dfn1.ficheNavette
+					 dfn1.Bcommande
+           `
+    
+
     const existingCompositionResult = await pool
       .request()
       .input("codechantier", getSql().VarChar, codechantier)
       .input("ficheNavette", getSql().VarChar, ficheNavette)
       .input("Bcommande", getSql().VarChar, Bcommande)
       .input("idfournisseur", getSql().Int, idfournisseur)
-      .query(existingCompositionQuery);
+      .query(existingCompositionQuery,existingCompositionAvance);
 
     if (existingCompositionResult.recordset.length > 0) {
-      // La composition existe déjà, renvoyer une réponse d'erreur
       res.status(400).json({ message: "La composition existe déjà dans la table daf_factureNavette" });
     } else {
       let modifiedFicheNavette = ficheNavette;
