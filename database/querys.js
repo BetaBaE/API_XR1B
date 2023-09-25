@@ -95,6 +95,8 @@ exports.Users = {
 };
 
 exports.ordervirements = {
+  getfacturebyordervirement :`SELECT * FROM Daf_voir
+  WHERE ordervirementId LIKE '%'+@id+'%';`,
   getCountByYear: `SELECT  COUNT(*) +1 as count
   FROM [dbo].[DAF_Order_virements]
   where datecreation like '%${new Date().getFullYear()}%'`,
@@ -610,12 +612,12 @@ exports.all = {
 
 	  END AS nbrJour
   
-  from  allfacture  where numeroFacture  not  like '%-'
+  from  daf_voir  where numeroFacture  not  like '%-'
 `,
 
   getAllcount: `
     select count(*) as count
-    from allfacture  
+    from daf_voir  
       where numeroFacture  not  like '%-'
     
     `,

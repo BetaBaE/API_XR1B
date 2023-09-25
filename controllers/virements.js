@@ -146,7 +146,7 @@ exports.getVirementCount = async (req, res, next) => {
 };
 
 exports.createVirements = async (req, res) => {
-  // console.log(req.body);
+
   let { facturelist } = req.body;
   let { Totale } = await calculSumFactures(facturelist);
   //let num = MontantFixed(Totale);
@@ -158,22 +158,19 @@ exports.createVirements = async (req, res) => {
     const pool = await getConnection();
     const result = await pool
       .request()
-
       .input("orderVirementId", getSql().VarChar, req.body.orderVirementId)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
       .input("ribFournisseurId", getSql().Int, req.body.ribFournisseurId)
       .input("montantVirement", getSql().Float, Totale)
       .query(virements.create);
-    await AddToTotalOv(Totale, req.body.orderVirementId);
-    res.json({ id: "" });
+            console.log(Totale)
+      await AddToTotalOv(Totale, req.body.orderVirementId);
+    res.json({ id: "" ,Totale});
   } catch (error) {
-    //error.originalError.info.name="déja existe"
-  
-
 res.status(500);
 res.send(error.message);
 }
-  // return res.json([{ id: "id" }]);
+
 };
 
 exports.getVirements = async (req, res) => {

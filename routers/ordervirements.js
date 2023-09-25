@@ -8,10 +8,11 @@ const {
   orderVirementsEnCours,
   PrintOrderVirement,
   orderVirementsEtat,
+  getfacturebyordervirement,
 } = require("../controllers/ordervirement");
 const router = express.Router();
 
-// router.get("/ordervirementcount", getOrderCountbyYear);
+
 router.post("/ordervirement", createOrderVirements);
 router.get("/ordervirement", getOrderCount, getorderVirements);
 router.get("/ordervirement/:id", getOneOrderById);
@@ -20,4 +21,5 @@ router.get("/ordervirementencours", getOrderCount, orderVirementsEnCours);
 router.get("/ordervirementetat", getOrderCount, orderVirementsEtat);
 
 router.get("/oneordervirement/", PrintOrderVirement);
+router.get("/ordervirementbyfacture/:id", getfacturebyordervirement);
 module.exports = router;

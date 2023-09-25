@@ -543,3 +543,23 @@ exports.PrintOrderVirement = async (req, res) => {
     res.status(500);
   }
 };
+
+exports.getfacturebyordervirement = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("id", getSql().VarChar, req.params.id)
+      .query(ordervirements.getfacturebyordervirement);
+     console.log(`${ordervirements.getfacturebyordervirement}`,req.params.id)
+      console.log("ordervirement id",)
+    res.set("Content-Range", `cahntier 0-1/1`);
+
+    res.json(result.recordset);
+    console.log(result.recordset)
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
