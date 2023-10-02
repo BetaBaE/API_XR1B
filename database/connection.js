@@ -4,7 +4,7 @@ const dbSettings = {
   user: "saisie.erp",
   password: "Sage123+",
   server: "192.168.1.202",
- database: "ATNER_DW_test",
+ database: "ATNER_DW",
   pool: {
     max: 10,
     min: 0,
