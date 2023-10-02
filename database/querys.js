@@ -644,32 +644,39 @@ exports.all = {
     
     `,
 
-  getfactureechu: `select
-  f.id,
-  f.fullName
-  ,f.numeroFacture
-  ,f.BonCommande
-  ,f.TTC AS TTC,
-  f.createdDate
-  ,f.DateFacture,
-  f.HT,
-  f.MontantTVA,
-  d.designation as "designation" ,
-  fou.nom as "nom",
-  fou.CodeFournisseur,
-  fou.echeancereel as 'echeance reel',
-  f.verifiyMidelt,
-  f.updatedBy,
-  ch.LIBELLE as LIBELLE,
-  CASE
-          WHEN fou.echeancereel IS NULL THEN  CONVERT(DATE, DATEADD(DAY, 45,DateFacture))
-          ELSE CONVERT(DATE, DATEADD(DAY, CAST(fou.echeancereel AS INT), DateFacture))
-      END AS dateechu
-  FROM [dbo].[factureresptionne] f
-  inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
-  inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
-  left join [dbo].[chantier] ch on ch.id=f.codechantier
-  where deletedAt is null
+  getfactureechu: `select distinct 
+  [id]
+      ,[BonCommande]
+      ,[chantier]
+      ,[DateFacture]
+      ,[TTC]
+      ,[HT]
+      ,[numeroFacture]
+      ,[MontantTVA]
+      ,[CodeFournisseur]
+      ,[nom]
+      ,[datecheque]
+      ,[dateecheance]
+      ,[ficheNavette]
+      ,[dateOperation]
+      ,[modepaiement]
+      ,[banque]
+      ,[designation]
+      ,[numerocheque]
+      ,[montantAvance]
+      ,[etat]
+	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
+	  ELSE NULL  
+
+	  END AS nbrJour
+	  
+  
+  from  daf_voir  where numeroFacture  not  like '%-'
+  and  
+etat = 'pas encore'
+and
+numeroFacture  not  like '%-'
+AND DateFacture>='2023/07/01'
 `,
   getgetfactureechucout: `
 select count(*) as count
