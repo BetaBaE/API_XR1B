@@ -38,10 +38,13 @@ const cheque = require("./routers/Cheque");
 const espece = require("./routers/Espece");
 const BL = require("./routers/BLRoute");
 const avancevirement = require("./routers/AvanceVirementroute");
-const avancecheque = require("./routers/AvancechequeRoute");
+const EcheanceReel = require("./routers/EcheanceReel");
+
+const EcheanceLoi = require("./routers/EcheanceLoi");
 
 const avanceespece = require("./routers/AvanceEspeceRoute");
 app.use("/", fournissues);
+app.use("/", EcheanceLoi);
 app.use("/", ribTemporaire);
 app.use("/", ribFournisseurs);
 app.use("/", ribAtner);
@@ -57,7 +60,7 @@ app.use("/", all);
 app.use("/", cheque);
 app.use("/", espece);
 app.use("/", avancevirement);
-app.use("/", avancecheque);
+app.use("/", EcheanceReel);
 app.use("/", avanceespece);
 app.use("/", BL);
 const port = process.env.PORT || 8080;

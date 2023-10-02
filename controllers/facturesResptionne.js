@@ -104,7 +104,8 @@ exports.createfacture = async (req, res) => {
       fournisseur,
       codechantier,
       DateFacture,
-      iddesignation
+      iddesignation,
+      dateecheance
   } = req.body;
   try {
       const pool = await getConnection();
@@ -118,6 +119,7 @@ exports.createfacture = async (req, res) => {
           .input("fullName", getSql().VarChar, req.body.fullName)
           .input("iddesignation", getSql().Int, req.body.iddesignation)
           .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
+          .input("dateecheance", getSql().VarChar, req.body.dateecheance)
           .query(factureres.createfacture)
       console.log("errour");
       res.json({

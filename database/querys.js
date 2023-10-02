@@ -1,8 +1,32 @@
 exports.Fournisseurs = {
-  getAllFournisseurs: `SELECT * FROM DAF_FOURNISSEURS WHERE 1=1`,
+  getAllFournisseurs: `SELECT fou.id, fou.addresse, fou.CodeFournisseur, fou.Identifiantfiscal, fou.ICE, fou.nom,
+  echr.modalitePaiement as echeancereel , 
+  echl.modalitePaiement as echeanceloi,
+  fou.mail
+FROM DAF_FOURNISSEURS fou
+LEFT JOIN (
+SELECT idfournisseur, MAX(id) as id
+FROM DAF_echeanceloiFournisseur 
+GROUP BY idfournisseur
+) AS echl_max
+ON fou.id = echl_max.idfournisseur
+
+LEFT JOIN DAF_echeanceloiFournisseur echl
+ON echl.id = echl_max.id
+
+LEFT JOIN (
+SELECT idfournisseur, MAX(id) as id
+FROM DAF_echeanceReelFournisseur 
+GROUP BY idfournisseur
+) AS echr_max
+ON fou.id = echr_max.idfournisseur
+
+LEFT JOIN DAF_echeanceReelFournisseur echr
+ON echr.id = echr_max.id
+where 1=1 `,
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
-  createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,Echeance,ICE,Identifiantfiscal,mail,addresse,echeanceloi,echeancereel)
-     VALUES(@CodeFournisseur, @nom,@Echeance,@ICE,@IF,@mail,@addresse,@echeanceloi,@echeancereel  )`,
+  createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,ICE,Identifiantfiscal,mail,addresse)
+     VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse)`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
@@ -16,9 +40,7 @@ exports.Fournisseurs = {
      ICE=@ICE,
      Identifiantfiscal=@IF,
      mail=@mail,
-     addresse=@addresse,
-     echeanceloi=@echeanceloi,
-     echeancereel=@echeancereel
+     addresse=@addresse
       where id=@id
   `
 };
@@ -26,24 +48,30 @@ exports.Fournisseurs = {
 exports.ribTemporaire = {
   getRibs: `SELECT rt.*, f.nom as fournisseur FROM DAF_RIB_TEMPORAIRE rt, DAF_FOURNISSEURS f WHERE rt.fournisseurid = f.id AND  1=1`,
   getRibCount: `SELECT COUNT(*) as count FROM DAF_RIB_TEMPORAIRE`,
-  createRibs: `INSERT INTO DAF_RIB_TEMPORAIRE( FournisseurId,rib )
-     VALUES( @FournisseurId,@rib )`,
+  createRibs: `INSERT INTO DAF_RIB_TEMPORAIRE(FournisseurId,rib,swift,banque)
+     VALUES( @FournisseurId,@rib,@swift,@banque )`,
 };
 
 exports.ribFournisseur = {
   create: `INSERT INTO [dbo].[DAF_RIB_Fournisseurs]
            ([FournisseurId]
            ,[rib]
+           ,[swift]
+           ,[banque]
            )
      VALUES
            (@FournisseurId,
            @rib
+           ,@swift
+           ,@banque
           )`,
   getAll: `SELECT rf.*, f.nom as fournisseur FROM [dbo].[DAF_RIB_Fournisseurs] rf, DAF_FOURNISSEURS f   WHERE rf.fournisseurid = f.id AND  1=1`,
   getCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_RIB_Fournisseurs]`,
   edit: `UPDATE [dbo].[DAF_RIB_Fournisseurs]
       SET FournisseurId = @FournisseurId
       ,rib = @rib
+      ,swift=@swift
+      ,banque=@banque
       ,validation = @validation
     WHERE id = @id `,
   getOne: `SELECT rf.*, f.nom as fournisseur FROM [dbo].[DAF_RIB_Fournisseurs] rf, DAF_FOURNISSEURS f   WHERE rf.fournisseurid = f.id AND  rf.id = @id`,
@@ -333,18 +361,10 @@ exports.factureres = {
   d.designation as "designation",
   fou.nom as "nom",
   fou.CodeFournisseur,
-  fou.echeancereel ,
   f.verifiyMidelt,
   f.updatedBy,
-  ch.LIBELLE as LIBELLE,
-  CASE
-WHEN RIGHT(fou.echeancereel, 2) = 'fm' THEN  
-          CONVERT(DATE, DATEADD(DAY, 
-              CAST(LEFT(fou.echeancereel, LEN(fou.echeancereel) - 2) AS INT), EOMONTH (DateFacture)))
-      
-  WHEN fou.echeancereel IS NULL THEN  CONVERT(DATE, DATEADD(DAY, 60, DateFacture))
-      ELSE CONVERT(DATE, DATEADD(DAY, CAST(fou.echeancereel AS INT), DateFacture))
-  END AS dateechu
+  ch.LIBELLE as LIBELLE
+
 FROM [dbo].[factureresptionne] f
 INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
 INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
@@ -365,7 +385,8 @@ where deletedAt is null`,
 ,[DateFacture]
 ,[iddesignation]
 ,[fullName],
-[codechantier]
+[codechantier],
+[dateecheance]
 )
   values  (
      @numeroFacture
@@ -376,6 +397,7 @@ where deletedAt is null`,
     ,@iddesignation
     ,@fullName
     ,@codechantier
+    ,@dateecheance
     )`,
   getOne: `select
 f.id,
@@ -1071,6 +1093,57 @@ where 1=1
   
     `,
   
- 
 };
+exports.EcheanceReel = {
+  getAllecheanceReel: `
+  SELECT  erf.id as id ,nom,fou.id as idfournisseur,
+      [modalitePaiement]
+      ,[dateecheance]
+  FROM [DAF_echeanceReelFournisseur] erf
+  inner join DAF_FOURNISSEURS fou
+  on  erf.idfournisseur=fou.id
+  where 1=1
+  `,
+  getAllecheanceReelCount: `
+  SELECT   COUNT(*) as count
+  FROM [dbo].[DAF_echeanceReelFournisseur]
+    `,
+  create :`INSERT INTO [dbo].[DAF_echeanceReelFournisseur]
+  ([idfournisseur]
+  ,[modalitePaiement]
+  ,[dateecheance]) values (@idfournisseur,@modalitePaiement,@dateecheance)`,
+  getEcheanceReelbyfournisseur:`select modalitePaiement from DAF_echeanceReelFournisseur
+  where idfournisseur=@idfournisseur
+  and id =(select max(id) from DAF_echeanceReelFournisseur
+        where idfournisseur=@idfournisseur
+        group by idfournisseur)
+`
+};
+
+exports.EcheanceLoi = {
+  getAllecheanceLoi: `
+  SELECT  erf.id as id ,nom,fou.id as idfournisseur,
+      [modalitePaiement]
+      ,[dateecheance]
+  FROM [DAF_echeanceloiFournisseur] erf
+  inner join DAF_FOURNISSEURS fou
+  on  erf.idfournisseur=fou.id
+  where 1=1
+  `,
+  getAllecheanceLoiCount: `
+  SELECT   COUNT(*) as count
+  FROM [dbo].[DAF_echeanceloiFournisseur]
+    `,
+  create :`INSERT INTO [dbo].[DAF_echeanceloiFournisseur]
+  ([idfournisseur]
+  ,[modalitePaiement]
+  ,[dateecheance]) values (@idfournisseur,@modalitePaiement,@dateecheance)`,
+  getEcheanceLoibyfournisseur:`select modalitePaiement from DAF_echeanceloiFournisseur
+  where idfournisseur=@idfournisseur
+  and id =(select max(id) from DAF_echeanceloiFournisseur
+        where idfournisseur=@idfournisseur
+        group by idfournisseur)
+`
+};
+
 

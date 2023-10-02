@@ -1,7 +1,7 @@
 const { getConnection, getSql } = require("../database/connection");
 const { ribFournisseur } = require("../database/querys");
 
-exports.createRibFournisseurs = async (FournisseurId, rib) => {
+exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque) => {
   try {
     const pool = await getConnection();
 
@@ -9,6 +9,8 @@ exports.createRibFournisseurs = async (FournisseurId, rib) => {
       .request()
       .input("FournisseurId", getSql().Int, FournisseurId)
       .input("rib", getSql().VarChar, rib)
+      .input("swift", getSql().VarChar, swift)
+      .input("banquue", getSql().VarChar, banque)
       .query(ribFournisseur.create);
   } catch (error) {
     console.log(error);
@@ -28,6 +30,9 @@ exports.getRibsFournisseurs = async (req, res) => {
     console.log(filter);
 
     let queryFilter = "";
+    if (filter.swift) {
+      queryFilter += ` and f.swift like('%${filter.swift}%')`;
+    }
     if (filter.fournisseur) {
       queryFilter += ` and f.nom like('%${filter.fournisseur}%')`;
     }
@@ -72,8 +77,8 @@ exports.getRibFCount = async (req, res, next) => {
 };
 
 exports.updateRibsFournisseurs = async (req, res) => {
-  const { FournisseurId, rib, validation } = req.body;
-  if (FournisseurId == null || rib == null || validation == null) {
+  const { FournisseurId, rib, validation,swift, banque } = req.body;
+  if (FournisseurId == null || rib == null || validation == null ) {
     return res.status(400).json({ error: "all field is required" });
   }
   try {
@@ -83,6 +88,8 @@ exports.updateRibsFournisseurs = async (req, res) => {
       .request()
       .input("FournisseurId", getSql().Int, FournisseurId)
       .input("rib", getSql().VarChar, rib)
+      .input("swift", getSql().VarChar, swift)
+      .input("banque", getSql().VarChar, banque)
       .input("validation", getSql().VarChar, validation)
       .input("id", getSql().Int, req.params.id)
       .query(ribFournisseur.edit);
@@ -90,7 +97,9 @@ exports.updateRibsFournisseurs = async (req, res) => {
     console.log(`UPDATE [dbo].[DAF_RIB_Fournisseurs]
       SET FournisseurId = ${FournisseurId}
       ,rib = ${rib}
+      ,swift=${swift}
       ,validation = ${validation}
+      ,banque=${banque}
     WHERE id = ${req.params.id} `);
 
     res.json({
@@ -98,6 +107,8 @@ exports.updateRibsFournisseurs = async (req, res) => {
       FournisseurId,
       rib,
       validation,
+      swift,
+      banque
     });
   } catch (error) {
     res.status(500);

@@ -32,6 +32,9 @@ exports.getRibs = async (req, res) => {
     if (filter.fournisseur) {
       queryFilter += ` and f.nom like('%${filter.fournisseur}%')`;
     }
+    if (filter.swift) {
+      queryFilter += ` and f.swift like('%${filter.swift}%')`;
+    }
     if (filter.rib) {
       queryFilter += ` and rib like('%${filter.rib}%')`;
     }
@@ -65,7 +68,7 @@ exports.getRibs = async (req, res) => {
 };
 
 exports.createRibs = async (req, res) => {
-  const { FournisseurId, rib } = req.body;
+  const { FournisseurId, rib,swift,banque } = req.body;
 
   try {
     const pool = await getConnection();
@@ -74,13 +77,17 @@ exports.createRibs = async (req, res) => {
       .request()
       .input("FournisseurId", getSql().Int, FournisseurId)
       .input("rib", getSql().VarChar, rib)
+      .input("swift", getSql().VarChar, swift)
+      .input("banque", getSql().VarChar, banque)
+      
       .query(ribTemporaire.createRibs);
     console.log("errour");
-    createRibFournisseurs(FournisseurId, rib);
+    createRibFournisseurs(FournisseurId, rib, swift);
     res.json({
       id: "",
       FournisseurId,
       rib,
+      swift
     });
   } catch (error) {
     res.status(500);

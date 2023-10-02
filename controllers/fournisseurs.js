@@ -27,10 +27,10 @@ exports.getFournissuers = async (req, res) => {
     console.log(filter);
     let queryFilter = "";
     if (filter.nom) {
-      queryFilter += ` and upper(nom) like(upper('%${filter.nom}%'))`;
+      queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
     }
     if (filter.codeFournisseur) {
-      queryFilter += ` and codeFournisseur like('%${filter.codeFournisseur}%')`;
+      queryFilter += ` and upper(fou.codeFournisseur) like('%${filter.codeFournisseur}%')`;
     }
     console.log(queryFilter);
     const pool = await getConnection();
@@ -69,9 +69,8 @@ exports.getAllFournissuers = async (req, res) => {
 };
 
 exports.createFournisseurs = async (req, res) => {
-  const { CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE,
-    echeanceloi,
-    echeancereel
+  const { CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
+  
   } = req.body;
 
   try {
@@ -81,31 +80,28 @@ exports.createFournisseurs = async (req, res) => {
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
-      .input("Echeance", getSql().Int, Echeance)
+    
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
-      .input("echeanceloi", getSql().VarChar, echeanceloi)
-      .input("echeancereel", getSql().VarChar, echeancereel)
+  
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
       id: "",
-      CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE,echeanceloi,
-      echeancereel
-      
+      CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
     });
   } catch (error) {
     
-    switch (error.originalError.info.number) {
-      case 547:
-          error.message = "date invalid";
-          break;
-        case 2627:
-          error.message = "déja existe";
-          break;
-      }
+    // switch (error.originalError.info.number) {
+    //   case 547:
+    //       error.message = "date invalid";
+    //       break;
+    //     case 2627:
+    //       error.message = "déja existe";
+    //       break;
+    //   }
       
       res.status(500);
       res.send(error.message);
@@ -180,13 +176,10 @@ exports.getfournisseurById = async (req, res) => {
 exports.updatefournisseur = async (req, res) => {
   const { CodeFournisseur,
  nom,
-  Echeance,
    ICE,
    IF,
 addresse,
-  mail,
-  echeanceloi,
-  echeancereel
+  mail
 } =
     req.body;
   try {
@@ -198,26 +191,20 @@ addresse,
       .input("id", getSql().Int, req.params.id)
      .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
-      .input("Echeance", getSql().Int, Echeance)
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
-      .input("echeanceloi", getSql().VarChar, echeanceloi)
-      .input("echeancereel", getSql().VarChar, echeancereel)
       .query(Fournisseurs.update);
 
     res.json({
       id: req.params.id,
       CodeFournisseur,
       nom,
-       Echeance,
         ICE,
         IF,
      addresse,
        mail,
-       echeanceloi,
-       echeancereel
     });
   } catch (error) {
    
