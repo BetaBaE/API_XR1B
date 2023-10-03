@@ -10,7 +10,7 @@ exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque) => {
       .input("FournisseurId", getSql().Int, FournisseurId)
       .input("rib", getSql().VarChar, rib)
       .input("swift", getSql().VarChar, swift)
-      .input("banquue", getSql().VarChar, banque)
+      .input("banque", getSql().VarChar, banque)
       .query(ribFournisseur.create);
   } catch (error) {
     console.log(error);

@@ -82,12 +82,13 @@ exports.createRibs = async (req, res) => {
       
       .query(ribTemporaire.createRibs);
     console.log("errour");
-    createRibFournisseurs(FournisseurId, rib, swift);
+    createRibFournisseurs(FournisseurId, rib, swift,banque);
     res.json({
       id: "",
       FournisseurId,
       rib,
-      swift
+      swift,
+      banque
     });
   } catch (error) {
     res.status(500);

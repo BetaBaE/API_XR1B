@@ -92,11 +92,11 @@ exports.getEcheanceLoibyfournisseur = async (req, res) => {
       .request()
       .input("idfournisseur", getSql().Int, req.params.idfournisseur)
       .query(EcheanceLoi.getEcheanceLoibyfournisseur); // Correction de la faute de frappe ici
-    console.log("testes",`${EcheanceReel.getEcheanceReelbyfournisseur}`)
+    console.log("testes",`${EcheanceLoi.getEcheanceLoibyfournisseur}`)
       console.log("id",req.params.idfournisseur )
     res.set("Content-Range", `cahntier 0-1/1`);
 
-    res.json(result.recordset);
+    res.json(result.recordset[0].modalitePaiement);
   } catch (error) {
     res.status(500).send(error.message); // Correction de l'ordre des méthodes ici
   }
