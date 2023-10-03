@@ -87,7 +87,6 @@ exports.create = async (req, res) => {
 exports.getEcheanceLoibyfournisseur = async (req, res) => {
   try {
     const pool = await getConnection();
-
     const result = await pool
       .request()
       .input("idfournisseur", getSql().Int, req.params.idfournisseur)
@@ -95,8 +94,7 @@ exports.getEcheanceLoibyfournisseur = async (req, res) => {
     console.log("testes",`${EcheanceLoi.getEcheanceLoibyfournisseur}`)
       console.log("id",req.params.idfournisseur )
     res.set("Content-Range", `cahntier 0-1/1`);
-
-    res.json(result.recordset[0].modalitePaiement);
+    res.json(result.recordset);
   } catch (error) {
     res.status(500).send(error.message); // Correction de l'ordre des méthodes ici
   }
