@@ -1,9 +1,9 @@
 const { getConnection, getSql } = require("../database/connection");
-const { all } = require("../database/querys");
+const { SuivieFacture } = require("../database/querys");
 exports.getallCountexport = async (req, res) => {
     try {
       const pool = await getConnection();
-      const result = await pool.request().query(all.getAllcount);
+      const result = await pool.request().query(SuivieFacture.getSuivieFacturecount);
       const count = result.recordset[0].count; 
       res.status(200).json({ count }); 
     } catch (error) {
@@ -11,10 +11,10 @@ exports.getallCountexport = async (req, res) => {
       res.status(500).json({ error: error.message }); 
     }
   };
-  exports.getallCount = async(req, res, next) => {
+  exports.getSuivieFactureCount = async(req, res, next) => {
     try {
         const pool = await getConnection();
-        const result = await pool.request().query(all.getAllcount);
+        const result = await pool.request().query(SuivieFacture.getSuivieFacturecount);
         req.count = result.recordset[0].count;
         next();
     } catch (error) {
@@ -23,15 +23,7 @@ exports.getallCountexport = async (req, res) => {
         res.send(error.message);
     }
   };
-
-
-
-
-
-
-
-
-exports.getall = async(req, res) => {
+exports.getSuivieFacture = async(req, res) => {
     try {
         let range = req.query.range || "[0,9]";
         let sort = req.query.sort || '["id" , "DESC"]';
@@ -97,13 +89,13 @@ exports.getall = async(req, res) => {
         console.log(queryFilter);
         const pool = await getConnection();
         const result = await pool.request().query(
-            `${all.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+            `${SuivieFacture.getSuivieFacture} ${queryFilter} Order by ${sort[0]} ${sort[1]}
               OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
         );
         console.log(req.count);
         res.set(
             "Content-Range",
-            `facturesresptionne ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+            `SuivieFacture ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
         );
         res.json(result.recordset);
     } catch (error) {
@@ -116,10 +108,10 @@ exports.getall = async(req, res) => {
 
 
 
-exports.getallCountechu = async(req, res, next) => {
+exports.getSuivieFactureCountEchu = async(req, res, next) => {
     try {
         const pool = await getConnection();
-        const result = await pool.request().query(all.getgetfactureechucout);
+        const result = await pool.request().query(SuivieFacture.getSuivieFactureEchucount);
         req.count = result.recordset[0].count;
         next();
     } catch (error) {
@@ -129,7 +121,7 @@ exports.getallCountechu = async(req, res, next) => {
     }
   };
   
-  exports.getallechu= async(req, res) => {
+  exports.getSuivieFactureEchu= async(req, res) => {
       try {
           let range = req.query.range || "[0,9]";
           let sort = req.query.sort || '["id" , "DESC"]';
@@ -195,13 +187,13 @@ exports.getallCountechu = async(req, res, next) => {
           console.log(queryFilter);
           const pool = await getConnection();
           const result = await pool.request().query(
-              `${all.getfactureechu} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+              `${SuivieFacture.getSuivieFactureEchu} ${queryFilter} Order by ${sort[0]} ${sort[1]}
                 OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
           );
           console.log(req.count);
           res.set(
               "Content-Range",
-              `facturesresptionne ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+              `SuivieFactureEchu ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
           );
           res.json(result.recordset);
       } catch (error) {

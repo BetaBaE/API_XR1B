@@ -1,17 +1,18 @@
 const express = require("express");
+
 const { getdesignations, getdesignationbycode } = require("../controllers/designationFacture");
 
 
-const { getFactureresCount, getfactureres, createfacture, getfactureresById, updatefactureRes, getfacturebyfournisseur, getfacturehistorique, getFacturehistoriqueCount, getfacturebyfournisseurpaiement, getFacturevaliderCount, getfacturevalider, updatefacturevalider, getsumfacturebyfournisseurwithfn, getsumfacturebyfournisseurwithoutfn } = require("../controllers/facturesResptionne");
-
+const { getfactureSaisieCount, getfactureSaisie, createfacture, getfactureSaisieById, updatefactureSaisie, getfacturebyfournisseur, getfacturehistorique, getFacturehistoriqueCount, getfacturebyfournisseurpaiement, getFacturevaliderCount, getfacturevalider, updatefacturevalider, getsumfacturebyfournisseurwithfn, getsumfacturebyfournisseurwithoutfn } = require("../controllers/facturesResptionne");
 
 const router = express.Router();
-router.get("/facturesres",getFactureresCount ,getfactureres);
-router.get("/facturesres/:id", getfactureresById);
 
-router.post("/facturesres", createfacture);
+router.get("/facturesSaisie",getfactureSaisieCount ,getfactureSaisie);
+router.get("/facturesSaisie/:id", getfactureSaisieById);
 
-router.put("/facturesres/:id", updatefactureRes);
+router.post("/facturesSaisie", createfacture);
+
+router.put("/facturesSaisie/:id", updatefactureSaisie);
 
 router.get("/facturebyfournisseur/:nom", getfacturebyfournisseur);
 router.get("/designation", getdesignations);
@@ -23,7 +24,7 @@ router.get("/getfacturebyfournisseur/:id", getfacturebyfournisseurpaiement);
 
 router.get("/facturevalider",getFacturevaliderCount ,getfacturevalider);
 
-router.get("/facturevalider/:id", getfactureresById);
+router.get("/facturevalider/:id", getfactureSaisieById);
 
 router.get("/getsumfacturebyfournisseurwithfn/:id",getsumfacturebyfournisseurwithfn);
 

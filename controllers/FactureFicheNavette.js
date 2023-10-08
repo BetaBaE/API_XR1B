@@ -283,7 +283,6 @@ exports.updatenavette = async (req, res) => {
         .input("annulation", getSql().VarChar, annulation)
         .query(updateFactureQuery);
 
-      // Récupérer le montantAvance mis à jour
       const getMontantAvanceQuery = `
         SELECT montantAvance
         FROM DAF_factureNavette
@@ -300,7 +299,7 @@ exports.updatenavette = async (req, res) => {
       // Récupérer le TTC
       const getTtcQuery = `
         SELECT TTC
-        FROM factureresptionne
+        FROM DAF_FactureSaisie
         WHERE id = @idFacture
       `;
 
@@ -315,12 +314,12 @@ exports.updatenavette = async (req, res) => {
         ttc = ttcResult.recordset[0]?.TTC || 0;
       }
 
-      // Calculer le NetAPayer en soustrayant le montantAvance du TTC
+      
       const netAPayer = ttc - updatedMontantAvance;
 
-      // Mettre à jour le champ NetAPayer dans la table factureresptionne
+  
       const updateQuery = `
-        UPDATE factureresptionne
+        UPDATE DAF_FactureSaisie
         SET NetAPayer = @netAPayer
         WHERE id = @idFacture
       `;

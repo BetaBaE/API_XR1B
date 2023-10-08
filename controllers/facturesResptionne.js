@@ -1,10 +1,10 @@
 const { getConnection, getSql } = require("../database/connection");
-const { factureres } = require("../database/querys");
+const { factureSaisie } = require("../database/querys");
 
-exports.getFactureresCount = async (req, res, next) => {
+exports.getfactureSaisieCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(factureres.getcountfactureres);
+    const result = await pool.request().query(factureSaisie.getfactureSaisiecount);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
@@ -14,7 +14,7 @@ exports.getFactureresCount = async (req, res, next) => {
   }
 };
 
-exports.getfactureres = async (req, res) => {
+exports.getfactureSaisie = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
     let sort = req.query.sort || '["id" , "desc"]';
@@ -60,10 +60,9 @@ exports.getfactureres = async (req, res) => {
     }
     console.log(queryFilter);
     const pool = await getConnection();
-    // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
-
+ 
     const result = await pool.request().query(
-      `${factureres.getfactureres} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+      `${factureSaisie.getfactureSaisie} ${queryFilter} Order by ${sort[0]} ${sort[1]}
     OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
@@ -79,13 +78,13 @@ exports.getfactureres = async (req, res) => {
   }
 };
 
-exports.getfactureresById = async (req, res) => {
+exports.getfactureSaisieById = async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("id", getSql().VarChar, req.params.id)
-      .query(factureres.getOne);
+      .query(factureSaisie.getOne);
 
     res.set("Content-Range", `factures 0-1/1`);
 
@@ -120,7 +119,7 @@ exports.createfacture = async (req, res) => {
           .input("iddesignation", getSql().Int, req.body.iddesignation)
           .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
           .input("dateecheance", getSql().VarChar, req.body.dateecheance)
-          .query(factureres.createfacture)
+          .query(factureSaisie.createfacture)
       console.log("errour");
       res.json({
           id: "",
@@ -153,7 +152,7 @@ console.log(error.message)
   }
 };
 
-exports.updatefactureRes = async (req, res) => {
+exports.updatefactureSaisie = async (req, res) => {
   const { numeroFacture} =
     req.body;
   try {
@@ -164,7 +163,7 @@ exports.updatefactureRes = async (req, res) => {
 
       .input("id", getSql().Int, req.params.id)
 
-      .query(factureres.delete);
+      .query(factureSaisie.delete);
 
     res.json({
       id: req.params.id,
@@ -183,7 +182,7 @@ exports.getfacturebyfournisseur = async (req, res) => {
     const result = await pool
       .request()
       .input("nom", getSql().VarChar, req.params.nom)
-      .query(factureres.getfacturebyfournisseurnom);
+      .query(factureSaisie.getfacturebyfournisseurnom);
 
     res.set("Content-Range", `virement 0-1/1`);
     res.json(result.recordset);
@@ -239,7 +238,7 @@ exports.getfacturehistorique = async (req, res) => {
     // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
 
     const result = await pool.request().query(
-      `${factureres.gethistoriquefacture} ${queryFilter} Order by ${sort[0]} ${
+      `${factureSaisie.gethistoriquefacture} ${queryFilter} Order by ${sort[0]} ${
         sort[1]
       }
     OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
@@ -248,7 +247,7 @@ exports.getfacturehistorique = async (req, res) => {
     console.log(req.count);
     res.set(
       "Content-Range",
-      `facturesresptionne ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+      `Facture Supprimer ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
     res.json(result.recordset);
   } catch (error) {
@@ -261,7 +260,7 @@ exports.getFacturehistoriqueCount = async (req, res, next) => {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .query(factureres.gethistoriquefacturecount);
+      .query(factureSaisie.gethistoriquefacturecount);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
@@ -277,7 +276,7 @@ exports.getfacturebyfournisseurpaiement = async (req, res) => {
     const result = await pool
       .request()
       .input("id", getSql().Int, req.params.id)
-      .query(factureres.getfacturebyfournisseur);
+      .query(factureSaisie.getfacturebyfournisseur);
 
     res.set("Content-Range", `factures 0-1/1`);
 
@@ -290,7 +289,7 @@ exports.getfacturebyfournisseurpaiement = async (req, res) => {
 exports.getFacturevaliderCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(factureres.getcountvalider);
+    const result = await pool.request().query(factureSaisie.getcountvalider);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
@@ -345,7 +344,7 @@ exports.getfacturevalider = async (req, res) => {
     // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
 
     const result = await pool.request().query(
-      `${factureres.getfacturevalider} ${queryFilter} Order by ${sort[0]} ${
+      `${factureSaisie.getfacturevalider} ${queryFilter} Order by ${sort[0]} ${
         sort[1]
       }
     OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
@@ -372,7 +371,7 @@ exports.updatefacturevalider = async (req, res) => {
       .input("verifiyMidelt", getSql().VarChar, req.body.verifiyMidelt)
       .input("BonCommande", getSql().VarChar, req.body.BonCommande)
       .input("updatedBy", getSql().VarChar, req.body.updatedBy)
-      .query(factureres.validerfacture);
+      .query(factureSaisie.validerfacture);
     res.json({
       id: req.params.id,
       verifiyMidelt,
@@ -400,7 +399,7 @@ exports.getsumfacturebyfournisseurwithoutfn = async (req, res) => {
     const result = await pool
       .request()
       .input("id", getSql().Int, req.params.id)
-      .query(factureres.getsumfacturebyfournisseurwithoutfn);
+      .query(factureSaisie.getsumfacturebyfournisseurwithoutfn);
 
     res.set("Content-Range", `factures 0-1/1`);
 
@@ -418,7 +417,7 @@ exports.getsumfacturebyfournisseurwithfn = async (req, res) => {
     const result = await pool
       .request()
       .input("id", getSql().Int, req.params.id)
-      .query(factureres.getsumfacturebyfournisseurwithfn);
+      .query(factureSaisie.getsumfacturebyfournisseurwithfn);
 
     res.set("Content-Range", `factures 0-1/1`);
 

@@ -213,3 +213,24 @@ addresse,
     res.send(error.message);
   }
 };
+
+
+exports.getfournisseurwithecheance = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .query(Fournisseurs.getallfournisseurwithecheanceLoi);
+
+    console.log(req.count);
+    res.set(
+      "Content-Range",
+      `fournisseurs 0-${req.count - 1}/${req.count - 1}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};

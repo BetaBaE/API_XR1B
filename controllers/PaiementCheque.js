@@ -60,14 +60,14 @@ async function getFactureFromView(facturelist) {
   }
 }
 
-async function insertFactureInLog(ArrayOfFacture, orderVirementId,numerocheque) {
+async function insertFactureInLog(ArrayOfFacture, ModePaiementID,numerocheque) {
   let query = ` `;
   ArrayOfFacture.forEach(
     async ({ CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, NETAPAYER, id }, i)=> {
       const escapedNom = nom?.replaceAll(/'/g, "''");
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${ModePaiementID}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${ModePaiementID}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}')`);
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);
@@ -141,7 +141,7 @@ exports.createVirements = async (req, res) => {
   let ArrayOfFacture = await getFactureFromView(facturelist);
   insertFactureInLog(ArrayOfFacture, req.body.orderVirementId,req.body.numerocheque);
   console.log(req.body, Totale);
-  console.log("virement", cheque.create);
+  console.log("cheque", cheque.create);
   try {
     const pool = await getConnection();
     const result = await pool
