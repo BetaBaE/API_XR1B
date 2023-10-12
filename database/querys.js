@@ -557,13 +557,13 @@ VALUES
       WHEN ch.LIBELLE IS NULL THEN fich.LIBELLE
       ELSE ch.LIBELLE
   END AS libelle
-FROM [dbo].[ficheNavette] fich
+FROM [dbo].[DAF_ficheNavette] fich
 LEFT JOIN (SELECT * FROM chantier) ch ON fich.LIBELLE = ch.LIBELLE
 WHERE fich.deletedAt IS NULL
 AND fich.ficheNavette <> 'Annuler'
 `,
   getCount: `SELECT COUNT(*) as count
-    FROM  [dbo].[ficheNavette]
+    FROM  [dbo].[DAF_ficheNavette]
     WHERE  ficheNavette<>'Annuler' `,
   getOne: `select * from ficheNavette where id=@id`,
   update: `update [dbo].[DAF_factureNavette] 
@@ -624,7 +624,8 @@ exports.SuivieFacture = {
       ,[etat]
 	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
 	  ELSE NULL  
-	  END AS nbrJour
+	  END AS nbrJour,
+    idlogfacture
     from  DAF_SuivieFacture  where numeroFacture  not  like '%-'
 `,
 
