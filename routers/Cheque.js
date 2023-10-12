@@ -1,10 +1,10 @@
 const express = require("express");
-const { createVirements, getVirementCount, getVirements, getOneVirementById, updateVirmeents } = require("../controllers/PaiementCheque");
+const { createcheque, getCheueCount, getCheque, getOneChequeById, updateCheque } = require("../controllers/PaiementCheque");
 
 const router = express.Router();
-router.post("/cheque", createVirements);
-router.get("/cheque", getVirementCount, getVirements);
-router.get("/cheque/:id", getOneVirementById);
-router.put("/cheque/:id", updateVirmeents);
+router.post("/cheque", createcheque);
+router.get("/cheque", getCheueCount, getCheque);
+router.get("/cheque/:id", getOneChequeById);
+router.put("/cheque/:id", updateCheque);
 
 module.exports = router;

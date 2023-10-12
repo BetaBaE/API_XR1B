@@ -83,7 +83,7 @@ async function insertFactureInLog(ArrayOfFacture, ModePaiementID,numerocheque) {
 }
 
 
-async function updateLogFactureWhenAnnuleVirement(numerocheque) {
+async function updateLogFactureWhenAnnuleCheque(numerocheque) {
   try {
     const pool = await getConnection();
     const result = await pool
@@ -101,7 +101,7 @@ async function updateLogFactureWhenAnnuleVirement(numerocheque) {
 
 
 
-async function updateLogFactureWhenRegleeV(numerocheque) {
+async function updateLogFactureWhenRegleecheque(numerocheque) {
   try {
     const pool = await getConnection();
     const result = await pool
@@ -119,7 +119,7 @@ async function updateLogFactureWhenRegleeV(numerocheque) {
 
 
 
-exports.getVirementCount = async (req, res, next) => {
+exports.getChequeCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(cheque.getCount);
@@ -133,7 +133,7 @@ exports.getVirementCount = async (req, res, next) => {
   }
 };
 
-exports.createVirements = async (req, res) => {
+exports.createCheque = async (req, res) => {
   // console.log(req.body);
   let { facturelist } = req.body;
   let { Totale } = await calculSumFactures(facturelist);
@@ -146,15 +146,11 @@ exports.createVirements = async (req, res) => {
     const pool = await getConnection();
     const result = await pool
       .request()
-
       .input("orderVirementId", getSql().Int, req.body.orderVirementId)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
-    
       .input("montantVirement", getSql().Float, Totale)
-
       .input("numerocheque", getSql().Char, req.body.numerocheque)
       .input("datecheque", getSql().Date, req.body.datecheque)
-    
       .input("dateecheance", getSql().Date, req.body.dateecheance)
       .query(cheque.create);
 
@@ -167,7 +163,7 @@ exports.createVirements = async (req, res) => {
   // return res.json([{ id: "id" }]);
 };
 
-exports.getVirements = async (req, res) => {
+exports.getCheque = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
     let sort = req.query.sort || '["id" , "ASC"]';
@@ -217,7 +213,7 @@ exports.getVirements = async (req, res) => {
     );
     res.set(
       "Content-Range",
-      `ribFournisseur ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+      `cheque ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
 
     res.json(result.recordset);
@@ -227,7 +223,7 @@ exports.getVirements = async (req, res) => {
   }
 };
 
-exports.updateVirmeents = async (req, res) => {
+exports.updateCheque = async (req, res) => {
   console.log(req.body);
   const {  dateOperation,Etat,numerocheque } =
     req.body;
@@ -244,10 +240,10 @@ exports.updateVirmeents = async (req, res) => {
 
       .query(cheque.update);
       if (Etat === "Annuler") {
-        updateLogFactureWhenAnnuleVirement(numerocheque);
+        updateLogFactureWhenAnnuleCheque(numerocheque);
       }
       if (Etat === "Reglee") {
-        updateLogFactureWhenRegleeV(numerocheque);
+        updateLogFactureWhenRegleecheque(numerocheque);
       }
     res.json({
       id: req.params.id,
@@ -258,7 +254,7 @@ exports.updateVirmeents = async (req, res) => {
   }
 };
 
-exports.getOneVirementById = async (req, res) => {
+exports.getOneChequeById = async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool
@@ -266,7 +262,7 @@ exports.getOneVirementById = async (req, res) => {
       .input("id", getSql().Int, req.params.id)
       .query(cheque.getOne);
 
-    res.set("Content-Range", `virement 0-1/1`);
+    res.set("Content-Range", `Cheque 0-1/1`);
 
     res.json(result.recordset[0]);
   } catch (error) {

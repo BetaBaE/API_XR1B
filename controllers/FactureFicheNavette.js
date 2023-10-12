@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { factureFicheNavette, factures, BonLivraison } = require("../database/querys");
+const { factureFicheNavette, factures, BonLivraison, factureSaisie } = require("../database/querys");
 
 exports.getFactureCount = async (req, res, next) => {
   try {
@@ -51,8 +51,7 @@ exports.getFacture = async (req, res) => {
     }
     console.log(queryFilter);
     const pool = await getConnection();
-    // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
-
+   
     const result = await pool.request().query(
       `${factureFicheNavette.get} ${queryFilter} Order by ${sort[0]} ${
         sort[1]
@@ -94,35 +93,7 @@ exports.createfacture = async (req, res) => {
   try {
     const pool = await getConnection();
 
-    const existingCompositionQuery = `
-      SELECT *
-      FROM daf_factureNavette AS dfn1
-      WHERE dfn1.codechantier = @codechantier
-        AND dfn1.ficheNavette = @ficheNavette
-        AND dfn1.Bcommande = @Bcommande
-        AND dfn1.idfournisseur = @idfournisseur
-        AND EXISTS (
-          SELECT 1
-          FROM daf_factureNavette AS dfn2
-          WHERE dfn2.codechantier = dfn1.codechantier
-            AND dfn2.ficheNavette = dfn1.ficheNavette
-            AND dfn2.Bcommande = dfn1.Bcommande
-            AND dfn2.idfournisseur <> dfn1.idfournisseur
-        );
-    `;
 
-    
-    const existingCompositionAvance = ` SELECT COUNT(*)
-      FROM daf_factureNavette AS dfn1
-      WHERE 
-         dfn1.ficheNavette = @ficheNavette
-        AND dfn1.Bcommande = @Bcommande
-        AND dfn1.idfournisseur = @idfournisseur
-     group by  dfn1.ficheNavette,
-					 dfn1.ficheNavette
-					 dfn1.Bcommande
-           `
-    
 
     const existingCompositionResult = await pool
       .request()
@@ -130,7 +101,7 @@ exports.createfacture = async (req, res) => {
       .input("ficheNavette", getSql().VarChar, ficheNavette)
       .input("Bcommande", getSql().VarChar, Bcommande)
       .input("idfournisseur", getSql().Int, idfournisseur)
-      .query(existingCompositionQuery,existingCompositionAvance);
+      .query(factureFicheNavette.existingCompositionQuery,factureFicheNavette.existingCompositionAvance);
 
     if (existingCompositionResult.recordset.length > 0) {
       res.status(400).json({ message: "La composition existe déjà dans la table daf_factureNavette" });
@@ -141,12 +112,7 @@ exports.createfacture = async (req, res) => {
         modifiedFicheNavette = `admin/${new Date().getFullYear()}/${service}/${ficheNavette}`;
       }
 
-      const insertQuery = `
-        INSERT INTO [dbo].[DAF_factureNavette]
-        ([codechantier], [montantAvance], [idfournisseur], [idFacture], [ficheNavette], [Bcommande], [fullname])
-        VALUES 
-        (@codechantier, @montantAvance, @idfournisseur, @idFacture, @modifiedFicheNavette, @Bcommande, @fullName)
-      `;
+
 
       await pool
         .request()
@@ -157,7 +123,7 @@ exports.createfacture = async (req, res) => {
         .input("modifiedFicheNavette", getSql().VarChar, modifiedFicheNavette)
         .input("Bcommande", getSql().VarChar, Bcommande)
         .input("fullName", getSql().VarChar, fullName)
-        .query(insertQuery);
+        .query(factureFicheNavette.create);
 
       res.json({
         id: "",
@@ -199,7 +165,7 @@ exports.getficheNavetteByfournisseur = async (req, res) => {
       .input("id", getSql().VarChar, req.params.id)
       .query(factures.getficheNavetebyfournisseur);
 
-    res.set("Content-Range", `factures 0-1/1`);
+    res.set("Content-Range", `ficheNavette 0-1/1`);
 
     res.json(result.recordset);
   } catch (error) {
@@ -217,10 +183,10 @@ exports.getavanceByfournisseur = async (req, res) => {
       .query(factureFicheNavette.getavancebyfournisseur);
 
     if (result.recordset) {
-      res.set("Content-Range", `factures 0-1/1`);
+      res.set("Content-Range", `ficheNavette 0-1/1`);
       res.json(result.recordset);
     } else {
-      res.json([]); // Return an empty array if there are no results
+      res.json([]); 
     }
   } catch (error) {
     res.send(error.message);
@@ -236,7 +202,7 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
       .input("id", getSql().Int, req.params.id)
       .query(factureFicheNavette.getsumavancebyforurnisseur);
 
-    res.set("Content-Range", `factures 0-1/1`);
+    res.set("Content-Range", `ficheNavette 0-1/1`);
 
     res.json(result.recordset);
   } catch (error) {
@@ -244,112 +210,7 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
     res.status(500);
   }
 };
-exports.updatenavette = async (req, res) => {
-  try {
-    const {
-      ficheNavette,
-      idFacture,
-      montantAvance: inputMontantAvance,
-      idfournisseur,
-      codechantier,
-      annulation,
-    } = req.body;
 
-    // Vérifier si 'montantAvance' est spécifié dans la requête
-    if (req.body && req.body.montantAvance !== undefined) {
-      console.log("Montant Avance:", req.body.montantAvance);
-
-      const pool = await getConnection();
-
-      // Mettre à jour la DAF_factureNavette
-      const updateFactureQuery = `
-        UPDATE DAF_factureNavette
-        SET ficheNavette = @ficheNavette,
-            idFacture = @idFacture,
-            codechantier = @codechantier,
-            idfournisseur = @idfournisseur,
-            montantAvance = @montantAvance
-        WHERE idfacturenavette = @id
-      `;
-
-      await pool
-        .request()
-        .input("id", getSql().Int, req.params.id)
-        .input("ficheNavette", getSql().VarChar, ficheNavette)
-        .input("codechantier", getSql().VarChar, codechantier)
-        .input("idFacture", getSql().Int, idFacture)
-        .input("idfournisseur", getSql().Int, idfournisseur)
-        .input("montantAvance", getSql().Int, inputMontantAvance)
-        .input("annulation", getSql().VarChar, annulation)
-        .query(updateFactureQuery);
-
-      const getMontantAvanceQuery = `
-        SELECT montantAvance
-        FROM DAF_factureNavette
-        WHERE idFacture = @idFacture
-      `;
-
-      const result = await pool
-        .request()
-        .input("idFacture", getSql().Int, idFacture)
-        .query(getMontantAvanceQuery);
-
-      const updatedMontantAvance = result.recordset[0].montantAvance;
-
-      // Récupérer le TTC
-      const getTtcQuery = `
-        SELECT TTC
-        FROM DAF_FactureSaisie
-        WHERE id = @idFacture
-      `;
-
-      const ttcResult = await pool
-        .request()
-        .input("idFacture", getSql().Int, idFacture)
-        .query(getTtcQuery);
-
-      let ttc = 0;
-
-      if (ttcResult.recordset.length > 0) {
-        ttc = ttcResult.recordset[0]?.TTC || 0;
-      }
-
-      
-      const netAPayer = ttc - updatedMontantAvance;
-
-  
-      const updateQuery = `
-        UPDATE DAF_FactureSaisie
-        SET NetAPayer = @netAPayer
-        WHERE id = @idFacture
-      `;
-
-      await pool
-        .request()
-        .input("netAPayer", getSql().Float, netAPayer)
-        .input("idFacture", getSql().Int, idFacture)
-        .query(updateQuery);
-
-      console.log(`NetAPayer mis à jour pour idFacture ${idFacture}: ${netAPayer}`);
-
-      // Répondre avec les données mises à jour
-      res.json({
-        id: req.params.id,
-        ficheNavette,
-        idFacture,
-        codechantier,
-        montantAvance: updatedMontantAvance,
-      });
-    } else {
-      // Si 'montantAvance' n'est pas spécifié, renvoyer une réponse d'erreur
-      res.status(400).json({ error: "Montant d'avance non spécifié dans la requête." });
-    }
-  } catch (error) {
-    // Gérer les erreurs
-    res.status(500).send(error.message);
-    console.log(error.message);
-  }
-};
 
 
 
@@ -437,7 +298,7 @@ exports.getBonLivraisonByFactureId = async (req, res) => {
   try {
    
     const bonLivraisons = await BonLivraison.findAll({
-      where: { idFacture: factureId }, // Supposons que vous ayez un champ idFacture dans le modèle BonLivraison
+      where: { idFacture: factureId }
     });
 
     res.json(bonLivraisons);
@@ -446,6 +307,72 @@ exports.getBonLivraisonByFactureId = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Erreur serveur' });
   }
+};
+
+
+exports.updatenavette = async (req, res) => {
+  try {
+    const { ficheNavette, idFacture, montantAvance: inputMontantAvance, idfournisseur, codechantier, annulation } = req.body;
+
+    if (req.body && req.body.montantAvance !== undefined) {
+      const pool = await getConnection();
+      const updatedMontantAvance = await updateMontantAvance(pool, idFacture, ficheNavette, codechantier, idFacture, idfournisseur, inputMontantAvance, annulation);
+      const netAPayer = await updateNetAPayer(pool, idFacture, updatedMontantAvance);
+      
+      console.log(`NetAPayer mis à jour pour idFacture ${idFacture}: ${netAPayer}`);
+      res.json({ id: req.params.id, ficheNavette, idFacture, codechantier, montantAvance: updatedMontantAvance });
+    } else {
+      res.status(400).json({ error: "Montant d'avance non spécifié dans la requête." });
+    }
+  } catch (error) {
+    handleErrors(res, error);
+  }
+};
+
+
+
+const updateMontantAvance = async (pool, idFacture, ficheNavette, codechantier, idFacture, idfournisseur, montantAvance, annulation) => {
+
+
+  await pool.request()
+    .input("id", getSql().Int, idFacture)
+    .input("ficheNavette", getSql().VarChar, ficheNavette)
+    .input("codechantier", getSql().VarChar, codechantier)
+    .input("idFacture", getSql().Int, idFacture)
+    .input("idfournisseur", getSql().Int, idfournisseur)
+    .input("montantAvance", getSql().Int, montantAvance)
+    .input("annulation", getSql().VarChar, annulation)
+    .query(factureFicheNavette.updateficheNavette);
+
+  const result = await pool.request()
+    .input("idFacture", getSql().Int, idFacture)
+    .query(factureFicheNavette.getMontantAvance);
+
+  return result.recordset[0].montantAvance;
+};
+
+const updateNetAPayer = async (pool, idFacture, updatedMontantAvance) => {
+  const ttc = await getTTC(pool, idFacture);
+  const netAPayer = ttc - updatedMontantAvance;
+  
+
+  await pool.request()
+    .input("netAPayer", getSql().Float, netAPayer)
+    .input("idFacture", getSql().Int, idFacture)
+    .query(factureFicheNavette.updateNetApayer);
+
+  return netAPayer;
+};
+
+const getTTC = async (pool, idFacture) => {
+
+  const ttcResult = await pool.request().input("idFacture", getSql().Int, idFacture).query(factureSaisie.getTTc);
+  return ttcResult.recordset.length > 0 ? ttcResult.recordset[0]?.TTC || 0 : 0;
+};
+
+const handleErrors = (res, error) => {
+  res.status(500).send(error.message);
+  console.log(error.message);
 };
 
 

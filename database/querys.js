@@ -345,6 +345,9 @@ exports.chantiers = {
 };
 
 exports.factureSaisie = {
+  getTTc:`SELECT TTC FROM DAF_FactureSaisie WHERE id = @idFacture`,
+  
+  
   getfactureSaisie: `SELECT
   f.id,
   f.fullName,
@@ -515,21 +518,39 @@ and fa.nom=lf.NOM
 
 };
 exports.factureFicheNavette = {
+
+  existingCompositionQuery:`SELECT *
+  FROM daf_factureNavette AS dfn1
+  WHERE dfn1.codechantier = @codechantier
+    AND dfn1.ficheNavette = @ficheNavette
+    AND dfn1.Bcommande = @Bcommande
+    AND dfn1.idfournisseur = @idfournisseur
+    AND EXISTS (
+      SELECT 1
+      FROM daf_factureNavette AS dfn2
+      WHERE dfn2.codechantier = dfn1.codechantier
+        AND dfn2.ficheNavette = dfn1.ficheNavette
+        AND dfn2.Bcommande = dfn1.Bcommande
+        AND dfn2.idfournisseur <> dfn1.idfournisseur
+    )`,
+    existingCompositionAvance:`SELECT COUNT(*)
+    FROM daf_factureNavette AS dfn1
+    WHERE 
+       dfn1.ficheNavette = @ficheNavette
+      AND dfn1.Bcommande = @Bcommande
+      AND dfn1.idfournisseur = @idfournisseur
+   group by  dfn1.ficheNavette,
+         dfn1.ficheNavette
+         dfn1.Bcommande`,
+
   createBonlivraison: `INSERT INTO [dbo].[BonlivraisonTable]
   ([Bonlivraison])
 VALUES
   (@BonLivraison)`,
   create: `INSERT INTO [dbo].[DAF_factureNavette]
-    ([codechantier]
-      ,[montantAvance],
-      [idfournisseur],
-      [idFacture],
-      [ficheNavette],
-      [Bcommande]
-      )
-    VALUES (@codechantier,@montantAvance,@idfournisseur,
-      
-      @idFacture,@ficheNavette,@Bcommande) `,
+  ([codechantier], [montantAvance], [idfournisseur], [idFacture], [ficheNavette], [Bcommande], [fullname])
+  VALUES 
+  (@codechantier, @montantAvance, @idfournisseur, @idFacture, @modifiedFicheNavette, @Bcommande, @fullName)`,
 
   get: `
   SELECT DISTINCT
@@ -589,7 +610,18 @@ and fa.nom=lf.NOM
  and  fa.nom=f.nom
 
 `,
-  annulationFn: `update DAF_factureNavette  set  idfacture=0 ,  ficheNavette='Annuler' where idfacturenavette=@id`
+  annulationFn: `update DAF_factureNavette  set  idfacture=0 ,  ficheNavette='Annuler' where idfacturenavette=@id`,
+  updateficheNavette:`  UPDATE DAF_factureNavette
+  SET ficheNavette = @ficheNavette,
+      idFacture = @idFacture,
+      codechantier = @codechantier,
+      idfournisseur = @idfournisseur,
+      montantAvance = @montantAvance
+  WHERE idfacturenavette = @id`,
+getMontantAvance:`SELECT montantAvance FROM DAF_factureNavette WHERE idFacture = @idFacture`,
+updateNetApayer:` UPDATE DAF_FactureSaisie
+SET NetAPayer = @netAPayer
+WHERE id = @idFacture`
 };
 
 exports.designation = {
