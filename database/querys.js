@@ -784,7 +784,7 @@ exports.cheque = {
             where id=@id`,
   getOne: `
   SELECT v.[id]
-  ,[orderVirementId],
+  ,[ribatnerid],
             v.[Etat]
   ,[montantVirement],
 rf.nom ,v.numerocheque,v.datecheque,v.dateecheance
@@ -795,7 +795,6 @@ FROM  [dbo].[DAF_cheque] v ,
   [dbo].[DAF_FOURNISSEURS] f
 where v.fournisseurId = f.id
 and v.ribatnerid = rf.id
-
     and v.[id] = @id
  `,
 
