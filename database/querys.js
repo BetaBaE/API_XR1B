@@ -586,7 +586,7 @@ AND fich.ficheNavette <> 'Annuler'
   getCount: `SELECT COUNT(*) as count
     FROM  [dbo].[DAF_ficheNavette]
     WHERE  ficheNavette<>'Annuler' `,
-  getOne: `select * from ficheNavette where id=@id`,
+  getOne: `select * from DAF_ficheNavette where id=@id`,
   update: `update [dbo].[DAF_factureNavette] 
         set ficheNavette=@ficheNavette,
               idfacture=@idFacture,
