@@ -630,6 +630,7 @@ WHERE
    dfn1.ficheNavette = @ficheNavette
   AND dfn1.Bcommande = @Bcommande
   AND dfn1.idfournisseur = @idfournisseur
+  And idfacture=0
 group by  dfn1.ficheNavette,
      dfn1.ficheNavette,
      dfn1.Bcommande
