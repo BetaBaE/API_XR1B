@@ -133,7 +133,7 @@ exports.getChequeCount = async (req, res, next) => {
   }
 };
 
-exports.createCheque = async (req, res) => {
+exports.createcheque = async (req, res) => {
   // console.log(req.body);
   let { facturelist } = req.body;
   let { Totale } = await calculSumFactures(facturelist);

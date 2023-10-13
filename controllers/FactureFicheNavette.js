@@ -316,7 +316,7 @@ exports.updatenavette = async (req, res) => {
 
     if (req.body && req.body.montantAvance !== undefined) {
       const pool = await getConnection();
-      const updatedMontantAvance = await updateMontantAvance(pool, idFacture, ficheNavette, codechantier, idFacture, idfournisseur, inputMontantAvance, annulation);
+      const updatedMontantAvance = await updateMontantAvance(pool, idFacture, ficheNavette, codechantier, idfournisseur, inputMontantAvance, annulation);
       const netAPayer = await updateNetAPayer(pool, idFacture, updatedMontantAvance);
       
       console.log(`NetAPayer mis à jour pour idFacture ${idFacture}: ${netAPayer}`);
@@ -331,7 +331,7 @@ exports.updatenavette = async (req, res) => {
 
 
 
-const updateMontantAvance = async (pool, idFacture, ficheNavette, codechantier, idFacture, idfournisseur, montantAvance, annulation) => {
+const updateMontantAvance = async (pool, idFacture, ficheNavette, codechantier, idfournisseur, montantAvance, annulation) => {
 
 
   await pool.request()
