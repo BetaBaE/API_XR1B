@@ -735,7 +735,7 @@ exports.cheque = {
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_cheque]",
   getAll: `
   SELECT v.[id]
-      ,[orderVirementId],
+      ,[ribatnerid],
       dateOperation
       ,[montantVirement],
       [Etat],
@@ -746,7 +746,7 @@ exports.cheque = {
       [dbo].[DAF_RIB_ATNER] rf,
       [dbo].[DAF_FOURNISSEURS] f
   where v.fournisseurId = f.id
-    and v.orderVirementId = rf.id
+    and v.ribatnerid = rf.id
     and 1=1
   `,
   getDataFromLogFacture: `SELECT * FROM [dbo].[Daf_facture_fusion] where 1=1 `,
