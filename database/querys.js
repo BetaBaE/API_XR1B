@@ -518,31 +518,33 @@ and fa.nom=lf.NOM
 
 };
 exports.factureFicheNavette = {
+  
+  updateQuery : `
+        UPDATE DAF_FactureSaisie
+        SET NetAPayer = @netAPayer
+        WHERE id = @idFacture
+      `,
+  getTtcQuery : `
+        SELECT TTC
+        FROM DAF_FactureSaisie
+        WHERE id = @idFacture
+      `,
 
-  existingCompositionQuery:`SELECT *
-  FROM daf_factureNavette AS dfn1
-  WHERE dfn1.codechantier = @codechantier
-    AND dfn1.ficheNavette = @ficheNavette
-    AND dfn1.Bcommande = @Bcommande
-    AND dfn1.idfournisseur = @idfournisseur
-    AND EXISTS (
-      SELECT 1
-      FROM daf_factureNavette AS dfn2
-      WHERE dfn2.codechantier = dfn1.codechantier
-        AND dfn2.ficheNavette = dfn1.ficheNavette
-        AND dfn2.Bcommande = dfn1.Bcommande
-        AND dfn2.idfournisseur <> dfn1.idfournisseur
-    )`,
-    existingCompositionAvance:`SELECT COUNT(*)
-    FROM daf_factureNavette AS dfn1
-    WHERE 
-       dfn1.ficheNavette = @ficheNavette
-      AND dfn1.Bcommande = @Bcommande
-      AND dfn1.idfournisseur = @idfournisseur
-   group by  dfn1.ficheNavette,
-         dfn1.ficheNavette
-         dfn1.Bcommande`,
-
+  
+  updateFactureQuery : `
+  UPDATE DAF_factureNavette
+  SET ficheNavette = @ficheNavette,
+      idFacture = @idFacture,
+      codechantier = @codechantier,
+      idfournisseur = @idfournisseur,
+      montantAvance = @montantAvance
+  WHERE idfacturenavette = @id
+`,
+getMontantAvanceQuery : `
+        SELECT montantAvance
+        FROM DAF_factureNavette
+        WHERE idFacture = @idFacture
+      `,
   createBonlivraison: `INSERT INTO [dbo].[BonlivraisonTable]
   ([Bonlivraison])
 VALUES

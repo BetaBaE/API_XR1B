@@ -308,75 +308,87 @@ exports.getBonLivraisonByFactureId = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
-
-
 exports.updatenavette = async (req, res) => {
   try {
-    const { ficheNavette, idFacture, montantAvance: inputMontantAvance, idfournisseur, codechantier, annulation } = req.body;
+    const {
+      ficheNavette,
+      idFacture,
+      montantAvance: inputMontantAvance,
+      idfournisseur,
+      codechantier,
+      annulation,
+    } = req.body;
 
+    // Vérifier si 'montantAvance' est spécifié dans la requête
     if (req.body && req.body.montantAvance !== undefined) {
+      console.log("Montant Avance:", req.body.montantAvance);
+
       const pool = await getConnection();
-      const updatedMontantAvance = await updateMontantAvance(pool, idFacture, ficheNavette, codechantier, idfournisseur, inputMontantAvance, annulation);
-      const netAPayer = await updateNetAPayer(pool, idFacture, updatedMontantAvance);
+
+     
+
+      await pool
+        .request()
+        .input("id", getSql().Int, req.params.id)
+        .input("ficheNavette", getSql().VarChar, ficheNavette)
+        .input("codechantier", getSql().VarChar, codechantier)
+        .input("idFacture", getSql().Int, idFacture)
+        .input("idfournisseur", getSql().Int, idfournisseur)
+        .input("montantAvance", getSql().Int, inputMontantAvance)
+        .input("annulation", getSql().VarChar, annulation)
+        .query(factureFicheNavette.updateFactureQuery);
+
+ 
+      const result = await pool
+        .request()
+        .input("idFacture", getSql().Int, idFacture)
+        .query(factureFicheNavette.getMontantAvanceQuery);
+
+      const updatedMontantAvance = result.recordset[0].montantAvance;
+
       
+      const ttcResult = await pool
+        .request()
+        .input("idFacture", getSql().Int, idFacture)
+        .query(factureFicheNavette.getTtcQuery);
+
+      let ttc = 0;
+
+      if (ttcResult.recordset.length > 0) {
+        ttc = ttcResult.recordset[0]?.TTC || 0;
+      }
+
+      
+      const netAPayer = ttc - updatedMontantAvance;
+
+  
+   
+      await pool
+        .request()
+        .input("netAPayer", getSql().Float, netAPayer)
+        .input("idFacture", getSql().Int, idFacture)
+        .query(factureFicheNavette.updateQuery);
+
       console.log(`NetAPayer mis à jour pour idFacture ${idFacture}: ${netAPayer}`);
-      res.json({ id: req.params.id, ficheNavette, idFacture, codechantier, montantAvance: updatedMontantAvance });
+
+      // Répondre avec les données mises à jour
+      res.json({
+        id: req.params.id,
+        ficheNavette,
+        idFacture,
+        codechantier,
+        montantAvance: updatedMontantAvance,
+      });
     } else {
+      // Si 'montantAvance' n'est pas spécifié, renvoyer une réponse d'erreur
       res.status(400).json({ error: "Montant d'avance non spécifié dans la requête." });
     }
   } catch (error) {
-    handleErrors(res, error);
+    // Gérer les erreurs
+    res.status(500).send(error.message);
+    console.log(error.message);
   }
 };
-
-
-
-const updateMontantAvance = async (pool, idFacture, ficheNavette, codechantier, idfournisseur, montantAvance, annulation) => {
-
-
-  await pool.request()
-    .input("id", getSql().Int, idFacture)
-    .input("ficheNavette", getSql().VarChar, ficheNavette)
-    .input("codechantier", getSql().VarChar, codechantier)
-    .input("idFacture", getSql().Int, idFacture)
-    .input("idfournisseur", getSql().Int, idfournisseur)
-    .input("montantAvance", getSql().Int, montantAvance)
-    .input("annulation", getSql().VarChar, annulation)
-    .query(factureFicheNavette.updateficheNavette);
-
-  const result = await pool.request()
-    .input("idFacture", getSql().Int, idFacture)
-    .query(factureFicheNavette.getMontantAvance);
-
-  return result.recordset[0].montantAvance;
-};
-
-const updateNetAPayer = async (pool, idFacture, updatedMontantAvance) => {
-  const ttc = await getTTC(pool, idFacture);
-  const netAPayer = ttc - updatedMontantAvance;
-  
-
-  await pool.request()
-    .input("netAPayer", getSql().Float, netAPayer)
-    .input("idFacture", getSql().Int, idFacture)
-    .query(factureFicheNavette.updateNetApayer);
-
-  return netAPayer;
-};
-
-const getTTC = async (pool, idFacture) => {
-
-  const ttcResult = await pool.request().input("idFacture", getSql().Int, idFacture).query(factureSaisie.getTTc);
-  return ttcResult.recordset.length > 0 ? ttcResult.recordset[0]?.TTC || 0 : 0;
-};
-
-const handleErrors = (res, error) => {
-  res.status(500).send(error.message);
-  console.log(error.message);
-};
-
-
-
 
 
 
