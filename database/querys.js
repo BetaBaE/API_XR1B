@@ -719,7 +719,7 @@ exports.cheque = {
        ,[numerocheque]
        ,[datecheque]
        ,[dateecheance]
-      ,[orderVirementId]
+      ,[RibAtnerId]
       ,[montantVirement])
   VALUES
       (
