@@ -92,16 +92,6 @@ exports.createfacture = async (req, res) => {
 
   try {
     const pool = await getConnection();
-    const existingCompositionAvance = ` SELECT COUNT(*)
-    FROM daf_factureNavette AS dfn1
-    WHERE 
-       dfn1.ficheNavette = @ficheNavette
-      AND dfn1.Bcommande = @Bcommande
-      AND dfn1.idfournisseur = @idfournisseur
-   group by  dfn1.ficheNavette,
-         dfn1.ficheNavette,
-         dfn1.Bcommande
-         `
 
 
     const existingCompositionResult = await pool
@@ -110,7 +100,7 @@ exports.createfacture = async (req, res) => {
       .input("ficheNavette", getSql().VarChar, ficheNavette)
       .input("Bcommande", getSql().VarChar, Bcommande)
       .input("idfournisseur", getSql().Int, idfournisseur)
-      .query(existingCompositionAvance);
+      .query(factureFicheNavette.existingCompositionAvance);
 
     if (existingCompositionResult.recordset.length > 0) {
       res.status(400).json({ message: "La composition existe déjà dans la table daf_factureNavette" });

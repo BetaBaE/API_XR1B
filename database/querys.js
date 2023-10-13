@@ -623,7 +623,17 @@ and fa.nom=lf.NOM
 getMontantAvance:`SELECT montantAvance FROM DAF_factureNavette WHERE idFacture = @idFacture`,
 updateNetApayer:` UPDATE DAF_FactureSaisie
 SET NetAPayer = @netAPayer
-WHERE id = @idFacture`
+WHERE id = @idFacture`,
+existingCompositionAvance : ` SELECT COUNT(*)
+FROM daf_factureNavette AS dfn1
+WHERE 
+   dfn1.ficheNavette = @ficheNavette
+  AND dfn1.Bcommande = @Bcommande
+  AND dfn1.idfournisseur = @idfournisseur
+group by  dfn1.ficheNavette,
+     dfn1.ficheNavette,
+     dfn1.Bcommande
+     `
 };
 
 exports.designation = {
