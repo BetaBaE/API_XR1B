@@ -794,7 +794,7 @@ FROM  [dbo].[DAF_cheque] v ,
   [dbo].[DAF_RIB_ATNER] rf,
   [dbo].[DAF_FOURNISSEURS] f
 where v.fournisseurId = f.id
-and v.orderVirementId = rf.id
+and v.ribatnerid = rf.id
 
     and v.[id] = @id
  `,

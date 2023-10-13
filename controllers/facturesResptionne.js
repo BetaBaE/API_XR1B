@@ -276,7 +276,7 @@ exports.getfacturebyfournisseurpaiement = async (req, res) => {
     const result = await pool
       .request()
       .input("id", getSql().Int, req.params.id)
-      .query(factureSaisie.getfacturebyfournisseur);
+      .query(factureSaisie.getfacturebyfournisseurpaiement);
 
     res.set("Content-Range", `factures 0-1/1`);
 
