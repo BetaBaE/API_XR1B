@@ -671,12 +671,12 @@ exports.SuivieFacture = {
 	  ELSE NULL  
 	  END AS nbrJour,
     idlogfacture
-    from  DAF_SuivieFacture  where numeroFacture  not  like '%-'
+    from  DAF_allFacture  where numeroFacture  not  like '%-'
 `,
 
   getSuivieFacturecount: `
     select count(*) as count
-    from DAF_SuivieFacture  
+    from DAF_allFacture  
       where numeroFacture  not  like '%-'
     
     `,
@@ -705,7 +705,7 @@ exports.SuivieFacture = {
 	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
 	  ELSE NULL  
 	  END AS nbrJour
-     from  DAF_SuivieFacture  where numeroFacture  not  like '%-'
+     from  DAF_allFacture  where numeroFacture  not  like '%-'
   and  
    etat = 'pas encore'
   and
@@ -714,7 +714,7 @@ AND DateFacture>='2023/07/01'
 `,
   getSuivieFactureEchucount: `
 select count(*) as count
-from allfacture  
+from DAF_allFacture  
 where 
 etat = 'pas encore'
 and
