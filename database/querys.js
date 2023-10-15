@@ -669,8 +669,8 @@ exports.SuivieFacture = {
       ,[etat]
 	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
 	  ELSE NULL  
-	  END AS nbrJour,
-    idlogfacture
+	  END AS nbrJour
+    
     from  DAF_allFacture  where numeroFacture  not  like '%-'
 `,
 
