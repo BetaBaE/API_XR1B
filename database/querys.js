@@ -803,7 +803,9 @@ and v.ribatnerid = rf.id
     "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [numerocheque] =@numerocheque",
 
   updateLogFactureWhenRegleeV:
-    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee' where [numerocheque] =@numerocheque",
+    `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee' where [numerocheque] =@numerocheque
+                and etat<>'Annulé'
+    `,
 };
 
 
