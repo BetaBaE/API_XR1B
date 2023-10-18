@@ -86,6 +86,9 @@ exports.getSuivieFacture = async(req, res) => {
         if (filter.numerocheque) {
             queryFilter += ` and numerocheque = '${filter.numerocheque}'`
         }
+        if (filter.ModePaiementID) {
+            queryFilter += ` and ModePaiementID = '${filter.ModePaiementID}'`
+        }
         console.log(queryFilter);
         const pool = await getConnection();
         const result = await pool.request().query(

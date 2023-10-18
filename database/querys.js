@@ -666,17 +666,18 @@ exports.SuivieFacture = {
       ,[designation]
       ,[numerocheque]
       ,[montantAvance]
-      ,[etat]
+      ,[etat],
+      ModePaiementID
 	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
 	  ELSE NULL  
 	  END AS nbrJour
     
-    from  DAF_allFacture  where numeroFacture  not  like '%-'
+    from  DAF_SuivieFacture  where numeroFacture  not  like '%-'
 `,
 
   getSuivieFacturecount: `
     select count(*) as count
-    from DAF_allFacture  
+    from DAF_SuivieFacture  
       where numeroFacture  not  like '%-'
     
     `,
@@ -705,7 +706,7 @@ exports.SuivieFacture = {
 	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
 	  ELSE NULL  
 	  END AS nbrJour
-     from  DAF_allFacture  where numeroFacture  not  like '%-'
+     from  DAF_SuivieFacture  where numeroFacture  not  like '%-'
   and  
    etat = 'pas encore'
   and
@@ -714,7 +715,7 @@ AND DateFacture>='2023/07/01'
 `,
   getSuivieFactureEchucount: `
 select count(*) as count
-from DAF_allFacture  
+from DAF_SuivieFacture  
 where 
 etat = 'pas encore'
 and
