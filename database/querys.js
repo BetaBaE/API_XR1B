@@ -682,45 +682,13 @@ exports.SuivieFacture = {
     
     `,
 
-  getSuivieFactureEchu: `select distinct 
-  [id]
-      ,[BonCommande]
-      ,[chantier]
-      ,[DateFacture]
-      ,[TTC]
-      ,[HT]
-      ,[numeroFacture]
-      ,[MontantTVA]
-      ,[CodeFournisseur]
-      ,[nom]
-      ,[datecheque]
-      ,[dateecheance]
-      ,[ficheNavette]
-      ,[dateOperation]
-      ,[modepaiement]
-      ,[banque]
-      ,[designation]
-      ,[numerocheque]
-      ,[montantAvance]
-      ,[etat]
-	  , CASE WHEN etat = 'pas encore' THEN  DATEDIFF(DAY, DateFacture, GETDATE()) 	  
-	  ELSE NULL  
-	  END AS nbrJour
-     from  DAF_SuivieFacture  where numeroFacture  not  like '%-'
-  and  
-   etat = 'pas encore'
-  and
-  numeroFacture  not  like '%-'
-AND DateFacture>='2023/07/01'
-`,
+  getSuivieFactureEchu: `select * from DAF_SuivieFactureEchu
+  where 1=1
+  `,
   getSuivieFactureEchucount: `
 select count(*) as count
-from DAF_SuivieFacture  
-where 
-etat = 'pas encore'
-and
-numeroFacture  not  like '%-'
-AND DateFacture>='2023/07/01'
+from DAF_SuivieFactureEchu 
+where 1=1
 `
 
 };
