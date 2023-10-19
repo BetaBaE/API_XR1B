@@ -363,8 +363,8 @@ exports.factureSaisie = {
   fou.CodeFournisseur,
   f.verifiyMidelt,
   f.updatedBy,
-  ch.LIBELLE as LIBELLE
-
+  ch.LIBELLE as LIBELLE,
+f.dateecheance
 FROM [dbo].[DAF_FactureSaisie] f
 INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
 INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
@@ -397,7 +397,7 @@ where deletedAt is null`,
     ,@iddesignation
     ,@fullName
     ,@codechantier
-    ,@dateecheance
+    ,@dateEcheance
     )`,
   getOne: `select
 f.id,
