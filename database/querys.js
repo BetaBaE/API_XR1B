@@ -304,7 +304,7 @@ exports.virements = {
  `,
 
   updateLogFactureWhenAnnuleV:
-    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
+    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [ModePaiementID] =@orderVirementId and nom=@nom",
 };
 
 exports.logFactures = {
