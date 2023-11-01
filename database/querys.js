@@ -201,7 +201,7 @@ exports.ordervirements = {
 
 
 
-  updateVirementsAnnuler: `update [dbo].[DAF_VIREMENTS] set Etat = 'Annulé'
+  updateVirementsAnnuler: `update [dbo].[DAF_VIREMENTS] set Etat = 'Annuler'
                       where orderVirementId = @id`,
 
   updateLogFactureAnnuler: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé'
