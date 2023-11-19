@@ -309,25 +309,38 @@ exports.virements = {
 
 exports.logFactures = {
   getLogFactureCount: `SELECT COUNT(*) as count
-  FROM  [dbo].[DAF_LOG_FACTURE] lf 
-  inner join [dbo].[DAF_factureNavette] fn
-  on fn.idfacturenavette=lf.idAvance
-  inner join  [dbo].[DAF_FOURNISSEURS]  fou
-  on fou.id=fn.idfournisseur 
-  inner join  chantier ch  on
-  ch.id=fn.codechantier
+FROM [dbo].[DAF_LOG_FACTURE] lf 
+INNER JOIN [dbo].[DAF_factureNavette] fn ON 
+  CASE 
+    WHEN lf.idAvance LIKE 'av%' THEN TRY_CAST(SUBSTRING(lf.idAvance, 3, LEN(lf.idAvance)) AS INT)
+    ELSE lf.idAvance
+  END = fn.idfacturenavette
+INNER JOIN [dbo].[DAF_FOURNISSEURS] fou ON fou.id = fn.idfournisseur 
+INNER JOIN chantier ch ON ch.id = fn.codechantier
+
     `,
-  getLogFactures: `SELECT distinct fn.Bcommande,fn.montantAvance, fn.idfacturenavette as id,
-  fou.CodeFournisseur,fou.nom,
-  ch.LIBELLE, ch.id as codechantier,
-  lf.etat ,lf.modepaiement,fn.ficheNavette
-  FROM  [dbo].[DAF_LOG_FACTURE] lf 
-  inner join [dbo].[DAF_factureNavette] fn
-  on fn.idfacturenavette=lf.idAvance
-  inner join  [dbo].[DAF_FOURNISSEURS]  fou
-  on fou.id=fn.idfournisseur 
-  inner join  chantier ch  on
-  ch.id=fn.codechantier`,
+  getLogFactures: `SELECT DISTINCT
+  fn.Bcommande,
+  fn.montantAvance,
+  fn.idfacturenavette as id,
+  fou.CodeFournisseur,
+  fou.nom,
+  ch.LIBELLE,
+  ch.id as codechantier,
+  lf.etat,
+  lf.modepaiement,
+  fn.ficheNavette
+FROM [dbo].[DAF_LOG_FACTURE] lf 
+INNER JOIN [dbo].[DAF_factureNavette] fn ON 
+  CASE 
+    WHEN lf.idAvance LIKE 'av%' THEN TRY_CAST(SUBSTRING(lf.idAvance, 3, LEN(lf.idAvance)) AS INT)
+    ELSE lf.idAvance
+  END = fn.idfacturenavette
+INNER JOIN [dbo].[DAF_FOURNISSEURS] fou ON fou.id = fn.idfournisseur 
+INNER JOIN chantier ch ON ch.id = fn.codechantier
+
+  
+  `,
 };
 exports.chantiers = {
   getChantiers: "select * from chantier",

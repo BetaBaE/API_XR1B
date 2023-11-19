@@ -4,7 +4,16 @@ const { factureSaisie } = require("../database/querys");
 exports.getfactureSaisieCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(factureSaisie.getfactureSaisiecount);
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+    console.log(filter);
+    let queryFilter = "";
+
+    if (filter.BonCommande) {
+      queryFilter += ` and upper(BonCommande)  like('%${filter.BonCommande}%')`;
+    }
+    const result = await pool.request().query( `${factureSaisie.getfactureSaisiecount} ${queryFilter}`);
+   
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
