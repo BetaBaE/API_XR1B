@@ -186,7 +186,7 @@ exports.ordervirements = {
     and Etat = 'En cours'
     and [orderVirementId] = @ovId`,
   updateVirements: `update [dbo].[DAF_Order_virements] set Etat = 'Reglee'
-                      where id = @id`,
+                      where id = @id and Etat=<>'Annuler'`,
 
   updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee'
                         where ModePaiementID = @id`,
