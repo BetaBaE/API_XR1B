@@ -461,8 +461,8 @@ exports.PrintOrderVirement = async (req, res) => {
               Rabat le &emsp;
               ${today}
             </p>
-            <p dir="rtl">A l'attention de Monsieur le Dircteur
-            <br/>du Center d'Affaires
+            <p dir="rtl">A l'attention de Monsieur le Directeur
+            <br/>du Centre d'Affaires
             <br/>${printData.header[0].nom}</p>
             <p>Objet: ${printData.header[0].id}</p>
           </div>
