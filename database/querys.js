@@ -219,7 +219,7 @@ exports.factures = {
   getOne: `SELECT * FROM [dbo].[DAF_FA_VC] where id=@id`,
   getAllFactures: `SELECT * FROM [dbo].[DAF_FA_VC]
   order by nom , datedoc `,
-  getfacturebyfournisseurid: `Select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+  getfacturebyfournisseurid: `Select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
   where
   f.id=@id and not
   EXISTS (SELECT  CODEDOCUTIL,nom
@@ -270,7 +270,7 @@ exports.virements = {
     and v.ribFournisseurId = rf.id
     and 1=1
   `,
-  getDataFromLogFacture: `SELECT * FROM [dbo].[Daf_facture_fusion] where 1=1 `,
+  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_Facture_Avance_Fusion] where 1=1 `,
   createLogFacture: `
  INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]
@@ -506,7 +506,7 @@ WHERE
   updatedBy=@updatedBy,
   BonCommande=@BonCommande
 WHERE id = @id `,
-  getsumfacturebyfournisseurwithoutfn: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+  getsumfacturebyfournisseurwithoutfn: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
 where fa.ficheNavette is null  and fa.DateFacture is not null  and 
 f.id=@id and not
 EXISTS (SELECT  CODEDOCUTIL,nom
@@ -517,7 +517,7 @@ and fa.nom=lf.NOM
 )
  and  fa.nom=f.nom
 `,
-  getsumfacturebyfournisseurwithfn: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+  getsumfacturebyfournisseurwithfn: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
 where fa.ficheNavette is not null and fa.DateFacture is not null and 
 f.id=@id and not
 EXISTS (SELECT  CODEDOCUTIL,nom
@@ -615,7 +615,7 @@ AND fich.ficheNavette <> 'Annuler'
 where Bcommande is not null
 and idFacture=0 and idfournisseur=@idfournisseur`,
 
-  getsumavancebyforurnisseur: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[Daf_facture_fusion] fa
+  getsumavancebyforurnisseur: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
 where fa.ficheNavette is not null and fa.DateFacture is  null and 
 f.id=@id and not
 EXISTS (SELECT  CODEDOCUTIL,nom
@@ -744,7 +744,7 @@ exports.cheque = {
     and v.ribatnerid = rf.id
     and 1=1
   `,
-  getDataFromLogFacture: `SELECT * FROM [dbo].[Daf_facture_fusion] where 1=1 `,
+  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_Facture_Avance_Fusion] where 1=1 `,
   createLogFacture: `
  INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]
@@ -818,7 +818,7 @@ exports.espece = {
   where v.fournisseurId = f.id
     and 1=1
   `,
-  getDataFromLogFacture: `SELECT * FROM [dbo].[Daf_facture_fusion] where 1=1 `,
+  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_Facture_Avance_Fusion] where 1=1 `,
   createLogFacture: `
  INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]

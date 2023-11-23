@@ -13,11 +13,11 @@ async function calculSumFactures(facturelist) {
   try {
     console.log(`SELECT  SUM(netapayer) as Totale
   FROM(
-    select sum(TTC) as netapayer from [dbo].[Daf_facture_fusion]
+    select sum(TTC) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
 	  where MontantFacture is null
     and id in ('${facturelistString}')
         UNION ALL
-	  select sum(MontantFacture) as netapayer from [dbo].[Daf_facture_fusion]
+	  select sum(MontantFacture) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
     where MontantFacture is not null
     and id in ('${facturelistString}')
     ) sum `);
@@ -25,11 +25,11 @@ async function calculSumFactures(facturelist) {
     const result = await pool.request()
       .query(` SELECT   SUM(netapayer)  as Totale
   FROM(
-    select sum(TTC) as netapayer from [dbo].[Daf_facture_fusion]
+    select sum(TTC) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
 	  where MontantFacture is null
     and id in ('${facturelistString}')
         UNION ALL
-	  select sum(TTC) as netapayer from [dbo].[Daf_facture_fusion]
+	  select sum(TTC) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
     where MontantFacture is not null
     and id in ('${facturelistString}')
     ) sum `);
