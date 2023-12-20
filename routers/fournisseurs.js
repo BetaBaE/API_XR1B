@@ -1,7 +1,6 @@
 const express = require("express");
 
 const {
-  getFournissuers,
   getFournisseursCount,
   getAllFournissuers,
   getRibsFournisseurValid,
@@ -12,7 +11,7 @@ const {
   getfournisseurwithecheance,
 } = require("../controllers/fournisseurs");
 const router = express.Router();
-router.get("/fournisseurs", getFournisseursCount, getFournissuers);
+// router.get("/fournisseurs", getFournisseursCount, getFournissuers);
 router.get("/allfournisseurs", getFournisseursCount, getAllFournissuers);
 router.post("/fournisseurs", createFournisseurs);
 router.get("/fournisseursribvalid", getFournisseursCount, FournisseursRibValid);

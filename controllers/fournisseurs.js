@@ -16,49 +16,49 @@ exports.getFournisseursCount = async (req, res, next) => {
   }
 };
 
-exports.getFournissuers = async (req, res) => {
-  try {
-    let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["id" , "ASC"]';
-    let filter = req.query.filter || "{}";
-    range = JSON.parse(range);
-    sort = JSON.parse(sort);
-    filter = JSON.parse(filter);
-    console.log(filter);
-    let queryFilter = "";
-    if (filter.nom) {
-      queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
-    }
-    if (filter.codeFournisseur) {
-      queryFilter += ` and upper(fou.codeFournisseur) like('%${filter.codeFournisseur}%')`;
-    }
-    console.log(queryFilter);
-    const pool = await getConnection();
+// exports.getFournissuers = async (req, res) => {
+//   try {
+//     let range = req.query.range || "[0,9]";
+//     let sort = req.query.sort || '["id" , "ASC"]';
+//     let filter = req.query.filter || "{}";
+//     range = JSON.parse(range);
+//     sort = JSON.parse(sort);
+//     filter = JSON.parse(filter);
+//     console.log(filter);
+//     let queryFilter = "";
+//     if (filter.nom) {
+//       queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
+//     }
+//     if (filter.codeFournisseur) {
+//       queryFilter += ` and upper(fou.codeFournisseur) like('%${filter.codeFournisseur}%')`;
+//     }
+//     console.log(queryFilter);
+//     const pool = await getConnection();
 
-    const result = await pool.request().query(
-      `${Fournisseurs.getAllFournisseurs} ${queryFilter} Order by ${sort[0]} ${
-        sort[1]
-      }
-      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
-    );
+//     const result = await pool.request().query(
+//       `${Fournisseurs.getAllFournisseurs} ${queryFilter} Order by ${sort[0]} ${
+//         sort[1]
+//       }
+//       OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+//     );
 
-    console.log(req.count);
-    res.set(
-      "Content-Range",
-      `fournisseurs ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
-    );
-    res.json(result.recordset);
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
-};
+//     console.log(req.count);
+//     res.set(
+//       "Content-Range",
+//       `fournisseurs ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+//     );
+//     res.json(result.recordset);
+//   } catch (error) {
+//     res.status(500);
+//     res.send(error.message);
+//   }
+// };
 
 exports.getAllFournissuers = async (req, res) => {
   try {
     const pool = await getConnection();
 
-    const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
+    const result = await pool.request().query(Fournisseurs.getAll);
 
     res.set("Content-Range", `fournisseurs 0-${req.count - 1}/${req.count}`);
     res.json(result.recordset);
@@ -69,9 +69,7 @@ exports.getAllFournissuers = async (req, res) => {
 };
 
 exports.createFournisseurs = async (req, res) => {
-  const { CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
-  
-  } = req.body;
+  const { CodeFournisseur, nom, Echeance, IF, mail, addresse, ICE } = req.body;
 
   try {
     const pool = await getConnection();
@@ -80,20 +78,25 @@ exports.createFournisseurs = async (req, res) => {
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
-    
+
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
-  
+
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
       id: "",
-      CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
+      CodeFournisseur,
+      nom,
+      Echeance,
+      IF,
+      mail,
+      addresse,
+      ICE,
     });
   } catch (error) {
-    
     // switch (error.originalError.info.number) {
     //   case 547:
     //       error.message = "date invalid";
@@ -102,13 +105,11 @@ exports.createFournisseurs = async (req, res) => {
     //       error.message = "déja existe";
     //       break;
     //   }
-      
-      res.status(500);
-      res.send(error.message);
-  console.log(error.message)
-  
-  
-    }
+
+    res.status(500);
+    res.send(error.message);
+    console.log(error.message);
+  }
 };
 
 exports.getRibsFournisseurValid = async (req, res) => {
@@ -151,10 +152,6 @@ exports.FournisseursRibValid = async (req, res) => {
   }
 };
 
-
-
-
-
 exports.getfournisseurById = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -172,16 +169,8 @@ exports.getfournisseurById = async (req, res) => {
   }
 };
 
-
 exports.updatefournisseur = async (req, res) => {
-  const { CodeFournisseur,
- nom,
-   ICE,
-   IF,
-addresse,
-  mail
-} =
-    req.body;
+  const { CodeFournisseur, nom, ICE, IF, addresse, mail } = req.body;
   try {
     const pool = await getConnection();
 
@@ -189,7 +178,7 @@ addresse,
       .request()
 
       .input("id", getSql().Int, req.params.id)
-     .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
+      .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
@@ -201,19 +190,16 @@ addresse,
       id: req.params.id,
       CodeFournisseur,
       nom,
-        ICE,
-        IF,
-     addresse,
-       mail,
+      ICE,
+      IF,
+      addresse,
+      mail,
     });
   } catch (error) {
-   
-
     res.status(500);
     res.send(error.message);
   }
 };
-
 
 exports.getfournisseurwithecheance = async (req, res) => {
   try {
