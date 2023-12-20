@@ -935,20 +935,20 @@ and v.[id] = @id
     "update [dbo].[DAF_virementAvance] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
 };
 
-exports.BonLivraison = {
-  getAllBl: `
-  SELECT * 
-  FROM BonlivraisonTable
-where 1=1
+// exports.BonLivraison = {
+//   getAllBl: `
+//   SELECT *
+//   FROM BonlivraisonTable
+// where 1=1
 
-  `,
-  getAllBlCount: `
-  SELECT   count(*)
-  FROM BonlivraisonTable
-  where 1=1
-  
-    `,
-};
+//   `,
+//   getAllBlCount: `
+//   SELECT   count(*)
+//   FROM BonlivraisonTable
+//   where 1=1
+
+//     `,
+// };
 exports.EcheanceReel = {
   getAllecheanceReel: `
   SELECT  erf.id as id ,nom,fou.id as idfournisseur,
