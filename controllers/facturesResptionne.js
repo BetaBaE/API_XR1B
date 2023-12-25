@@ -4,9 +4,16 @@ const { factureSaisie } = require("../database/querys");
 exports.getfactureSaisieCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
-    const result = await pool
-      .request()
-      .query(factureSaisie.getfactureSaisiecount);
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+    console.log(filter);
+    let queryFilter = "";
+
+    if (filter.BonCommande) {
+      queryFilter += ` and upper(BonCommande)  like('%${filter.BonCommande}%')`;
+    }
+    const result = await pool.request().query( `${factureSaisie.getfactureSaisiecount} ${queryFilter}`);
+   
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
@@ -62,11 +69,9 @@ exports.getfactureSaisie = async (req, res) => {
     }
     console.log(queryFilter);
     const pool = await getConnection();
-
+ 
     const result = await pool.request().query(
-      `${factureSaisie.getfactureSaisie} ${queryFilter} Order by ${sort[0]} ${
-        sort[1]
-      }
+      `${factureSaisie.getfactureSaisie} ${queryFilter} Order by ${sort[0]} ${sort[1]}
     OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
@@ -100,65 +105,65 @@ exports.getfactureSaisieById = async (req, res) => {
 };
 exports.createfacture = async (req, res) => {
   const {
-    numeroFacture,
-    BonCommande,
-    TTC,
-    fullName,
-    fournisseur,
-    codechantier,
-    DateFacture,
-    iddesignation,
-    dateecheance,
-  } = req.body;
-  try {
-    const pool = await getConnection();
-    await pool
-      .request()
-      .input("numeroFacture", getSql().Char, new String(req.body.numeroFacture))
-      .input("TTC", getSql().Numeric(10, 2), req.body.TTC)
-      .input("BonCommande", getSql().Char, new String(req.body.BonCommande))
-      .input("DateFacture", getSql().Date, req.body.DateFacture)
-      .input("idfournisseur", getSql().Int, req.body.idfournisseur)
-      .input("fullName", getSql().VarChar, req.body.fullName)
-      .input("iddesignation", getSql().Int, req.body.iddesignation)
-      .input(
-        "codechantier",
-        getSql().VarChar,
-        new String(req.body.codechantier)
-      )
-      .input("dateEcheance", getSql().VarChar, req.body.dateEcheance)
-      .query(factureSaisie.createfacture);
-    console.log("errour");
-    res.json({
-      id: "",
       numeroFacture,
       BonCommande,
       TTC,
+      fullName,
       fournisseur,
       codechantier,
       DateFacture,
-      fullName,
-      codechantier,
       iddesignation,
-    });
+      dateecheance
+  } = req.body;
+  try {
+      const pool = await getConnection();
+      await pool
+          .request()
+          .input("numeroFacture", getSql().Char, new String(req.body.numeroFacture))
+          .input("TTC", getSql().Numeric(10, 2), req.body.TTC)
+          .input("BonCommande", getSql().Char, new String(req.body.BonCommande))
+          .input("DateFacture", getSql().Date, req.body.DateFacture)
+          .input("idfournisseur", getSql().Int, req.body.idfournisseur)
+          .input("fullName", getSql().VarChar, req.body.fullName)
+          .input("iddesignation", getSql().Int, req.body.iddesignation)
+          .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
+          .input("dateEcheance", getSql().VarChar, req.body.dateEcheance)
+          .query(factureSaisie.createfacture)
+      console.log("errour");
+      res.json({
+          id: "",
+          numeroFacture,
+          BonCommande,
+          TTC,
+          fournisseur,
+          codechantier,
+          DateFacture,
+          fullName,
+          codechantier,
+          iddesignation,
+      });
   } catch (error) {
-    switch (error.originalError.info.number) {
-      case 547:
+    
+  switch (error.originalError.info.number) {
+    case 547:
         error.message = "date invalid";
         break;
       case 2627:
         error.message = "déja existe";
         break;
     }
-
+    
     res.status(500);
     res.send(error.message);
-    console.log(error.message);
+console.log(error.message)
+
+
   }
 };
 
 exports.updatefactureSaisie = async (req, res) => {
-  const { numeroFacture } = req.body;
+  const { numeroFacture} =
+    req.body;
   try {
     const pool = await getConnection();
 
@@ -171,9 +176,11 @@ exports.updatefactureSaisie = async (req, res) => {
 
     res.json({
       id: req.params.id,
-      numeroFacture,
+      numeroFacture
     });
   } catch (error) {
+   
+
     res.status(500);
     res.send(error.message);
   }
@@ -240,9 +247,9 @@ exports.getfacturehistorique = async (req, res) => {
     // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
 
     const result = await pool.request().query(
-      `${factureSaisie.gethistoriquefacture} ${queryFilter} Order by ${
-        sort[0]
-      } ${sort[1]}
+      `${factureSaisie.gethistoriquefacture} ${queryFilter} Order by ${sort[0]} ${
+        sort[1]
+      }
     OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
@@ -392,6 +399,7 @@ exports.updatefacturevalider = async (req, res) => {
     res.send(error.message);
   }
 };
+
 
 exports.getsumfacturebyfournisseurwithoutfn = async (req, res) => {
   try {
