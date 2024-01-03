@@ -109,6 +109,25 @@ async function MiunsFromTotalOv(number, id) {
   }
 }
 
+
+async function updateLogFactureWhenRegleevirement(idov, nom) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, idov)
+      .input("nom", getSql().VarChar, nom)
+     
+      .query(virements.updateLogFactureWhenRegleeV);
+
+    
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+
 async function updateLogFactureWhenAnnuleVirement(idov, nom) {
   try {
     const pool = await getConnection();
@@ -229,6 +248,9 @@ exports.updateVirmeents = async (req, res) => {
     if (Etat === "Annuler") {
       MiunsFromTotalOv(montantVirement, orderVirementId);
       updateLogFactureWhenAnnuleVirement(orderVirementId, nom);
+    }
+    if (Etat === "Reglee") {
+      updateLogFactureWhenRegleevirement(orderVirementId, nom);
     }
     res.json({
       id: req.params.id,

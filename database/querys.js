@@ -189,7 +189,7 @@ exports.ordervirements = {
                       where id = @id`,
 
   updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee'
-                        where ModePaiementID = @id and Etat='Annulé'`,
+                        where ModePaiementID = @id and Etat<>'Annulé'`,
 
   updateDateExecution: `update [dbo].[DAF_Order_virements] set dateExecution = GETDATE()
                             where id = @id`,
@@ -307,7 +307,12 @@ exports.virements = {
 
   updateLogFactureWhenAnnuleV:
     "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [ModePaiementID] =@orderVirementId and nom=@nom",
-};
+    updateLogFactureWhenRegleeV:
+    `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee' where [ModePaiementID] =@orderVirementId
+                and etat<>'Annulé'
+    `
+
+  };
 
 exports.logFactures = {
   getLogFactureCount: `SELECT COUNT(*) as count
