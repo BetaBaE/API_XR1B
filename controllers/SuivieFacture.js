@@ -234,7 +234,7 @@ exports.getSuivieFactureNonPayé = async(req, res) => {
         let queryFilter = "";
         if (filter.annee) {
             queryFilter += `AND (YEAR(DateFacture) <= '${filter.annee}' or DateFacture <= GETDATE())
-                              OR (YEAR(DateFacture) = year(GETDATE()))`
+                            `
         }
         
           
