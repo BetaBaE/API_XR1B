@@ -208,12 +208,18 @@ exports.getSuivieFactureCountEchu = async(req, res, next) => {
           res.send(error.message);
       }
   };
-
-
-  exports.getSuivieFactureNonPayeCount = async(req, res, next) => {
+  exports.getSuivieFactureNonPayeCount = async (req, res, next) => {
     try {
+        let filter = req.query.filter || "{}";
         const pool = await getConnection();
         const result = await pool.request().query(SuivieFacture.getSuivieFactureNonPayéCount);
+        filter = JSON.parse(filter);
+        console.log(filter);
+        let queryFilter = "";
+        if (filter.annee) {
+            queryFilter += ` AND (YEAR(DateFacture) <= '${filter.annee}')`;
+        }
+
         req.count = result.recordset[0].count;
         next();
     } catch (error) {
@@ -221,7 +227,13 @@ exports.getSuivieFactureCountEchu = async(req, res, next) => {
         console.log(error.message);
         res.send(error.message);
     }
-  };
+};
+
+
+
+
+
+
 exports.getSuivieFactureNonPayé = async(req, res) => {
     try {
         let range = req.query.range || "[0,9]";
@@ -230,7 +242,7 @@ exports.getSuivieFactureNonPayé = async(req, res) => {
         range = JSON.parse(range);
         sort = JSON.parse(sort);
         filter = JSON.parse(filter);
-        console.log(filter);
+    
         let queryFilter = "";
         if (filter.annee) {
             queryFilter += `AND (YEAR(DateFacture) <= '${filter.annee}')
@@ -259,14 +271,11 @@ exports.getAnneeFacture = async (req, res) => {
     try {
     
       const pool = await getConnection();
-    
-      // Assuming that `SuivieFacture.getAnneeFacture` is a valid SQL query
+
       const result = await pool.request().query(
         `${SuivieFacture.getAnneSuivieFacture}`
       );
     
-     
-      const count = result.recordset.length; // Assuming count is the length of the recordset
 
       res.set(
         "Content-Range",
