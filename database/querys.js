@@ -740,7 +740,6 @@ getSuivieFactureNonPayéCount: `
 select count(*) as count
 from DAF_SuivieFacture  
 WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
---AND (DateFacture <= GETDATE() OR YEAR(DateFacture) <= YEAR(GETDATE()))
   `,
 
  getAnneSuivieFacture :`
