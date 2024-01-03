@@ -694,7 +694,6 @@ exports.SuivieFacture = {
     select count(*) as count
     from DAF_SuivieFacture  
       where numeroFacture  not  like '%-'
-    
     `,
 
   getSuivieFactureEchu: `select * from DAF_SuivieFactureEchu
@@ -704,7 +703,46 @@ exports.SuivieFacture = {
 select count(*) as count
 from DAF_SuivieFactureEchu 
 where 1=1
-`
+`,
+getSuivieFactureNonPayé: `SELECT DISTINCT 
+[id],
+[BonCommande],
+[chantier],
+[DateFacture],
+[TTC],
+[HT],
+[numeroFacture],
+[MontantTVA],
+[CodeFournisseur],
+[nom],
+[datecheque],
+[dateecheance],
+[ficheNavette],
+[dateOperation],
+[modepaiement],
+[banque],
+[designation],
+[numerocheque],
+[montantAvance],
+[etat],
+ModePaiementID
+FROM  DAF_SuivieFacture 
+WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
+
+`,
+   
+getSuivieFactureNonPayéCount: `
+select count(*) as count
+from DAF_SuivieFacture  
+WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
+--AND (DateFacture <= GETDATE() OR YEAR(DateFacture) <= YEAR(GETDATE()))
+  `,
+
+ getAnneSuivieFacture :`
+ select distinct year(datefacture) as year
+from DAF_SuivieFacture
+order by year(datefacture)
+ ` 
 
 };
 
@@ -923,7 +961,6 @@ and v.[id] = @id
   updateLogFactureWhenAnnuleV: "update [dbo].[DAF_virementAvance] set Etat = 'Annulé' where [orderVirementId] =@orderVirementId and nom=@nom",
 };
 
-<<<<<<< HEAD
 // exports.BonLivraison = {
 //   getAllBl: `
 //   SELECT *
@@ -938,27 +975,6 @@ and v.[id] = @id
 
 //     `,
 // };
-=======
-
-
-
-
-exports.BonLivraison = {
-  getAllBl: `
-  SELECT * 
-  FROM BonlivraisonTable
-where 1=1
-
-  `,
-  getAllBlCount: `
-  SELECT   count(*)
-  FROM BonlivraisonTable
-  where 1=1
-  
-    `,
-  
-};
->>>>>>> parent of b50b10a (crud facture avance)
 exports.EcheanceReel = {
   getAllecheanceReel: `
   SELECT  erf.id as id ,nom,fou.id as idfournisseur,
