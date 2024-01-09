@@ -245,11 +245,22 @@ exports.getSuivieFactureNonPayé = async(req, res) => {
     
         let queryFilter = "";
         if (filter.annee) {
-            queryFilter += `AND (YEAR(DateFacture) <= '${filter.annee}')
-                            `
+           // queryFilter += `AND (YEAR(DateFacture) <= '')
+           queryFilter+=`
+           AND (
+            YEAR(DateFacture) = ${filter.annee}
+            OR
+            (YEAR(DateFacture) = ${filter.annee} - 1 AND Etat IN ('pas encore', 'En cours'))
+        )
+           `
+        }
+        if (filter.fournisseur) {
+            queryFilter += ` and nom like('%${filter.fournisseur}%')`;
         }
         
-          
+            if (filter.chantier) {
+                queryFilter += ` and chantier like('%${filter.chantier}%')`;
+            }
         console.log(queryFilter);
         const pool = await getConnection();
         const result = await pool.request().query(
