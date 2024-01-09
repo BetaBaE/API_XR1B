@@ -762,8 +762,9 @@ getSuivieFactureNonPayé: `SELECT DISTINCT
 [montantAvance],
 [etat],
 ModePaiementID
-FROM  DAF_SuivieFacture 
-WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
+FROM DAF_SuivieFacture 
+WHERE  
+1=1
 
 `,
    
