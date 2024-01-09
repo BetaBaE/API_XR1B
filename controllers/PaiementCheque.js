@@ -138,7 +138,7 @@ exports.createcheque = async (req, res) => {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .input("orderVirementId", getSql().Int, req.body.orderVirementId)
+      .input("RibAtner", getSql().Int, req.body.RibAtner)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
       .input("montantVirement", getSql().Float, Totale)
       .input("numerocheque", getSql().Char, req.body.numerocheque)

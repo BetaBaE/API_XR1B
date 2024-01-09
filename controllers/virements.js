@@ -169,6 +169,7 @@ exports.createVirements = async (req, res) => {
     const pool = await getConnection();
     const result = await pool
       .request()
+      .input("Redacteur", getSql().VarChar, req.body.Redacteur)
       .input("orderVirementId", getSql().VarChar, req.body.orderVirementId)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
       .input("ribFournisseurId", getSql().Int, req.body.ribFournisseurId)
@@ -275,5 +276,22 @@ exports.getOneVirementById = async (req, res) => {
   } catch (error) {
     res.send(error.message);
     res.status(500);
+  }
+};
+
+exports.CheckedFournisseurDejaExiste = async (req, res) => {
+  try {
+    const pool = await getConnection(); // Assurez-vous que getConnection retourne une instance de pool de connexion
+
+    const result = await pool
+      .request()
+      .input("ribFournisseurId",getSql().Int, req.params.ribFournisseurId)
+      .query(virements.CheckedFournisseurDejaExiste);
+
+    res.set("Content-Range", `virement 0-1/1`);
+    res.json(result.recordset[0]);
+  } catch (error) {
+    console.error("Erreur lors de l'exécution de la requête :", error);
+    res.status(500).send(error.message);
   }
 };

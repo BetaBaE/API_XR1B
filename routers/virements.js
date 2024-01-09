@@ -5,6 +5,7 @@ const {
   getVirementCount,
   getOneVirementById,
   updateVirmeents,
+  CheckedFournisseurDejaExiste,
 } = require("../controllers/virements");
 
 const router = express.Router();
@@ -13,4 +14,5 @@ router.get("/virements", getVirementCount, getVirements);
 router.get("/virements/:id", getOneVirementById);
 router.put("/virements/:id", updateVirmeents);
 
+router.get("/CheckedFournisseurDejaExiste/:ribFournisseurId", CheckedFournisseurDejaExiste)
 module.exports = router;

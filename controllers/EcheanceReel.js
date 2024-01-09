@@ -57,6 +57,7 @@ exports.getEcheanceReelCount = async (req, res, next) => {
 
 exports.create = async (req, res) => {
   const { idfournisseur, modalitePaiement ,dateecheance
+    ,Redacteur
   } = req.body;
 
   try {
@@ -67,18 +68,18 @@ exports.create = async (req, res) => {
       .input("idfournisseur", getSql().Int, idfournisseur)
       .input("modalitePaiement", getSql().VarChar, modalitePaiement)
       .input("dateecheance", getSql().Date, dateecheance)
-
+      .input("Redacteur", getSql().VarChar, Redacteur)
       .query(EcheanceReel.create);
     console.log("success");
     res.json({
       id: "",
-      idfournisseur, modalitePaiement ,dateecheance
+      idfournisseur, modalitePaiement ,dateecheance,Redacteur
       
     });
   } catch (error) {  
       res.status(500);
-      res.send(error.message);
-  console.log(error.message)
+      res.send(error);
+  console.log(error)
   
   
     }

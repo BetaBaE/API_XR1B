@@ -216,7 +216,7 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
 exports.correction = async (req, res) => {
   const { ficheNavette, idFacture,montantAvance
     ,idfournisseur,codechantier,BonCommande,
-    annulation
+    annulation,Validateur
   } = req.body;
   try {
     const pool = await getConnection();
@@ -230,6 +230,7 @@ exports.correction = async (req, res) => {
       .input("montantAvance", getSql().Int, montantAvance)
       .input("BonCommande", getSql().VarChar, BonCommande)
       .input("annulation", getSql().VarChar, annulation)
+      .input("Validateur", getSql().VarChar, Validateur)
       .query(factureFicheNavette.update);
       if (annulation === "Annuler") {
         updateFNWhenAnnuleVirement(req.params.id);
@@ -316,6 +317,7 @@ exports.updatenavette = async (req, res) => {
       idfournisseur,
       codechantier,
       annulation,
+      Validateur
     } = req.body;
 
     // Vérifier si 'montantAvance' est spécifié dans la requête
@@ -335,6 +337,7 @@ exports.updatenavette = async (req, res) => {
         .input("idfournisseur", getSql().Int, idfournisseur)
         .input("montantAvance", getSql().Int, inputMontantAvance)
         .input("annulation", getSql().VarChar, annulation)
+        .input("Validateur", getSql().VarChar, Validateur)
         .query(factureFicheNavette.updateFactureQuery);
 
  
