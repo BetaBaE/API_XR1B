@@ -68,7 +68,7 @@ exports.getRibs = async (req, res) => {
 };
 
 exports.createRibs = async (req, res) => {
-  const { FournisseurId, rib,swift,banque } = req.body;
+  const { FournisseurId, rib,swift,banque,Redacteur } = req.body;
 
   try {
     const pool = await getConnection();
@@ -79,16 +79,17 @@ exports.createRibs = async (req, res) => {
       .input("rib", getSql().VarChar, rib)
       .input("swift", getSql().VarChar, swift)
       .input("banque", getSql().VarChar, banque)
-      
+      .input("Redacteur", getSql().VarChar, Redacteur)
       .query(ribTemporaire.createRibs);
     console.log("errour");
-    createRibFournisseurs(FournisseurId, rib, swift,banque);
+    createRibFournisseurs(FournisseurId, rib, swift,banque,Redacteur);
     res.json({
       id: "",
       FournisseurId,
       rib,
       swift,
-      banque
+      banque,
+      Redacteur
     });
   } catch (error) {
     res.status(500);

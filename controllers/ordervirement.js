@@ -82,7 +82,7 @@ const generateOvID = (id) => {
 };
 
 exports.createOrderVirements = async (req, res) => {
-  const { ribAtner } = req.body;
+  const { ribAtner,Redacteur } = req.body;
   console.log(getOrderCountbyYear());
   try {
     const pool = await getConnection();
@@ -91,6 +91,7 @@ exports.createOrderVirements = async (req, res) => {
       .request()
       .input("id", getSql().VarChar, generateOvID(await getOrderCountbyYear()))
       .input("directeursigne", getSql().VarChar, req.body.directeursigne)
+      .input("Redacteur", getSql().VarChar,Redacteur)
       .input("ribAtner", getSql().Int, ribAtner)
 
       .query(ordervirements.create);
@@ -98,6 +99,7 @@ exports.createOrderVirements = async (req, res) => {
     res.json({
       id: "",
       ribAtner,
+      Redacteur,
     });
   } catch (error) {
     res.status(500);

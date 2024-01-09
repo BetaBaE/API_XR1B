@@ -8,7 +8,7 @@ where id in(SELECT
   
   
   
-  getAllFournisseurs: `SELECT fou.id, fou.addresse, fou.CodeFournisseur, fou.Identifiantfiscal, fou.ICE, fou.nom,
+  getAllFournisseurs: `SELECT fou.datecreation,fou.id,fou.Redacteur ,fou.addresse, fou.CodeFournisseur, fou.Identifiantfiscal, fou.ICE, fou.nom,
   echr.modalitePaiement as echeancereel , 
   echl.modalitePaiement as echeanceloi,
   fou.mail
@@ -34,13 +34,14 @@ LEFT JOIN DAF_echeanceReelFournisseur echr
 ON echr.id = echr_max.id
 where 1=1 `,
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
-  createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,ICE,Identifiantfiscal,mail,addresse)
-     VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse)`,
+  createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,ICE,Identifiantfiscal,mail,addresse
+    ,Redacteur)
+     VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse,@Redacteur)`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
-  where f.id = rf.FournisseurId and rf.validation = 'Validé'`,
+  where f.id = rf.FournisseurId and rf.validation = 'Confirmer'`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId
-  AND rf.validation = 'validé' AND f.nom not in (SELECT
+  AND rf.validation = 'Confirmer' AND f.nom not in (SELECT
  distinct [NOM]
   FROM [dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and ModePaiementID =@ovId)`,
   getOne: `select * from DAF_FOURNISSEURS where id=@id`,
@@ -57,8 +58,8 @@ where 1=1 `,
 exports.ribTemporaire = {
   getRibs: `SELECT rt.*, f.nom as fournisseur FROM DAF_RIB_TEMPORAIRE rt, DAF_FOURNISSEURS f WHERE rt.fournisseurid = f.id AND  1=1`,
   getRibCount: `SELECT COUNT(*) as count FROM DAF_RIB_TEMPORAIRE`,
-  createRibs: `INSERT INTO DAF_RIB_TEMPORAIRE(FournisseurId,rib,swift,banque)
-     VALUES( @FournisseurId,@rib,@swift,@banque )`,
+  createRibs: `INSERT INTO DAF_RIB_TEMPORAIRE(FournisseurId,rib,swift,banque,Redacteur , datesaisie)
+     VALUES( @FournisseurId,@rib,@swift,@banque,@Redacteur,getdate())`,
 };
 
 exports.ribFournisseur = {
@@ -67,21 +68,24 @@ exports.ribFournisseur = {
            ,[rib]
            ,[swift]
            ,[banque]
+           ,[Redacteur] 
+           ,[datesaisie]
            )
      VALUES
            (@FournisseurId,
            @rib
            ,@swift
            ,@banque
-          )`,
+           ,@Redacteur
+           ,getdate()
+           )`,
   getAll: `SELECT rf.*, f.nom as fournisseur FROM [dbo].[DAF_RIB_Fournisseurs] rf, DAF_FOURNISSEURS f   WHERE rf.fournisseurid = f.id AND  1=1`,
   getCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_RIB_Fournisseurs]`,
   edit: `UPDATE [dbo].[DAF_RIB_Fournisseurs]
-      SET FournisseurId = @FournisseurId
-      ,rib = @rib
-      ,swift=@swift
-      ,banque=@banque
-      ,validation = @validation
+      SET 
+      Validateur = @Validateur
+      ,validation=@validation
+      ,DateModification=getdate()
     WHERE id = @id `,
   getOne: `SELECT rf.*, f.nom as fournisseur FROM [dbo].[DAF_RIB_Fournisseurs] rf, DAF_FOURNISSEURS f   WHERE rf.fournisseurid = f.id AND  rf.id = @id`,
   RibsValid: `select * from [dbo].[DAF_RIB_Fournisseurs] where validation = 'Validé'`,
@@ -94,14 +98,20 @@ exports.ribAtner = {
   getCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_RIB_ATNER]`,
   create: `INSERT INTO [dbo].[DAF_RIB_ATNER]
            ([nom]
-           ,[rib])
+           ,[rib]
+           ,[Redacteur]
+           ,[dateCreation])
      VALUES
            (@nom
-           ,@rib)`,
+           ,@rib
+           ,@Redacteur
+           ,getdate())`,
   update: `UPDATE [dbo].[DAF_RIB_ATNER]
-   SET [nom] = @nom
+        SET [nom] = @nom
       ,[rib] = @rib
- WHERE id = @id `,
+      ,[dateModification] = GETDATE()
+      ,[ModifierPar] = @ModifierPar
+  WHERE id = @id`,
   getOne: `SELECT * FROM [dbo].[DAF_RIB_ATNER] WHERE id = @id`,
 };
 
@@ -142,11 +152,15 @@ exports.ordervirements = {
            ([id],
             [directeursigne]
            ,[ribAtner]
-          )
+            ,[Redacteur]
+            ,[dateCreation]
+           )
      VALUES
            (@id,
             @directeursigne
            ,@ribAtner
+           ,@Redacteur
+           ,@getdate()
            )`,
   getAll: `SELECT  ov.*, ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
@@ -246,14 +260,29 @@ exports.virements = {
        [fournisseurId]
       ,[ribFournisseurId]
       ,[orderVirementId]
-      ,[montantVirement])
+      ,[montantVirement]
+      ,[Redacteur]
+      ,[dateCreation]
+      )
   VALUES
       (
        @fournisseurId
       ,@ribFournisseurId
       ,@orderVirementId
       ,@montantVirement
+      ,@Redacteur
+      ,getdate()
       )`,
+    
+      // CheckedFournisseurDejaExiste :`
+      // select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
+      // where f.id = rf.FournisseurId and rf.validation = 'Validé'
+      //   and  f.id not in (select id from DAF_FOURNISSEURS )
+      //         and f.id=@fournisseurId
+      // `,
+      CheckedFournisseurDejaExiste :`  select count(*) from DAF_VIREMENTS
+      where ribFournisseurId=@ribFournisseurId`,
+
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS]",
   getAll: `
   SELECT v.[id]
@@ -552,7 +581,9 @@ exports.factureFicheNavette = {
       idFacture = @idFacture,
       codechantier = @codechantier,
       idfournisseur = @idfournisseur,
-      montantAvance = @montantAvance
+      montantAvance = @montantAvance,
+      dateSaisie=getdate(),
+      Validateur=@Validateur
   WHERE idfacturenavette = @id
 `,
 getMontantAvanceQuery : `
@@ -565,9 +596,13 @@ getMontantAvanceQuery : `
 VALUES
   (@BonLivraison)`,
   create: `INSERT INTO [dbo].[DAF_factureNavette]
-  ([codechantier], [montantAvance], [idfournisseur], [idFacture], [ficheNavette], [Bcommande], [fullname])
+  ([codechantier],[montantAvance],[idfournisseur],[idFacture],[ficheNavette],[Bcommande]
+    ,[fullname]
+    ,[dateSaisie])
   VALUES 
-  (@codechantier, @montantAvance, @idfournisseur, @idFacture, @modifiedFicheNavette, @Bcommande, @fullName)`,
+  (@codechantier,@montantAvance,@idfournisseur,@idFacture,@modifiedFicheNavette,@Bcommande
+    ,@fullName
+    ,getdate())`,
 
   get: `
   SELECT DISTINCT
@@ -609,7 +644,8 @@ AND fich.ficheNavette <> 'Annuler'
               idfacture=@idFacture,
               codechantier=@codechantier,
               montantAvance=@montantAvance,
-              Bcommande=@BonCommande
+              Bcommande=@BonCommande,
+              Validateur=@Validateur
         where idfacturenavette=@id `,
   getavancebyfournisseur: `select * from DAF_factureNavette
 where Bcommande is not null
@@ -754,15 +790,19 @@ exports.cheque = {
        ,[datecheque]
        ,[dateecheance]
       ,[RibAtnerId]
-      ,[montantVirement])
+      ,[montantVirement]
+      ,[Redacteur]
+      ,[DateCreation])
   VALUES
       (
        @fournisseurId
        ,@numerocheque
        ,@datecheque
        ,@dateecheance
-      ,@orderVirementId
+      ,@RibAtner
       ,@montantVirement
+      ,@Redacteur
+      ,@getdate()
       )`,
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_cheque]",
   getAll: `
@@ -837,11 +877,13 @@ exports.espece = {
   INSERT INTO [dbo].[DAF_espece]
       (
        [fournisseurId]
-      ,[montantVirement])
+      ,[montantVirement]
+      ,[redacteur])
   VALUES
       (
        @fournisseurId 
       ,@montantVirement
+      ,@redacteur
       )`,
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_espece]",
   getAll: `
@@ -991,7 +1033,13 @@ exports.EcheanceReel = {
   create :`INSERT INTO [dbo].[DAF_echeanceReelFournisseur]
   ([idfournisseur]
   ,[modalitePaiement]
-  ,[dateecheance]) values (@idfournisseur,@modalitePaiement,@dateecheance)`,
+  ,[dateecheance]
+  ,[Redacteur]
+  ,[dateSaisie]) values (@idfournisseur
+    ,@modalitePaiement
+    ,@dateecheance
+    ,@Redacteur
+    ,getdate())`,
   getEcheanceReelbyfournisseur:`select modalitePaiement from DAF_echeanceReelFournisseur
   where idfournisseur=@idfournisseur
   and id =(select max(id) from DAF_echeanceReelFournisseur
@@ -1017,7 +1065,11 @@ exports.EcheanceLoi = {
   create :`INSERT INTO [dbo].[DAF_echeanceloiFournisseur]
   ([idfournisseur]
   ,[modalitePaiement]
-  ,[dateecheance]) values (@idfournisseur,@modalitePaiement,@dateecheance)`,
+  ,[dateecheance]
+  ,[Redacteur]
+  ,[datesaisie]) values 
+  (@idfournisseur,@modalitePaiement,@dateecheance,@Redacteur,
+    getdate())`,
   getEcheanceLoibyfournisseur:`select modalitePaiement from DAF_echeanceloiFournisseur
   where idfournisseur=@idfournisseur
   and id =(select max(id) from DAF_echeanceloiFournisseur

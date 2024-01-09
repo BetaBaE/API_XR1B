@@ -61,7 +61,7 @@ exports.getRibsAtner = async (req, res) => {
 };
 
 exports.createRibsAtner = async (req, res) => {
-  const { nom, rib } = req.body;
+  const { nom, rib ,Redacteur } = req.body;
 
   try {
     const pool = await getConnection();
@@ -70,12 +70,15 @@ exports.createRibsAtner = async (req, res) => {
       .request()
       .input("nom", getSql().VarChar, nom)
       .input("rib", getSql().VarChar, rib)
+      .input("Redacteur", getSql().VarChar, Redacteur)
+      
       .query(ribAtner.create);
     console.log("errour");
     res.json({
       id: "",
       nom,
       rib,
+      Redacteur
     });
   } catch (error) {
     res.status(500);
@@ -84,8 +87,8 @@ exports.createRibsAtner = async (req, res) => {
 };
 
 exports.updateRibsAtner = async (req, res) => {
-  const { nom, rib } = req.body;
-  if (nom == null || rib == null) {
+  const { nom, rib ,ModifierPar } = req.body;
+  if (nom == null || rib == null || ModifierPar == null)  {
     return res.status(400).json({ error: "all field is required" });
   }
   try {
@@ -93,14 +96,16 @@ exports.updateRibsAtner = async (req, res) => {
 
     await pool
       .request()
-      .input("nom", getSql().VarChar, nom)
-      .input("rib", getSql().VarChar, rib)
+      .input("nom", getSql().VarChar,nom)
+      .input("rib", getSql().VarChar,rib)
+      .input("ModifierPar", getSql().VarChar,ModifierPar)
       .input("id", getSql().Int, req.params.id)
       .query(ribAtner.update);
 
     res.json({
       nom,
       rib,
+      ModifierPar,
       id: req.params.id,
     });
   } catch (error) {

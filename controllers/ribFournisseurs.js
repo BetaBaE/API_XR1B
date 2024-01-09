@@ -1,7 +1,7 @@
 const { getConnection, getSql } = require("../database/connection");
 const { ribFournisseur } = require("../database/querys");
 
-exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque) => {
+exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque,Redacteur) => {
   try {
     const pool = await getConnection();
 
@@ -10,6 +10,7 @@ exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque) => {
       .input("FournisseurId", getSql().Int, FournisseurId)
       .input("rib", getSql().VarChar, rib)
       .input("swift", getSql().VarChar, swift)
+      .input("Redacteur", getSql().VarChar, Redacteur)
       .input("banque", getSql().VarChar, banque)
       .query(ribFournisseur.create);
   } catch (error) {
@@ -77,8 +78,8 @@ exports.getRibFCount = async (req, res, next) => {
 };
 
 exports.updateRibsFournisseurs = async (req, res) => {
-  const { FournisseurId, rib, validation,swift, banque } = req.body;
-  if (FournisseurId == null || rib == null || validation == null ) {
+  const { FournisseurId, rib, Validateur,swift, banque, validation } = req.body;
+  if (FournisseurId == null || rib == null) {
     return res.status(400).json({ error: "all field is required" });
   }
   try {
@@ -86,11 +87,13 @@ exports.updateRibsFournisseurs = async (req, res) => {
 
     await pool
       .request()
+      
       .input("FournisseurId", getSql().Int, FournisseurId)
+      .input("validation", getSql().VarChar, validation)
       .input("rib", getSql().VarChar, rib)
       .input("swift", getSql().VarChar, swift)
       .input("banque", getSql().VarChar, banque)
-      .input("validation", getSql().VarChar, validation)
+      .input("Validateur", getSql().VarChar, Validateur)
       .input("id", getSql().Int, req.params.id)
       .query(ribFournisseur.edit);
 
@@ -100,6 +103,7 @@ exports.updateRibsFournisseurs = async (req, res) => {
       ,swift=${swift}
       ,validation = ${validation}
       ,banque=${banque}
+      ,Validateur=${Validateur}
     WHERE id = ${req.params.id} `);
 
     res.json({
@@ -108,7 +112,8 @@ exports.updateRibsFournisseurs = async (req, res) => {
       rib,
       validation,
       swift,
-      banque
+      banque,
+      Validateur
     });
   } catch (error) {
     res.status(500);

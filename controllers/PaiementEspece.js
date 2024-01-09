@@ -150,21 +150,22 @@ exports.createEspece = async (req, res) => {
 
     const result = await pool
       .request()
-      .input("fournisseurId", getSql().Int, req.body.fournisseurId)   
+      .input("redacteur", getSql().VarChar, req.body.redacteur)  
+      .input("fournisseurId", getSql().Int, req.body.fournisseurId)    
       .input("montantVirement", getSql().Float, Totale)
       .query(espece.create);
    
     insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
     res.json({ id: "" });
   } catch (error) {
-    switch (error.originalError.info.number) {
-      case 547:
-        error.message = "vous avez dépassé le plafond de paiement";
-        res.status(500).send(error.message);
-        break;
-      default:
-        res.status(500).send(error.message);
-    }
-    console.log(error.message);
+    // switch (error.originalError.info.number) {
+    //   case 547:
+    //     error.message = "vous avez dépassé le plafond de paiement";
+    //     res.status(500).send(error.message);
+    //     break;
+    //   default:
+    //     res.status(500).send(error.message);
+    // }
+    console.log(error);
   }
 };
