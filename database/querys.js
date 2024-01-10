@@ -153,14 +153,13 @@ exports.ordervirements = {
             [directeursigne]
            ,[ribAtner]
             ,[Redacteur]
-            ,[dateCreation]
            )
      VALUES
            (@id,
             @directeursigne
            ,@ribAtner
            ,@Redacteur
-           ,@getdate()
+      
            )`,
   getAll: `SELECT  ov.*, ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra

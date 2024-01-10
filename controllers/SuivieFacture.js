@@ -258,8 +258,11 @@ exports.getSuivieFactureNonPayé = async(req, res) => {
             queryFilter += ` and nom like('%${filter.fournisseur}%')`;
         }
         
-            if (filter.chantier) {
+     if (filter.chantier) {
                 queryFilter += ` and chantier like('%${filter.chantier}%')`;
+            }
+            if (filter.etat) {
+                queryFilter += ` and etat like('%${filter.etat}%')`;
             }
         console.log(queryFilter);
         const pool = await getConnection();
