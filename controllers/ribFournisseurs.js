@@ -78,7 +78,7 @@ exports.getRibFCount = async (req, res, next) => {
 };
 
 exports.updateRibsFournisseurs = async (req, res) => {
-  const { FournisseurId, rib, Validateur,swift, banque, validation } = req.body;
+  const { FournisseurId, rib, validateur,swift, banque, validation } = req.body;
   if (FournisseurId == null || rib == null) {
     return res.status(400).json({ error: "all field is required" });
   }
@@ -93,7 +93,7 @@ exports.updateRibsFournisseurs = async (req, res) => {
       .input("rib", getSql().VarChar, rib)
       .input("swift", getSql().VarChar, swift)
       .input("banque", getSql().VarChar, banque)
-      .input("Validateur", getSql().VarChar, Validateur)
+      .input("validateur", getSql().VarChar, validateur)
       .input("id", getSql().Int, req.params.id)
       .query(ribFournisseur.edit);
 
@@ -103,7 +103,7 @@ exports.updateRibsFournisseurs = async (req, res) => {
       ,swift=${swift}
       ,validation = ${validation}
       ,banque=${banque}
-      ,Validateur=${Validateur}
+      ,Validateur=${validateur}
     WHERE id = ${req.params.id} `);
 
     res.json({
@@ -113,7 +113,7 @@ exports.updateRibsFournisseurs = async (req, res) => {
       validation,
       swift,
       banque,
-      Validateur
+      validateur
     });
   } catch (error) {
     res.status(500);
