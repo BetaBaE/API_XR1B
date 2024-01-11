@@ -107,11 +107,6 @@ exports.getSuivieFacture = async(req, res) => {
         res.send(error.message);
     }
 };
-
-
-
-
-
 exports.getSuivieFactureCountEchu = async(req, res, next) => {
     try {
         const pool = await getConnection();
@@ -228,12 +223,6 @@ exports.getSuivieFactureCountEchu = async(req, res, next) => {
         res.send(error.message);
     }
 };
-
-
-
-
-
-
 exports.getSuivieFactureNonPayé = async(req, res) => {
     try {
         let range = req.query.range || "[0,9]";
@@ -302,7 +291,52 @@ exports.getAnneeFacture = async (req, res) => {
     }
   };
 
-      
+  exports.getSuivieFactureNonPayébyFournisseur = async(req, res) => {
+    try {
+        let range = req.query.range || "[0,9]";
+        let sort = req.query.sort || '["id" , "DESC"]';
+        let filter = req.query.filter || "{}";
+        range = JSON.parse(range);
+        sort = JSON.parse(sort);
+        filter = JSON.parse(filter);
+    
+        let queryFilter = "";
+        if (filter.annee) {
+           // queryFilter += `AND (YEAR(DateFacture) <= '')
+           queryFilter+=`
+            AND (
+                YEAR(DateFacture) = ${filter.annee}
+                OR
+                (YEAR(DateFacture) = ${filter.annee} - 1 AND Etat IN ('pas encore', 'En cours'))
+            ) `
+        }
+        if (filter.fournisseur) {
+            queryFilter += ` and nom like('%${filter.fournisseur}%')`;
+        }
+        
+     if (filter.chantier) {
+                queryFilter += ` and chantier like('%${filter.chantier}%')`;
+            }
+            if (filter.etat) {
+                queryFilter += ` and etat like('%${filter.etat}%')`;
+            }
+        console.log(queryFilter);
+        const pool = await getConnection();
+        const result = await pool.request().query(
+            `${SuivieFacture.getSuivieFactureNonPayéByFournisseur} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+              OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+        );
+        console.log(req.count);
+        res.set(
+            "Content-Range",
+            `SuivieFactureNonPayé ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+        );
+        res.json(result.recordset);
+    } catch (error) {
+        res.status(500);
+        res.send(error.message);
+    }
+};      
   
 
 

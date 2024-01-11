@@ -83,7 +83,7 @@ exports.ribFournisseur = {
   getCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_RIB_Fournisseurs]`,
   edit: `UPDATE [dbo].[DAF_RIB_Fournisseurs]
       SET 
-      Validateur = @Validateur
+      Validateur = @validateur
       ,validation=@validation
       ,DateModification=getdate()
     WHERE id = @id `,
@@ -764,7 +764,6 @@ ModePaiementID
 FROM DAF_SuivieFacture 
 WHERE  
 1=1
-
 `,
    
 getSuivieFactureNonPayéCount: `
@@ -777,8 +776,20 @@ WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
  select distinct year(datefacture) as year
 from DAF_SuivieFacture
 order by year(datefacture)
- ` 
-
+ ` ,
+ getSuivieFactureNonPayéByFournisseur: `SELECT DISTINCT 
+ sum(TTC) as 'Montant TTC',
+ [nom],
+ case when ficheNavette IS  null then 'sans fiche navette'
+	else 'avec fiche navette'
+	end as ficheNavette,
+ [etat],
+ ModePaiementID
+ FROM DAF_SuivieFacture 
+  WHERE  
+ 1=1
+ group by nom , modepaiement,ModePaiementID,ficheNavette, etat
+ `, 
 };
 
 exports.cheque = {
