@@ -697,7 +697,7 @@ exports.designation = {
 };
 exports.SuivieFacture = {
   getSuivieFacture: `select distinct 
-  [id]
+        [id]
       ,[BonCommande]
       ,[chantier]
       ,[DateFacture]
@@ -777,19 +777,34 @@ WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
 from DAF_SuivieFacture
 order by year(datefacture)
  ` ,
- getSuivieFactureNonPayéByFournisseur: `SELECT DISTINCT 
- sum(TTC) as 'Montant TTC',
+ getSuivieFactureNonPayéByFournisseur: `SELECT 
+ SUM(TTC) AS 'MontantTTC',
  [nom],
- case when ficheNavette IS  null then 'sans fiche navette'
-	else 'avec fiche navette'
-	end as ficheNavette,
+ CASE 
+    WHEN ficheNavette IS NULL THEN 'sans fiche navette'
+    ELSE 'avec fiche navette'
+ END AS ficheNavette,
  [etat],
- ModePaiementID
- FROM DAF_SuivieFacture 
-  WHERE  
- 1=1
- group by nom , modepaiement,ModePaiementID,ficheNavette, etat
- `, 
+ YEAR(DateFacture) AS 'AnneeExercice'
+FROM 
+DAF_SuivieFacture
+WHERE  
+UPPER(nom) LIKE UPPER('%' + @nom + '%')
+AND (
+   YEAR(DateFacture) = @annee 
+   OR 
+   (YEAR(DateFacture) = @annee-1 and ETAT IN ('pas encore'))
+)
+GROUP BY
+[nom],
+CASE
+ WHEN ficheNavette IS NULL THEN 'sans fiche navette'
+ ELSE 'avec fiche navette'
+END,
+[etat], YEAR(DateFacture)
+ORDER BY YEAR(DateFacture);
+
+    `, 
 };
 
 exports.cheque = {
@@ -813,7 +828,7 @@ exports.cheque = {
       ,@RibAtner
       ,@montantVirement
       ,@Redacteur
-      ,@getdate()
+      ,getdate()
       )`,
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_cheque]",
   getAll: `

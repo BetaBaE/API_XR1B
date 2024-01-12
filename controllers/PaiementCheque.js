@@ -55,7 +55,7 @@ async function getFactureFromView(facturelist) {
 async function insertFactureInLog(ArrayOfFacture, ModePaiementID,numerocheque) {
   let query = ` `;
   ArrayOfFacture.forEach(
-    async ({ CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, NETAPAYER, id }, i)=> {
+    async ({CODEDOCUTIL,chantier,nom,LIBREGLEMENT,DateFacture,TTC,HT,MontantTVA,NETAPAYER,id }, i)=> {
       const escapedNom = nom?.replaceAll(/'/g, "''");
       i != ArrayOfFacture.length - 1
         ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${ModePaiementID}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}'),`)
@@ -63,7 +63,7 @@ async function insertFactureInLog(ArrayOfFacture, ModePaiementID,numerocheque) {
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);
-  console.log(`${query}`);
+
   try {
     const pool = await getConnection();
     const result = await pool
@@ -131,7 +131,7 @@ exports.createcheque = async (req, res) => {
   let { Totale } = await calculSumFactures(facturelist);
   //let num = MontantFixed(Totale);
   let ArrayOfFacture = await getFactureFromView(facturelist);
-  insertFactureInLog(ArrayOfFacture, req.body.orderVirementId,req.body.numerocheque);
+  insertFactureInLog(ArrayOfFacture,req.body.RibAtner,req.body.numerocheque);
   console.log(req.body, Totale);
   console.log("cheque", cheque.create);
   try {
@@ -144,6 +144,7 @@ exports.createcheque = async (req, res) => {
       .input("numerocheque", getSql().Char, req.body.numerocheque)
       .input("datecheque", getSql().Date, req.body.datecheque)
       .input("dateecheance", getSql().Date, req.body.dateecheance)
+      .input("Redacteur", getSql().VarChar, req.body.Redacteur)
       .query(cheque.create);
 
     res.json({ id: "" });
