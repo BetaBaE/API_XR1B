@@ -694,8 +694,8 @@ group by  dfn1.ficheNavette,
 
 exports.designation = {
   getdesignationCount:
-    "SELECT COUNT(*) as cogetficheNavettebyfournisseurunt FROM [dbo].[FactureDesignation]",
-  getDesignation: "SELECT * FROM [dbo].[FactureDesignation] where 1=1 ",
+    "SELECT COUNT(*) as cogetficheNavettebyfournisseurunt FROM [dbo].[FactureDesignation] where id>30",
+  getDesignation: "SELECT * FROM [dbo].[FactureDesignation] where id>30 ",
   getdesignationbynom: `SELECT *
      FROM [dbo].[FactureDesignation]
      where id=@id `,
