@@ -10,6 +10,7 @@ const {
   getfournisseurById,
   updatefournisseur,
   getfournisseurwithecheance,
+  getNomfournisseur,
 } = require("../controllers/fournisseurs");
 const router = express.Router();
 router.get("/fournisseurs", getFournisseursCount, getFournissuers);
@@ -25,4 +26,6 @@ router.get("/fournisseurs/:id", getfournisseurById);
 router.put("/fournisseurs/:id", updatefournisseur);
 
 router.get("/fournisseurswithecheanceLoi", getfournisseurwithecheance);
+
+router.post("/getNomfournisseur", getNomfournisseur);
 module.exports = router;

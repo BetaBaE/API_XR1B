@@ -68,11 +68,13 @@ exports.getRibs = async (req, res) => {
 };
 
 exports.createRibs = async (req, res) => {
-  const { FournisseurId, rib,swift,banque,Redacteur } = req.body;
+  const { FournisseurId, rib,swift,banque,Redacteur,path_rib } = req.body;
+ console.log("path_rib",path_rib.rawFile.path)
+// const RIB_fournisseur="\\10.200.1.20/03_Compta/02-Dossier Comptabilité/01-fichiers comptabilité/04-RIB DES FRS/"+path_rib.rawFile.path
+const RIB_fournisseur="C:/Users/y.ihrai/Downloads/"+path_rib.rawFile.path
 
-  try {
+try {
     const pool = await getConnection();
-
     await pool
       .request()
       .input("FournisseurId", getSql().Int, FournisseurId)
@@ -82,7 +84,7 @@ exports.createRibs = async (req, res) => {
       .input("Redacteur", getSql().VarChar, Redacteur)
       .query(ribTemporaire.createRibs);
     console.log("errour");
-    createRibFournisseurs(FournisseurId, rib, swift,banque,Redacteur);
+    createRibFournisseurs(FournisseurId, rib, swift,banque,Redacteur,RIB_fournisseur);
     res.json({
       id: "",
       FournisseurId,

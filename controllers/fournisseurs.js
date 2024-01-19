@@ -235,3 +235,25 @@ exports.getfournisseurwithecheance = async (req, res) => {
     res.send(error.message);
   }
 };
+
+/* get fournisseur nomination */
+exports.getNomfournisseur = async (req, res) => {
+  const {nom} = req.body;
+  console.log("req.body", req.body);
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("nom", getSql().VarChar, nom)
+      .query(Fournisseurs.getNomfournisseur);
+    console.log(req.count);
+    res.set(
+      "Content-Range",
+      `fournisseurs 0-${req.count - 1}/${req.count - 1}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};

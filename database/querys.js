@@ -1,4 +1,6 @@
 exports.Fournisseurs = {
+  getNomfournisseur: `select  nom from DAF_FOURNISSEURS where nom  LIKE '%'+@nom+'%'`,
+ 
   getallfournisseurwithecheanceLoi:`
   select * from DAF_FOURNISSEURS
 where id in(SELECT
