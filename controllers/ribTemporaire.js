@@ -69,9 +69,9 @@ exports.getRibs = async (req, res) => {
 
 exports.createRibs = async (req, res) => {
   const { FournisseurId, rib,swift,banque,Redacteur,path_rib } = req.body;
- console.log("path_rib",path_rib.rawFile.path)
+//  console.log("path_rib",path_rib.rawFile.path)
 // const RIB_fournisseur="\\10.200.1.20/03_Compta/02-Dossier Comptabilité/01-fichiers comptabilité/04-RIB DES FRS/"+path_rib.rawFile.path
-const RIB_fournisseur="C:/Users/y.ihrai/Downloads/"+path_rib.rawFile.path
+// const RIB_fournisseur="C:/Users/y.ihrai/Downloads/"+path_rib.rawFile.path
 
 try {
     const pool = await getConnection();
@@ -84,7 +84,7 @@ try {
       .input("Redacteur", getSql().VarChar, Redacteur)
       .query(ribTemporaire.createRibs);
     console.log("errour");
-    createRibFournisseurs(FournisseurId, rib, swift,banque,Redacteur,RIB_fournisseur);
+    createRibFournisseurs(FournisseurId, rib, swift,banque,Redacteur);
     res.json({
       id: "",
       FournisseurId,

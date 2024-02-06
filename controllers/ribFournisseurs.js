@@ -1,7 +1,7 @@
 const { getConnection, getSql } = require("../database/connection");
 const { ribFournisseur } = require("../database/querys");
 
-exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque,Redacteur,path_rib) => {
+exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque,Redacteur) => {
   try {
     const pool = await getConnection();
 
