@@ -58,10 +58,13 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
   ArrayOfFacture.forEach(
     async ({ CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, NETAPAYER, id }, i)=> {
       const escapedNom = nom?.replaceAll(/'/g, "''");
+      const formattedDate = DateFacture ? new Date(DateFacture).toISOString().slice(0, 10) : 'NULL';
+
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','Reglee','paiement espece','${DateFacture === null ? id : 0}'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}','${DateFacture}','${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','Reglee','paiement espece','${DateFacture === null ? id : 0}')`);
-    }
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','Reglee','paiement espece','${DateFacture === null ? id : 0}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','Reglee','paiement espece','${DateFacture === null ? id : 0}')`);
+   
+      }
   );
   console.log(`${espece.createLogFacture} '${query}'`);
   console.log(`${query}`);

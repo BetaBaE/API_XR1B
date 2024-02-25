@@ -233,17 +233,21 @@ exports.factures = {
   getAll: `SELECT * FROM [dbo].[DAF_FA_VC] where 1=1 `,
   getOne: `SELECT * FROM [dbo].[DAF_FA_VC] where id=@id`,
   getAllFactures: `SELECT * FROM [dbo].[DAF_FA_VC]
-  order by nom , datedoc `,
-  getfacturebyfournisseurid: `Select fa.* from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
-  where
-  f.id=@id and not
-  EXISTS (SELECT  CODEDOCUTIL,nom
-  FROM [dbo].[DAF_LOG_FACTURE] lf
-  where fa.CODEDOCUTIL=lf.CODEDOCUTIL
-  and lf.etat <>'Annulé'
-  and fa.nom=lf.NOM
- )and  fa.nom=f.nom
-  order by fa.DateFacture
+  order by nom , datedouc `,
+  getfacturebyfournisseurid: `SELECT fa.* 
+  FROM [dbo].[DAF_FOURNISSEURS] f
+  INNER JOIN [dbo].[DAF_Facture_Avance_Fusion] fa ON f.nom = fa.nom
+  WHERE f.id = @id 
+  AND NOT EXISTS (
+      SELECT 1 
+      FROM [dbo].[DAF_LOG_FACTURE] lf
+      WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
+      AND lf.etat <> 'Annulé'
+      AND fa.nom = lf.NOM
+      AND fa.DateFacture = lf.DateDouc
+  )
+  ORDER BY fa.DateFacture
+  
   `,
   getficheNavetebyfournisseur: `SELECT fa.*
   FROM [dbo].[DAF_FOURNISSEURS] f
@@ -307,7 +311,7 @@ exports.virements = {
            ,[CODECHT]
             ,[NOM]
            ,[LIBREGLEMENT]
-           ,[DATEDOC]
+           ,[datedouc]
            ,[TOTALTTC]
            ,[TOTHTNET]
            ,[TOTTVANET]
@@ -552,16 +556,21 @@ and fa.nom=lf.NOM
 )
  and  fa.nom=f.nom
 `,
-  getsumfacturebyfournisseurwithfn: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
-where fa.ficheNavette is not null and fa.DateFacture is not null and 
-f.id=@id and not
-EXISTS (SELECT  CODEDOCUTIL,nom
-FROM [dbo].[DAF_LOG_FACTURE] lf
-where fa.CODEDOCUTIL=lf.CODEDOCUTIL
-and lf.etat <>'Annulé'
-and fa.nom=lf.NOM
-)
- and  fa.nom=f.nom
+  getsumfacturebyfournisseurwithfn: `SELECT SUM(fa.ttc) as sum 
+  FROM [dbo].[DAF_FOURNISSEURS] f
+  INNER JOIN [dbo].[DAF_Facture_Avance_Fusion] fa ON f.nom = fa.nom
+  WHERE fa.ficheNavette IS NOT NULL 
+  AND fa.DateFacture IS NOT NULL 
+  AND f.id = @id 
+  AND NOT EXISTS (
+      SELECT 1 
+      FROM [dbo].[DAF_LOG_FACTURE] lf
+      WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
+      AND lf.etat <> 'Annulé'
+      AND fa.nom = lf.NOM
+      AND fa.DateFacture = lf.DateDouc
+  );
+  
 
 `,
 
@@ -861,7 +870,7 @@ exports.cheque = {
            ,[CODECHT]
             ,[NOM]
            ,[LIBREGLEMENT]
-           ,[DATEDOC]
+           ,[datedouc]
            ,[TOTALTTC]
            ,[TOTHTNET]
            ,[TOTTVANET]
@@ -937,7 +946,7 @@ exports.espece = {
            ,[CODECHT]
             ,[NOM]
            ,[LIBREGLEMENT]
-           ,[DATEDOC]
+           ,[datedouc]
            ,[TOTALTTC]
            ,[TOTHTNET]
            ,[TOTTVANET]
@@ -1003,7 +1012,7 @@ INSERT INTO [dbo].[DAF_LOG_FACTURE]
        ,[CODECHT]
         ,[NOM]
        ,[LIBREGLEMENT]
-       ,[DATEDOC]
+       ,[datedouc]
        ,[TOTALTTC]
        ,[TOTHTNET]
        ,[TOTTVANET]
