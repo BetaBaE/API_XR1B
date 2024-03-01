@@ -356,7 +356,7 @@ exports.PrintOrderVirement = async (req, res) => {
       let to_words = toWords.convert(x).toLocaleUpperCase();
       if (to_words.includes("VIRGULE")) {
         to_words = to_words.split("VIRGULE");
-        res = to_words[0] + "DIRHAMS" + to_words[1] + " CENTIMES" ;
+        res = to_words[0] + "DIRHAMS" + " ET"+ to_words[1] + " CENTIMES" ;
       } else {
         res = to_words + " DIRHAMS";
       }
