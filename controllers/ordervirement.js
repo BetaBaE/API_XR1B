@@ -356,7 +356,7 @@ exports.PrintOrderVirement = async (req, res) => {
       let to_words = toWords.convert(x).toLocaleUpperCase();
       if (to_words.includes("VIRGULE")) {
         to_words = to_words.split("VIRGULE");
-        res = to_words[0] + " DIRHAMS VIRGULE" + to_words[1];
+        res = to_words[0] + "DIRHAMS" + to_words[1] + " CENTIMES" ;
       } else {
         res = to_words + " DIRHAMS";
       }
@@ -370,7 +370,7 @@ exports.PrintOrderVirement = async (req, res) => {
                 <td class="tdorder">${virement.nom}</td>
                 <td class="tdorder">${virement.rib}</td>
                 <td class="tdorder montant">${numberWithSpaces(
-                  addZerotonumbers(virement.montantVirement)
+                  virement.montantVirementModifier
                 )}</td>
               </tr>
         `;
@@ -422,7 +422,7 @@ exports.PrintOrderVirement = async (req, res) => {
               }
               .tdorder{
                 padding : 10px 0px;
-                font-size :14 px
+                font-size :4 px
               }
               th  {
                 font-size : 16px;
@@ -486,7 +486,7 @@ exports.PrintOrderVirement = async (req, res) => {
               <tr>
                 <th class="thorder">N°</th>
                 <th class="thorder">Bénéficiaire</th>
-                <th class="thorder">N° du compte</th>
+                <th style="width: 40%;">N° du compte</th>
                 <th class="thorder">Montant</th>
               </tr>
             </thead>
@@ -499,7 +499,7 @@ exports.PrintOrderVirement = async (req, res) => {
                 ${wordToNumber(printData.header[0].total)}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-                addZerotonumbers(printData.header[0].total)
+              printData.header[0].total
               )}</th>
             </tfoot>
           </table>
