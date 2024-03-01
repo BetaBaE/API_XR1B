@@ -183,23 +183,23 @@ exports.ordervirements = {
     "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
   MiunsFromTotal:
     "update [DAF_Order_virements] set total = total-@montantVirement where id =@id",
-  getHeaderPrint: `SELECT  ov.*, ra.nom, ra.rib
-  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
-  where ov.ribAtner = ra.id and ov.id = @ovId`,
-  getBodyPrint: `
-      SELECT v.[id]
-      ,[orderVirementId]
-      ,f.nom
-      ,rf.rib
-      ,[montantVirement],
-      v.Etat
-  FROM  [dbo].[DAF_VIREMENTS] v ,
-      [dbo].[DAF_RIB_Fournisseurs] rf,
-      [dbo].[DAF_FOURNISSEURS] f
-  where v.fournisseurId = f.id
-    and v.ribFournisseurId = rf.id
-    and Etat = 'En cours'
-    and [orderVirementId] = @ovId`,
+  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, 'N2') AS totalformater, ra.nom, ra.rib
+  FROM [dbo].[DAF_Order_virements] ov
+  JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
+  `,
+  getBodyPrint: ` SELECT v.[id]
+  ,[orderVirementId]
+  ,f.nom
+  ,rf.rib
+  ,	FORMAT(montantVirement, 'N2') AS montantVirementModifier,
+  v.Etat
+FROM  [dbo].[DAF_VIREMENTS] v ,
+  [dbo].[DAF_RIB_Fournisseurs] rf,
+  [dbo].[DAF_FOURNISSEURS] f
+where v.fournisseurId = f.id
+and v.ribFournisseurId = rf.id
+and Etat = 'En cours'
+and [orderVirementId] = @ovId`,
   updateVirements: `update [dbo].[DAF_Order_virements] set Etat = 'Reglee'
                       where id = @id`,
 
