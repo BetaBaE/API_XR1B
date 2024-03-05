@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { ordervirements, virements } = require("../database/querys");
+const { ordervirementsFond, virements } = require("../database/querys");
 const html_to_pdf = require("html-pdf-node");
 const fs = require("fs");
 const { ToWords } = require("to-words");
@@ -45,9 +45,9 @@ const addTwoZero = (num) => {
 const getOrderCountbyYear = async () => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(ordervirements.getCountByYear);
+    const result = await pool.request().query(ordervirementsFond.getCountByYear);
     // req.countyear = result.recordset[0].count;
-    console.log(ordervirements.getCountByYear);
+    console.log(ordervirementsFond.getCountByYear);
     // console.log(req.countyear);
     return result.recordset[0].count;
   } catch (error) {
@@ -60,7 +60,7 @@ const getOrderCountbyYear = async () => {
 exports.getOrderCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(ordervirements.getCount);
+    const result = await pool.request().query(ordervirementsFond.getCount);
     req.count = result.recordset[0].count;
     // console.log(req.count);
     next();
@@ -78,7 +78,7 @@ const generateOvID = (id) => {
   let month = addZero(currentDate.getMonth() + 1);
   let year = currentDate.getFullYear();
 
-  return `OV${Id}-${day}-${month}-${year}`;
+  return `OVL${Id}-${day}-${month}-${year}`;
 };
 
 exports.createOrderVirements = async (req, res) => {
@@ -94,7 +94,7 @@ exports.createOrderVirements = async (req, res) => {
       .input("Redacteur", getSql().VarChar,Redacteur)
       .input("ribAtner", getSql().Int, ribAtner)
 
-      .query(ordervirements.create);
+      .query(ordervirementsFond.create);
     console.log("errour");
     res.json({
       id: "",
@@ -140,19 +140,19 @@ exports.getorderVirements = async (req, res) => {
     console.log(queryFilter);
 
     const pool = await getConnection();
-    console.log(`${ordervirements.getAll} ${queryFilter} Order by ${sort[0]} ${
+    console.log(`${ordervirementsFond.getAll} ${queryFilter} Order by ${sort[0]} ${
       sort[1]
     }
         OFFSET ${range[0]} ROWS FETCH NEXT ${
       range[1] + 1 - range[0]
     } ROWS ONLY`);
     const result = await pool.request().query(
-      `${ordervirements.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+      `${ordervirementsFond.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
         OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
     res.set(
       "Content-Range",
-      `ordervirements ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+      `ordervirementsFond ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
 
     res.json(result.recordset);
@@ -176,26 +176,26 @@ exports.updateOrderVirements = async (req, res) => {
       .input("etat", getSql().VarChar, etat)
       .input("directeursigne", getSql().VarChar, directeursigne)
       .input("id", getSql().VarChar, req.params.id)
-      .query(ordervirements.update);
+      .query(ordervirementsFond.update);
 
     if (etat == "Reglee") {
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateVirements);
+        .query(ordervirementsFond.updateVirements);
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateLogFacture);
+        .query(ordervirementsFond.updateLogFacture);
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateDateExecution);
+        .query(ordervirementsFond.updateDateExecution);
 
         await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updatvirementRegler);
+        .query(ordervirementsFond.updatvirementRegler);
 
 
 
@@ -203,15 +203,15 @@ exports.updateOrderVirements = async (req, res) => {
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateVirementsAnnuler);
+        .query(ordervirementsFond.updateVirementsAnnuler);
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateLogFactureAnnuler);
+        .query(ordervirementsFond.updateLogFactureAnnuler);
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateordervirementAnnuler);
+        .query(ordervirementsFond.updateordervirementAnnuler);
     }
 
     res.json({
@@ -231,9 +231,9 @@ exports.getOneOrderById = async (req, res) => {
     const result = await pool
       .request()
       .input("id", getSql().VarChar, req.params.id)
-      .query(ordervirements.getOne);
+      .query(ordervirementsFond.getOne);
 
-    res.set("Content-Range", `ordervirements 0-1/1`);
+    res.set("Content-Range", `ordervirementsFond 0-1/1`);
 
     res.json(result.recordset[0]);
   } catch (error) {
@@ -248,7 +248,7 @@ exports.orderVirementsEnCours = async (req, res) => {
 
     const result = await pool
       .request()
-      .query(ordervirements.orderVirementsEnCours);
+      .query(ordervirementsFond.orderVirementsEnCours);
 
     res.set("Content-Range", `ordervirements 0 - ${req.count}/${req.count}`);
 
@@ -265,7 +265,7 @@ exports.orderVirementsEtat = async (req, res) => {
 
     const result = await pool
       .request()
-      .query(ordervirements.orderVirementsEtat);
+      .query(ordervirementsFond.orderVirementsEtat);
 
     res.set("Content-Range", `ordervirements 0 - ${req.count}/${req.count}`);
 
@@ -302,7 +302,7 @@ exports.PrintOrderVirement = async (req, res) => {
     let result = await pool
       .request()
       .input("ovId", getSql().VarChar, filter.id)
-      .query(ordervirements.getHeaderPrint);
+      .query(ordervirementsFond.getHeaderPrint);
     printData.header = result.recordset;
 
     let date = new Date();
@@ -350,56 +350,18 @@ exports.PrintOrderVirement = async (req, res) => {
       .query(ordervirements.getBodyPrint);
     printData.body = result.recordset;
     let trdata = "";
+
     const wordToNumber = (x) => {
       let res = "";
       let to_words = toWords.convert(x).toLocaleUpperCase();
-  
       if (to_words.includes("VIRGULE")) {
-          let [integerPart, decimalPart] = to_words.split("VIRGULE");
-  
-          // Vérifie si decimalPart est null et le remplace par une chaîne vide
-          decimalPart = decimalPart || "";
-  
-          res = integerPart + " DIRHAMS";
-  
-          // Traitement de la partie décimale
-          if (decimalPart) {
-              let decimalInWords = "";
-          
-
-                  if (decimalPart.trim() === "UN") {
-                    decimalInWords = "DIX CENTIMES";
-                } else if (decimalPart.trim() === "DEUX") {
-                    decimalInWords = "VINGT CENTIMES";
-                } else if (decimalPart.trim() === "TROIS") {
-                    decimalInWords = "TRENTE CENTIMES";
-                } else if (decimalPart.trim() === "QUATRE") {
-                    decimalInWords = "QUARANTE CENTIMES";
-                } else if (decimalPart.trim() === "CINQ") {
-                    decimalInWords = "CINQUANTE CENTIMES";
-                } else if (decimalPart.trim() === "SIX") {
-                    decimalInWords = "SOIXANTE CENTIMES";
-                } else if (decimalPart.trim() === "SEPT") {
-                    decimalInWords = "SOIXANTE-DIX CENTIMES";
-                } else if (decimalPart.trim() === "HUIT") {
-                    decimalInWords = "QUATRE-VINGTS CENTIMES";
-                } else if (decimalPart.trim() === "NEUF") {
-                    decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
-                } else {
-                  decimalInWords =decimalPart + " CENTIMES";
-              }
-  
-              res += " ET " + decimalInWords;
-          }
+        to_words = to_words.split("VIRGULE");
+        res = to_words[0] + "DIRHAMS" + " ET"+ to_words[1] + " CENTIMES" ;
       } else {
-          res = to_words + " DIRHAMS";
+        res = to_words + " DIRHAMS";
       }
-  
       return res;
-  };
-  
-  
-  
+    };
 
     printData.body.forEach((virement, index) => {
       trdata += `
@@ -537,7 +499,7 @@ exports.PrintOrderVirement = async (req, res) => {
                 ${wordToNumber(printData.header[0].total)}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-              printData.header[0].totalformater
+              printData.header[0].total
               )}</th>
             </tfoot>
           </table>

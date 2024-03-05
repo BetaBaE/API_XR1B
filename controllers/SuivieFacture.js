@@ -299,9 +299,9 @@ exports.getAnneeFacture = async (req, res) => {
         .input("nom", getSql().VarChar,req.params.nom)
         .input("annee", getSql().VarChar,req.params.annee)
         .query(SuivieFacture.getSuivieFactureNonPayéByFournisseur);
-            // console.log(`${SuivieFacture.getSuivieFactureNonPayéByFournisseur}`)
-            // console.log('req.params.nom',req.params.nom)
-            // console.log('req.params.annee',req.params.annee)
+            console.log(`${SuivieFacture.getSuivieFactureNonPayéByFournisseur}`)
+            console.log('req.params.nom',req.params.nom)
+            console.log('req.params.annee',req.params.annee)
       res.set("Content-Range", `SuivieFactureByFournisseur 0-1/1`);
   
       res.json(result.recordset);
