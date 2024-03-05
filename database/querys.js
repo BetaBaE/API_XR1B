@@ -788,33 +788,18 @@ WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
 from DAF_SuivieFacture
 order by year(datefacture)
  ` ,
- getSuivieFactureNonPayéByFournisseur: `SELECT 
- SUM(TTC) AS 'MontantTTC',
- [nom],
- CASE 
-    WHEN ficheNavette IS NULL THEN 'sans fiche navette'
-    ELSE 'avec fiche navette'
- END AS ficheNavette,
- [etat],
- YEAR(DateFacture) AS 'AnneeExercice'
+ getSuivieFactureNonPayéByFournisseur: `
+ SELECT 
+    nom,
+    SUM(CASE WHEN YEAR(datefacture) = @annee THEN ttc ELSE 0 END) AS sumFacture,
+    SUM(CASE WHEN YEAR(dateoperation) = @annee THEN ttc ELSE 0 END) AS sumReglement,
+    SUM(CASE WHEN YEAR(datefacture) >= @annee AND etat <>'reglee' THEN ttc ELSE 0 END) AS Reste
 FROM 
-DAF_SuivieFacture
+    daf_suiviefacture 
 WHERE  
-UPPER(nom) LIKE UPPER('%' + @nom + '%')
-AND (
-   YEAR(DateFacture) = @annee 
-   OR 
-   (YEAR(DateFacture) = @annee-1 and ETAT IN ('pas encore'))
-)
-GROUP BY
-[nom],
-CASE
- WHEN ficheNavette IS NULL THEN 'sans fiche navette'
- ELSE 'avec fiche navette'
-END,
-[etat], YEAR(DateFacture)
-ORDER BY YEAR(DateFacture);
-
+    UPPER(nom) LIKE UPPER('%'+@nom+'%')
+GROUP BY 
+    nom
     `, 
 };
 
