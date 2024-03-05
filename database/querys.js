@@ -183,7 +183,8 @@ exports.ordervirements = {
     "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
   MiunsFromTotal:
     "update [DAF_Order_virements] set total = total-@montantVirement where id =@id",
-  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, 'N2') AS totalformater, ra.nom, ra.rib
+  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, '0.00') AS totalformater
+  , ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
   `,
@@ -191,7 +192,7 @@ exports.ordervirements = {
   ,[orderVirementId]
   ,f.nom
   ,rf.rib
-  ,	FORMAT(montantVirement, 'N2') AS montantVirementModifier,
+  ,	FORMAT(montantVirement, '0.00') AS montantVirementModifier,
   v.Etat
 FROM  [dbo].[DAF_VIREMENTS] v ,
   [dbo].[DAF_RIB_Fournisseurs] rf,
@@ -1100,4 +1101,89 @@ exports.EcheanceLoi = {
 `
 };
 
+/////////////////////
 
+
+exports.ordervirementsFond = {
+
+  getCountByYear: `SELECT  COUNT(*) +1 as count
+  FROM [dbo].[DAF_Order_virements_Fond]
+  where datecreation like '%${new Date().getFullYear()}%'`,
+  getCount: `SELECT COUNT(*) as count FROM [dbo].[DAF_Order_virements_Fond]`,
+  create: `INSERT INTO [dbo].[DAF_Order_virements_Fond]
+           ([id],
+            [directeursigne]
+           ,[ribAtner]
+            ,[Redacteur]
+           )
+     VALUES
+           (@id,
+            @directeursigne
+           ,@ribAtner
+           ,@Redacteur
+      
+           )`,
+  getAll: `SELECT  ov.*, ra.nom, ra.rib
+  FROM [dbo].[DAF_Order_virements_Fond] ov,[dbo].[DAF_RIB_ATNER] ra
+  where ov.ribAtner = ra.id `,
+  getOne: `SELECT  ov.*, ra.nom, ra.rib
+  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
+  where ov.ribAtner = ra.id and ov.id = @id`,
+  update: `UPDATE [dbo].[DAF_Order_virements]
+   SET [ribAtner] = @ribAtner,
+   [directeursigne]=@directeursigne
+      ,[etat] = @etat
+  WHERE id = @id`,
+  orderVirementsEnCours: `SELECT * FROM [dbo].[DAF_Order_virements]
+  WHERE etat = 'En cours'`,
+  orderVirementsEtat: `SELECT * FROM [dbo].[DAF_Order_virements]
+  WHERE etat in('En cours')
+  and total <> 0`,
+  AddToTotal:
+    "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
+  MiunsFromTotal:
+    "update [DAF_Order_virements] set total = total-@montantVirement where id =@id",
+  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, 'N2') AS totalformater, ra.nom, ra.rib
+  FROM [dbo].[DAF_Order_virements] ov
+  JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
+  `,
+  getBodyPrint: ` SELECT v.[id]
+  ,[orderVirementId]
+  ,f.nom
+  ,rf.rib
+  ,	FORMAT(montantVirement, 'N2') AS montantVirementModifier,
+  v.Etat
+FROM  [dbo].[DAF_VIREMENTS] v ,
+  [dbo].[DAF_RIB_Fournisseurs] rf,
+  [dbo].[DAF_FOURNISSEURS] f
+where v.fournisseurId = f.id
+and v.ribFournisseurId = rf.id
+and Etat = 'En cours'
+and [orderVirementId] = @ovId`,
+  updateVirements: `update [dbo].[DAF_Order_virements] set Etat = 'Reglee'
+                      where id = @id`,
+
+  updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee'
+                        where ModePaiementID = @id and Etat='Annulé'`,
+
+  updateDateExecution: `update [dbo].[DAF_Order_virements] set dateExecution = GETDATE()
+                            where id = @id`,
+
+
+  updatvirementRegler: `update [dbo].[DAF_VIREMENTS] set Etat = 'Reglee'
+                            where orderVirementId = @id
+                            and   etat<>'Annuler'
+                            `,
+
+
+
+
+  updateVirementsAnnuler: `update [dbo].[DAF_VIREMENTS] set Etat = 'Annuler'
+                      where orderVirementId = @id`,
+
+  updateLogFactureAnnuler: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé'
+                        where ModePaiementID = @id`,
+  updateordervirementAnnuler: `update [dbo].[DAF_Order_virements] set Etat = 'Annule' ,
+                        total = 0
+                        where id = @id`,
+};
