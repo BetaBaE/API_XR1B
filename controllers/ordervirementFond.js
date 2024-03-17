@@ -57,7 +57,7 @@ const getOrderCountbyYear = async () => {
   }
 };
 
-exports.getOrderCount = async (req, res, next) => {
+exports.getOrderCountFond = async (req, res, next) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(ordervirementsFond.getCount);
@@ -78,10 +78,10 @@ const generateOvID = (id) => {
   let month = addZero(currentDate.getMonth() + 1);
   let year = currentDate.getFullYear();
 
-  return `OVL${Id}-${day}-${month}-${year}`;
+  return `OVF${Id}-${day}-${month}-${year}`;
 };
 
-exports.createOrderVirements = async (req, res) => {
+exports.createOrderVirementsFond = async (req, res) => {
   const { ribAtner,Redacteur } = req.body;
   console.log(getOrderCountbyYear());
   try {
@@ -107,7 +107,7 @@ exports.createOrderVirements = async (req, res) => {
   }
 };
 
-exports.getorderVirements = async (req, res) => {
+exports.getorderVirementsFond = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
     let sort = req.query.sort || '["id" , "ASC"]';
@@ -162,7 +162,7 @@ exports.getorderVirements = async (req, res) => {
   }
 };
 
-exports.updateOrderVirements = async (req, res) => {
+exports.updateOrderVirementsFond = async (req, res) => {
   const { ribAtner, etat, directeursigne } = req.body;
   if (ribAtner == null || etat == null) {
     return res.status(400).json({ error: "all field is required" });
@@ -186,7 +186,7 @@ exports.updateOrderVirements = async (req, res) => {
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirementsFond.updateLogFacture);
+
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
@@ -204,10 +204,7 @@ exports.updateOrderVirements = async (req, res) => {
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirementsFond.updateVirementsAnnuler);
-      await pool
-        .request()
-        .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirementsFond.updateLogFactureAnnuler);
+   
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
@@ -225,7 +222,7 @@ exports.updateOrderVirements = async (req, res) => {
   }
 };
 
-exports.getOneOrderById = async (req, res) => {
+exports.getOneOrderByIdFond = async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool
@@ -242,7 +239,7 @@ exports.getOneOrderById = async (req, res) => {
   }
 };
 
-exports.orderVirementsEnCours = async (req, res) => {
+exports.orderVirementsEnCoursFond = async (req, res) => {
   try {
     const pool = await getConnection();
 
@@ -259,7 +256,7 @@ exports.orderVirementsEnCours = async (req, res) => {
   }
 };
 
-exports.orderVirementsEtat = async (req, res) => {
+exports.orderVirementsEtatFond = async (req, res) => {
   try {
     const pool = await getConnection();
 
@@ -276,7 +273,7 @@ exports.orderVirementsEtat = async (req, res) => {
   }
 };
 
-exports.PrintOrderVirement = async (req, res) => {
+exports.PrintOrderVirementFond = async (req, res) => {
   const toWords = new ToWords({
     localeCode: "fr-FR",
   });
@@ -561,6 +558,318 @@ exports.getfacturebyordervirement = async (req, res) => {
 
     res.json(result.recordset);
     console.log(result.recordset)
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+
+
+
+exports.PrintOrderVirementFond = async (req, res) => {
+  const toWords = new ToWords({
+    localeCode: "fr-FR",
+  });
+
+  function numberWithSpaces(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+
+  let options = { format: "A4" };
+
+  let printData = {
+    header: {},
+    body: [],
+    edit: false,
+    path: "",
+  };
+  let filter = req.query.ordervirment || "{}";
+  filter = JSON.parse(filter);
+
+  try {
+    const pool = await getConnection();
+
+    let result = await pool
+      .request()
+      .input("ovId", getSql().VarChar, filter.id)
+      .query(ordervirementsFond.getHeaderPrint);
+    printData.header = result.recordset;
+
+    let date = new Date();
+
+    //console.log(addZero(1));
+
+    let year = date.getFullYear();
+    let month = addZero(date.getMonth() + 1);
+    let day = addZero(date.getDate());
+    let hour = addZero(date.getHours());
+    let min = addZero(date.getMinutes());
+    let sec = addZero(date.getSeconds());
+
+    let concat = year + "" + month + "" + day + "" + hour + "" + min + "" + sec;
+
+    let currentDate = new Date();
+    let today = `${addZero(currentDate.getDate())}/${addZero(
+      currentDate.getMonth() + 1
+    )}/${addZero(currentDate.getFullYear())}`;
+
+    // let date = `${currentDate.getFullYear()}${
+    //   currentDate.getMonth.length > 1
+    //     ? currentDate.getMonth + 1
+    //     : "0" + (currentDate.getMonth + 1).toString()
+    // }${
+    //   currentDate.getDay.length > 1
+    //     ? currentDate.getDay
+    //     : "0" + currentDate.getDay.toString()
+    // }${
+    //   currentDate.getHours.length > 1
+    //     ? currentDate.getHours
+    //     : "0" + currentDate.getHours.toString()
+    // }${
+    //   currentDate.getMinutes.length > 1
+    //     ? currentDate.getMinutes
+    //     : "0" + currentDate.getMinutes.toString()
+    // }${
+    //   currentDate.getSeconds.length > 1
+    //     ? currentDate.getSeconds
+    //     : "0" + currentDate.getSeconds.toString()
+    // }`;
+    result = await pool
+      .request()
+      .input("ovId", getSql().VarChar, filter.id)
+      .query(ordervirementsFond.getBodyPrint);
+    printData.body = result.recordset;
+    let trdata = "";
+    const wordToNumber = (x) => {
+      let res = "";
+      let to_words = toWords.convert(x).toLocaleUpperCase();
+  
+      if (to_words.includes("VIRGULE")) {
+          let [integerPart, decimalPart] = to_words.split("VIRGULE");
+  
+          // Vérifie si decimalPart est null et le remplace par une chaîne vide
+          decimalPart = decimalPart || "";
+  
+          res = integerPart + " DIRHAMS";
+  
+          // Traitement de la partie décimale
+          if (decimalPart) {
+              let decimalInWords = "";
+          
+
+                  if (decimalPart.trim() === "UN") {
+                    decimalInWords = "DIX CENTIMES";
+                } else if (decimalPart.trim() === "DEUX") {
+                    decimalInWords = "VINGT CENTIMES";
+                } else if (decimalPart.trim() === "TROIS") {
+                    decimalInWords = "TRENTE CENTIMES";
+                } else if (decimalPart.trim() === "QUATRE") {
+                    decimalInWords = "QUARANTE CENTIMES";
+                } else if (decimalPart.trim() === "CINQ") {
+                    decimalInWords = "CINQUANTE CENTIMES";
+                } else if (decimalPart.trim() === "SIX") {
+                    decimalInWords = "SOIXANTE CENTIMES";
+                } else if (decimalPart.trim() === "SEPT") {
+                    decimalInWords = "SOIXANTE-DIX CENTIMES";
+                } else if (decimalPart.trim() === "HUIT") {
+                    decimalInWords = "QUATRE-VINGTS CENTIMES";
+                } else if (decimalPart.trim() === "NEUF") {
+                    decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
+                } else {
+                  decimalInWords =decimalPart + " CENTIMES";
+              }
+  
+              res += " ET " + decimalInWords;
+          }
+      } else {
+          res = to_words + " DIRHAMS";
+      }
+  
+      return res;
+  };
+  
+  
+  
+
+    printData.body.forEach((virement, index) => {
+      trdata += `
+              <tr>
+                <td class="tdorder">${index + 1}</td>
+                <td class="tdorder">${virement.nom}</td>
+                <td class="tdorder">${virement.rib}</td>
+                <td class="tdorder montant">${numberWithSpaces(
+                  virement.montantVirementModifier
+                )}</td>
+              </tr>
+        `;
+    });
+
+    let html = `
+    <!doctype html>
+    <html>
+      <head>
+          <style>
+              .container {
+                height : 29,4cm;
+                width : 21cm;
+                padding: 2.1cm 2.1cm 0.7cm 2.1cm;
+                display: flex;
+                flex-direction: column;
+                font-family: Calibri, sans-serif;
+                font-size :16px;
+              }
+              .logo {
+                width: 10%;
+                margin-bottom : 10px;
+              }
+              .date {
+                font-size: 16px;
+                font-weight: 900;
+              }
+              .discription {
+                font-size: 16px;
+              }
+
+              .table {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+              }
+              table {
+                width: 90%;
+                align-self: center;
+              }
+              .torder,
+              .thorder,
+              .tdorder {
+                border: 1px solid black;
+                border-collapse: collapse;
+                text-align: center;
+                padding: 0px 32px;
+
+              }
+              .tdorder{
+                padding : 10px 0px;
+                font-size :4 px
+              }
+              th  {
+                font-size : 16px;
+                background : #878787;
+              }
+              td {
+                text-align: center;
+                padding: 2px 0;
+              }
+              .footer {
+                width: 21cm;
+                position: fixed;
+                bottom:0;
+                text-align : center;
+                font-size : 18px;
+              }
+              .montant {
+                padding :0px 10px;
+                text-align: right;
+              }
+              .datalist {
+                border: 0;
+                background-color: #fafafb;
+                font-size: 12px;
+                text-align: center;
+              }
+          </style>
+          <meta charset="UTF-8">
+      </head>
+      <body>
+        <div class="container">
+          <div>
+            <img class="logo" src="./logo.png" alt="atner logo" />
+          </div>
+          <hr />
+          <div class="date">
+            <p dir="rtl">
+              Rabat le &emsp;
+              ${today}
+            </p>
+            <p dir="rtl">A l'attention de Monsieur le Directeur
+            <br/>du Centre d'Affaires
+            <br/>${printData.header[0].nom}</p>
+            <p>Objet: ${printData.header[0].id}</p>
+          </div>
+        <div class="discription">
+          <p>Monsieur,</p>
+          <div class="atner-compte">
+            <span>&emsp;&emsp;&emsp;Par le débit de notre compte N° :&emsp;</span>
+            <span>${printData.header[0].rib}</span>
+          </div>
+          <p>
+            &emsp;&emsp;&emsp;nous vous prions de bien vouloir traiter les
+            virements détaillés dans le tableau ci-dessous:
+          </p>
+        </div>
+
+        <div class="table">
+          <table class="torder">
+            <thead>
+              <tr>
+                <th class="thorder">N°</th>
+                <th class="thorder">Bénéficiaire</th>
+                <th style="width: 40%;">N° du compte</th>
+                <th class="thorder">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+            ${trdata}
+            </tbody>
+            <tfoot>
+              <th class="thorder">Total</th>
+              <th colspan="2" class="thorder ">
+                ${wordToNumber(printData.header[0].total)}
+              </th>
+              <th class="thorder montant">${numberWithSpaces(
+              printData.header[0].totalformater
+              )}</th>
+            </tfoot>
+          </table>
+        </div>
+        <div class="discription">
+          <p>Salutations distinguées</p>
+          <b>
+            <p>Le Directeur Général <br/>
+            ${printData.header[0].directeursigne}
+            </p>
+          </b>
+        </div>
+        <div class="footer">
+          <p>S.A.R.L. au capital social 70.000.000,00 DH
+          <br/>Siége social : 24, route du sud, MIDELT
+          <br/> R.C. Midelt n°479-Patente n°18906900-I.F n° : 04150014-C.N.S.S n° 1280510
+          </p>
+        </div>
+      </div>
+      </body>
+      </html>
+    `;
+    fs.writeFileSync(`${__dirname}\\assets\\ordervirment.html`, html);
+
+    let file = { url: `${__dirname}\\assets\\ordervirment.html` };
+    html_to_pdf.generatePdf(file, options).then((pdfBuffer) => {
+      console.log("PDF Buffer:-", pdfBuffer);
+      let pdfPath =
+        "\\\\10.200.1.20\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\OVF\\" +
+        printData.header[0].id +
+        " " +
+        concat +
+        ".pdf";
+      fs.writeFileSync(pdfPath, pdfBuffer);
+      printData.path = pdfPath;
+      printData.edit = true;
+      console.log(printData);
+      console.log("fin", __dirname);
+      res.set("Content-Range", `ordervirementFond 0 - 1/1`);
+      res.json(printData);
+    });
   } catch (error) {
     res.send(error.message);
     res.status(500);

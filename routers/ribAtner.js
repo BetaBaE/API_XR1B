@@ -5,6 +5,7 @@ const {
   createRibsAtner,
   updateRibsAtner,
   getOneRibAtnerById,
+  getRibAtnerValid,
 } = require("../controllers/ribAtner");
 const router = express.Router();
 
@@ -13,4 +14,5 @@ router.post("/ribatner", createRibsAtner);
 router.put("/ribatner/:id", updateRibsAtner);
 router.get("/ribatner/:id", getOneRibAtnerById);
 
+router.get("/ribatnerValid/:id", getRibAtnerValid);
 module.exports = router;

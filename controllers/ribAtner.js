@@ -130,3 +130,21 @@ exports.getOneRibAtnerById = async (req, res) => {
     res.status(500);
   }
 };
+
+
+exports.getRibAtnerValid = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().VarChar, req.params.id)
+      .query(ribAtner.getRibAtnerValid);
+
+    res.set("Content-Range", `ordervirementsFond 0-1/1`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
