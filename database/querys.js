@@ -1145,7 +1145,7 @@ exports.ordervirementsFond = {
     "update [DAF_Order_virements_Fond] set total = total+@montantVirement where id =@id",
   MiunsFromTotal:
     "update [DAF_Order_virements_Fond] set total = total-@montantVirement where id =@id",
-  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, 'N2') AS totalformater, ra.nom, ra.rib
+  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, '0.00') AS totalformater, ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements_Fond] ov
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
   `,
@@ -1153,7 +1153,7 @@ exports.ordervirementsFond = {
   ,  orderVirementFondId as orderVirementId
   ,'ATNER'AS nom
   ,RAT.rib
-  ,	FORMAT(montantVirement, 'N2') AS montantVirementModifier,
+  ,	FORMAT(montantVirement, '0.00') AS montantVirementModifier,
   v.Etat
 FROM  [dbo].[DAF_VIREMENTS_Fond] v ,
   [dbo].[DAF_RIB_ATNER] RAT
