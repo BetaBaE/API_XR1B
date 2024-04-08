@@ -191,6 +191,7 @@ exports.ordervirements = {
   , ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
+  
   `,
   getBodyPrint: `SELECT v.[id]
   ,[orderVirementId]
@@ -203,7 +204,7 @@ FROM  [dbo].[DAF_VIREMENTS] v ,
   [dbo].[DAF_FOURNISSEURS] f
 where v.fournisseurId = f.id
 and v.ribFournisseurId = rf.id
-and Etat = 'En cours'
+and v.Etat = 'En cours'
 and [orderVirementId] = @ovId`,
   updateVirements: `update [dbo].[DAF_Order_virements] set Etat = 'Reglee'
                       where id = @id`,
