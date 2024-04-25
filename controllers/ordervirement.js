@@ -279,7 +279,21 @@ exports.orderVirementsEtat = async (req, res) => {
 exports.PrintOrderVirement = async (req, res) => {
   const toWords = new ToWords({
     localeCode: "fr-FR",
-  });
+    converterOptions: {
+      currency: true,
+      ignoreDecimal: false,
+      ignoreZeroCurrency: false ,
+      currencyOptions: {
+        // can be used to override defaults for the selected locale
+        // name: 'DIRHAMS',
+        plural: 'DIRHAMS',
+        fractionalUnit: {
+          // name: 'CENTIMES',
+          plural: 'CENTIMES',
+          symbol: '',
+        },
+      },
+    }});
 
   function numberWithSpaces(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -292,7 +306,12 @@ exports.PrintOrderVirement = async (req, res) => {
     body: [],
     edit: false,
     path: "",
-  };
+    resulsumvirement : function(data) {
+        // Fonction pour formater les données avec des virgules
+        return data.toLocaleString();
+    }
+};
+
   let filter = req.query.ordervirment || "{}";
   filter = JSON.parse(filter);
 
@@ -349,24 +368,30 @@ exports.PrintOrderVirement = async (req, res) => {
       .input("ovId", getSql().VarChar, filter.id)
       .query(ordervirements.getBodyPrint);
     printData.body = result.recordset;
+   
+  
+
+    let resultsumov = await pool
+      .request()
+      .input("ovId", getSql().VarChar, filter.id)
+      .query(ordervirements.getSumVirmentPrint);
+    printData.resulsumvirement = resultsumov.recordset[0].SumVirement;
     let trdata = "";
     const wordToNumber = (x) => {
       let res = "";
       let to_words = toWords.convert(x).toLocaleUpperCase();
-  
+  console.log("to_words",to_words)
       if (to_words.includes("VIRGULE")) {
           let [integerPart, decimalPart] = to_words.split("VIRGULE");
   
           // Vérifie si decimalPart est null et le remplace par une chaîne vide
           decimalPart = decimalPart || "";
   
-          res = integerPart + " DIRHAMS";
-  
+          // res = integerPart + " DIRHAMS";
+          res = integerPart ;
           // Traitement de la partie décimale
           if (decimalPart) {
               let decimalInWords = "";
-          
-
                   if (decimalPart.trim() === "UN") {
                     decimalInWords = "DIX CENTIMES";
                 } else if (decimalPart.trim() === "DEUX") {
@@ -386,20 +411,21 @@ exports.PrintOrderVirement = async (req, res) => {
                 } else if (decimalPart.trim() === "NEUF") {
                     decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
                 } else {
-                  decimalInWords =decimalPart + " CENTIMES";
-              }
+                  // decimalInWords =decimalPart + " CENTIMES";
+                  decimalInWords =decimalPart ;
+                }
   
-              res += " ET " + decimalInWords;
+              // res += " ET " + decimalInWords;
           }
       } else {
-          res = to_words + " DIRHAMS";
+          res = to_words ;
       }
   
       return res;
   };
   
   
-  
+  console.log("printData:",printData)
 
     printData.body.forEach((virement, index) => {
       trdata += `
@@ -534,10 +560,10 @@ exports.PrintOrderVirement = async (req, res) => {
             <tfoot>
               <th class="thorder">Total</th>
               <th colspan="2" class="thorder ">
-                ${wordToNumber(printData.header[0].total)}
+                ${wordToNumber(printData.resulsumvirement)}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-              printData.header[0].totalformater
+              printData.resulsumvirement
               )}</th>
             </tfoot>
           </table>

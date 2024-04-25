@@ -193,6 +193,11 @@ exports.ordervirements = {
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
   
   `,
+
+  getSumVirmentPrint:`select  FORMAT(SUM(montantvirement), '0.00') as SumVirement from DAF_VIREMENTS
+  where orderVirementId=@ovId
+  and Etat<>'Annuler'`,
+
   getBodyPrint: `SELECT v.[id]
   ,[orderVirementId]
   ,f.nom
@@ -1150,6 +1155,8 @@ exports.ordervirementsFond = {
   FROM [dbo].[DAF_Order_virements_Fond] ov
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
   `,
+
+  
   getBodyPrint: `SELECT v.[id]
   ,  orderVirementFondId as orderVirementId
   ,'ATNER'AS nom

@@ -142,7 +142,7 @@ exports.FournisseursRibValid = async (req, res) => {
     const result = await pool
       .request()
       .input("ovId", getSql().VarChar, filter.id)
-      .query(Fournisseurs.FournisseursRibValid);
+      .query(Fournisseurs.RibsFournisseurValid);
     res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
 
     res.json(result.recordset);

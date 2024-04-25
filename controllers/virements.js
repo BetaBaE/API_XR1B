@@ -87,9 +87,9 @@ async function AddToTotalOv(number, id) {
       // .input("montantVirement", getSql().Numeric, number)
       // .input("id", getSql().VarChar, id)
       .query(
-        `update [DAF_Order_virements] set total = total+${number} where id ='${id}'`
+        `update [DAF_Order_virements] set total += ${number} where id ='${id}'`
       );
-
+console.log( `update [DAF_Order_virements] set total += ${number} where id ='${id}'`)
     return result.recordset;
   } catch (error) {
     console.error(error.message);
@@ -102,8 +102,9 @@ async function MiunsFromTotalOv(number, id) {
     const result = await pool
       .request()
       .query(
-        `update [DAF_Order_virements] set total = total-${number} where id ='${id}'`
+        `update [DAF_Order_virements] set total -=${number} where id ='${id}'`
       );
+      console.log( `update [DAF_Order_virements] set total -=${number} where id ='${id}'`)
     return result.recordset;
   } catch (error) {
     console.error(error.message);
