@@ -171,7 +171,7 @@ exports.ordervirements = {
   ov.ribAtner,
   ov.datecreation,
   ov.etat,
-  TotalOV.TotalMontant as total ,
+  FORMAT(TotalOV.TotalMontant, '0.00') as total ,
   ov.dateExecution,
   ov.directeursigne,
   ov.Redacteur, 
