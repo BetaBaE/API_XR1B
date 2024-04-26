@@ -40,7 +40,7 @@ where 1=1 `,
     ,Redacteur)
      VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse,@Redacteur)`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
-  where f.id = rf.FournisseurId and rf.validation = 'Confirmer'`,
+  where f.id = rf.FournisseurId and rf.validation = 'Confirmer' and f.id not in (select FournisseurId from daf_virements where ordervirementId=@orderVirementId and etat<>'Annuler')`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId
   AND rf.validation = 'Confirmer' AND f.nom not in (SELECT
@@ -167,9 +167,24 @@ exports.ordervirements = {
            ,@Redacteur
       
            )`,
-  getAll: `SELECT  ov.*, ra.nom, ra.rib
-  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
-  where ov.ribAtner = ra.id `,
+  getAll: `SELECT ov.id,
+  ov.ribAtner,
+  ov.datecreation,
+  ov.etat,
+  TotalOV.TotalMontant as total ,
+  ov.dateExecution,
+  ov.directeursigne,
+  ov.Redacteur, 
+  ra.nom, 
+  ra.rib
+  FROM [dbo].[DAF_Order_virements] ov, [dbo].[DAF_RIB_ATNER] ra, (
+      SELECT orderVirementId as id, SUM(montantvirement) AS TotalMontant
+      FROM DAF_VIREMENTS
+      WHERE Etat <> 'Annuler'
+      GROUP BY orderVirementId
+  ) TotalOV
+  WHERE ov.ribAtner = ra.id
+  and ov.id = TotalOV.id`,
   getOne: `SELECT  ov.*, ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
   where ov.ribAtner = ra.id and ov.id = @id`,
@@ -187,7 +202,7 @@ exports.ordervirements = {
     "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
   MiunsFromTotal:
     "update [DAF_Order_virements] set total = total-@montantVirement where id =@id",
-  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, '0.00') AS totalformater
+  getHeaderPrint: `SELECT   ov.* ,FORMAT(ov.total, '0.00') AS totalformater
   , ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
@@ -198,7 +213,7 @@ exports.ordervirements = {
   where orderVirementId=@ovId
   and Etat<>'Annuler'`,
 
-  getBodyPrint: `SELECT v.[id]
+  getBodyPrint: `SELECT distinct  v.[id]
   ,[orderVirementId]
   ,f.nom
   ,rf.rib
