@@ -40,7 +40,7 @@ where 1=1 `,
     ,Redacteur)
      VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse,@Redacteur)`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
-  where f.id = rf.FournisseurId and rf.validation = 'Confirmer' and f.id not in (select FournisseurId from daf_virements where ordervirementId=@orderVirementId and etat<>'Annuler')`,
+  where f.id = rf.FournisseurId and rf.validation = 'Confirmer' and f.id not in (select FournisseurId from daf_virements where ordervirementId=@ovId and etat<>'Annuler')`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId
   AND rf.validation = 'Confirmer' AND f.nom not in (SELECT
