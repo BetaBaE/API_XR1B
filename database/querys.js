@@ -270,11 +270,12 @@ exports.factures = {
       WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
       AND lf.etat <> 'Annulé'
       AND fa.nom = lf.NOM
-      AND fa.DateFacture = lf.DateDouc
+    and  (fa.DateFacture IS NULL AND lf.DateDouc IS  NULL) OR
+	 (fa.DateFacture = lf.DateDouc)
   )
-  ORDER BY fa.DateFacture
+  ORDER BY fa.DateFacture`
   
-  `,
+  ,
   getficheNavetebyfournisseur: `SELECT fa.*
   FROM [dbo].[DAF_FOURNISSEURS] f
   INNER JOIN [dbo].[DAF_factureNavette] fa ON f.id = @id

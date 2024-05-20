@@ -143,7 +143,7 @@ exports.createcheque = async (req, res) => {
       .input("RibAtner", getSql().Int, req.body.RibAtner)
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)
       .input("montantVirement", getSql().Float, Totale)
-      .input("numerocheque", getSql().Char, req.body.numerocheque)
+      .input("numerocheque", getSql().VarChar, req.body.numerocheque)
       .input("datecheque", getSql().Date, req.body.datecheque)
       .input("dateecheance", getSql().Date, req.body.dateecheance)
       .input("Redacteur", getSql().VarChar, req.body.Redacteur)
