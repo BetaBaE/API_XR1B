@@ -263,7 +263,7 @@ exports.factures = {
   getfacturebyfournisseurid: `SELECT fa.* 
   FROM [dbo].[DAF_FOURNISSEURS] f
   INNER JOIN [dbo].[DAF_Facture_Avance_Fusion] fa ON f.nom = fa.nom
-  WHERE f.id = '103' 
+  WHERE f.id = @id 
   AND NOT EXISTS (
       SELECT 1 
       FROM [dbo].[DAF_LOG_FACTURE] lf
