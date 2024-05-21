@@ -263,17 +263,20 @@ exports.factures = {
   getfacturebyfournisseurid: `SELECT fa.* 
   FROM [dbo].[DAF_FOURNISSEURS] f
   INNER JOIN [dbo].[DAF_Facture_Avance_Fusion] fa ON f.nom = fa.nom
-  WHERE f.id = @id 
+  WHERE f.id = '103' 
   AND NOT EXISTS (
       SELECT 1 
       FROM [dbo].[DAF_LOG_FACTURE] lf
       WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
       AND lf.etat <> 'Annulé'
       AND fa.nom = lf.NOM
-    and  (fa.DateFacture IS NULL AND lf.DateDouc IS  NULL) OR
-	 (fa.DateFacture = lf.DateDouc)
+      AND (
+          (fa.DateFacture IS NULL AND lf.DateDouc IS NULL) OR
+          (fa.DateFacture = lf.DateDouc)
+      )
   )
-  ORDER BY fa.DateFacture`
+  ORDER BY fa.DateFacture;
+  `
   
   ,
   getficheNavetebyfournisseur: `SELECT fa.*
