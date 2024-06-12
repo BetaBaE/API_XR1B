@@ -41,10 +41,10 @@ const espece = require("./routers/Espece");
 const BL = require("./routers/BLRoute");
 const avancevirement = require("./routers/AvanceVirementroute");
 const EcheanceReel = require("./routers/EcheanceReel");
-
 const EcheanceLoi = require("./routers/EcheanceLoi");
-
 const avanceespece = require("./routers/AvanceEspeceRoute");
+const Attestaion = require("./routers/Attestaion");
+app.use("/", Attestaion);
 app.use("/", fournissues);
 app.use("/", virementsFond);
 app.use("/", ordervirementsFond);

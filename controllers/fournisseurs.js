@@ -70,7 +70,7 @@ exports.getAllFournissuers = async (req, res) => {
 
 exports.createFournisseurs = async (req, res) => {
   const { CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
-  ,Redacteur
+  ,Redacteur,catFournisseur
   } = req.body;
 
   try {
@@ -80,7 +80,7 @@ exports.createFournisseurs = async (req, res) => {
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
-      
+      .input("catFournisseur", getSql().VarChar, catFournisseur)
     
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
@@ -180,7 +180,8 @@ exports.updatefournisseur = async (req, res) => {
    ICE,
    IF,
 addresse,
-  mail
+  mail,
+  catFournisseur 
 } =
     req.body;
   try {
@@ -196,6 +197,7 @@ addresse,
       .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
+      .input("catFournisseur", getSql().VarChar, catFournisseur)
       .query(Fournisseurs.update);
 
     res.json({
@@ -206,6 +208,7 @@ addresse,
         IF,
      addresse,
        mail,
+       catFournisseur
     });
   } catch (error) {
    

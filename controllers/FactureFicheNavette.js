@@ -87,7 +87,11 @@ exports.createfacture = async (req, res) => {
     service,
     fullName,
     numeroficheNavette,
-    Bcommande
+    Bcommande,
+    CatFn,
+    TTC,
+    HT,
+    MontantTVA
   } = req.body;
 
   try {
@@ -122,6 +126,11 @@ exports.createfacture = async (req, res) => {
         .input("modifiedFicheNavette", getSql().VarChar, modifiedFicheNavette)
         .input("Bcommande", getSql().VarChar, Bcommande)
         .input("fullName", getSql().VarChar, fullName)
+        .input("CatFn", getSql().VarChar, CatFn)
+
+        .input("TTC", getSql().Numeric(10, 2), TTC)
+        .input("HT", getSql().Numeric(10, 2), HT)
+        .input("MontantTVA", getSql().Numeric(10, 2), MontantTVA)
         .query(factureFicheNavette.create);
 
       res.json({
@@ -130,7 +139,11 @@ exports.createfacture = async (req, res) => {
         idFacture,
         ficheNavette: modifiedFicheNavette,
         idfournisseur,
-        montantAvance
+        montantAvance,
+        CatFn,
+        TTC,
+        HT,
+        MontantTVA
       });
     }
   } catch (error) {
@@ -216,7 +229,7 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
 exports.correction = async (req, res) => {
   const { ficheNavette, idFacture,montantAvance
     ,idfournisseur,codechantier,BonCommande,
-    annulation,Validateur
+    annulation,Validateur,CatFn
   } = req.body;
   try {
     const pool = await getConnection();
@@ -231,6 +244,7 @@ exports.correction = async (req, res) => {
       .input("BonCommande", getSql().VarChar, BonCommande)
       .input("annulation", getSql().VarChar, annulation)
       .input("Validateur", getSql().VarChar, Validateur)
+      .input("CatFn", getSql().VarChar, CatFn)
       .query(factureFicheNavette.update);
       if (annulation === "Annuler") {
         updateFNWhenAnnuleVirement(req.params.id);
@@ -242,7 +256,8 @@ exports.correction = async (req, res) => {
       idFacture,
       codechantier,
       montantAvance,
-      annulation
+      annulation,
+      CatFn
     });
   } catch (error) {
     res.status(500);
