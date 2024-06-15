@@ -47,6 +47,16 @@ where 1=1 `,
  distinct [NOM]
   FROM [dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and ModePaiementID =@ovId)`,
   getOne: `select * from DAF_FOURNISSEURS where id=@id`,
+  
+  getFournisseurClean: `select * from DAF_FOURNISSEURS
+                          where ICE is not null
+                        and Identifiantfiscal is not null`,
+  
+  getFournisseurCount: `select count(*) from DAF_FOURNISSEURS
+                        where ICE is not null
+                      and Identifiantfiscal is not null`,
+
+  
   update: `update DAF_FOURNISSEURS 
   set 
     catFournisseur=@catFournisseur,
@@ -442,7 +452,8 @@ exports.factureSaisie = {
   f.verifiyMidelt,
   f.updatedBy,
   ch.LIBELLE as LIBELLE,
-f.dateecheance
+  f.dateecheance,
+  f.CatFn
 FROM [dbo].[DAF_FactureSaisie] f
 INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
 INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
@@ -464,7 +475,8 @@ where deletedAt is null`,
 ,[iddesignation]
 ,[fullName],
 [codechantier],
-[dateecheance]
+[dateecheance],
+[CatFn]
 )
   values  (
      @numeroFacture
@@ -476,6 +488,7 @@ where deletedAt is null`,
     ,@fullName
     ,@codechantier
     ,@dateEcheance
+    ,@CatFn
     )`,
   getOne: `select
 f.id,
@@ -489,7 +502,8 @@ f.fullName
 d.designation as "designation" ,
 fou.nom as "nom",
 fou.CodeFournisseur,
-f.verifiyMidelt
+f.verifiyMidelt,
+f.CatFn
 FROM [dbo].[DAF_FactureSaisie] f
 inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
 inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur

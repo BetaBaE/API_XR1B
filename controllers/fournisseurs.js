@@ -260,3 +260,20 @@ exports.getNomfournisseur = async (req, res) => {
     res.send(error.message);
   }
 };
+
+
+
+
+exports.getAllFournissuersClean = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool.request().query(Fournisseurs.getFournisseurClean);
+
+    res.set("Content-Range", `fournisseurs 0-${req.count - 1}/${req.count}`);
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
