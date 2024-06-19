@@ -573,7 +573,9 @@ FROM
   LEFT JOIN [dbo].[chantier] ch ON ch.id = f.codechantier
 WHERE 
   f.deletedAt IS NULL 
-  AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
+  AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = ''
+  or f.CatFn is null
+  )
 `,
   getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[DAF_FactureSaisie] WHERE deletedAt IS NULL 
   AND (verifiyMidelt IS NULL OR BonCommande IS NULL OR BonCommande = '')`,
