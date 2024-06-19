@@ -581,7 +581,8 @@ WHERE
   validerfacture: `UPDATE [dbo].[DAF_FactureSaisie]
   SET  verifiyMidelt=@verifiyMidelt,
   updatedBy=@updatedBy,
-  BonCommande=@BonCommande
+  BonCommande=@BonCommande,
+  CatFn=@CatFn
 WHERE id = @id `,
   getsumfacturebyfournisseurwithoutfn: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
 where fa.ficheNavette is null  and fa.DateFacture is not null  and 
