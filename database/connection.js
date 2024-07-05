@@ -1,5 +1,5 @@
 const sql = require("mssql");
-const sql2 = require("mssql/msnodesqlv8");
+// const sql2 = require("mssql/msnodesqlv8");
 
 // const dbSettings2 = {
 //   database: "ATNER_DW",
