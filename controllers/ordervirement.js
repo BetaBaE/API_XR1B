@@ -93,7 +93,6 @@ exports.createOrderVirements = async (req, res) => {
       .input("directeursigne", getSql().VarChar, req.body.directeursigne)
       .input("Redacteur", getSql().VarChar,Redacteur)
       .input("ribAtner", getSql().Int, ribAtner)
-
       .query(ordervirements.create);
     console.log("errour");
     res.json({
@@ -175,18 +174,19 @@ exports.updateOrderVirements = async (req, res) => {
       .input("ribAtner", getSql().Int, ribAtner)
       .input("etat", getSql().VarChar, etat)
       .input("directeursigne", getSql().VarChar, directeursigne)
+      .input("dateExecution", getSql().Date, dateExecution)
       .input("id", getSql().VarChar, req.params.id)
       .query(ordervirements.update);
 
     if (etat == "Reglee") {
-      await pool
-        .request()
-        .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateVirements);
-      await pool
-        .request()
-        .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateLogFacture);
+      // await pool
+      //   .request()
+      //   .input("id", getSql().VarChar, req.params.id)
+      //   .query(ordervirements.updateVirements);
+      // await pool
+      //   .request()
+      //   .input("id", getSql().VarChar, req.params.id)
+      //   .query(ordervirements.updateLogFacture);
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
@@ -197,14 +197,19 @@ exports.updateOrderVirements = async (req, res) => {
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updatvirementRegler);
 
-
-
     } else if (etat == "Annule") {
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateVirementsAnnuler);
-      await pool
+    
+        await pool
+        .request()
+        .input("id", getSql().VarChar, req.params.id)
+        .query(ordervirements.updateRasAnnuler);
+      
+
+        await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateLogFactureAnnuler);

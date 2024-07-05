@@ -113,7 +113,8 @@ exports.createfacture = async (req, res) => {
       codechantier,
       DateFacture,
       iddesignation,
-      dateecheance
+      dateecheance,
+      CatFn
   } = req.body;
   try {
       const pool = await getConnection();
@@ -127,7 +128,8 @@ exports.createfacture = async (req, res) => {
           .input("fullName", getSql().VarChar, req.body.fullName)
           .input("iddesignation", getSql().Int, req.body.iddesignation)
           .input("codechantier", getSql().VarChar, new String(req.body.codechantier))
-          .input("dateEcheance", getSql().VarChar, req.body.dateEcheance)
+          .input("dateecheance", getSql().VarChar, req.body.dateecheance)
+          .input("CatFn", getSql().VarChar, req.body.CatFn)
           .query(factureSaisie.createfacture)
       console.log("errour");
       res.json({
@@ -141,17 +143,19 @@ exports.createfacture = async (req, res) => {
           fullName,
           codechantier,
           iddesignation,
+          dateecheance,
+          CatFn
       });
   } catch (error) {
     
-  switch (error.originalError.info.number) {
-    case 547:
-        error.message = "date invalid";
-        break;
-      case 2627:
-        error.message = "déja existe";
-        break;
-    }
+  // switch (error.originalError.info.number) {
+  //   case 547:
+  //       error.message = "date invalid";
+  //       break;
+  //     case 2627:
+  //       error.message = "déja existe";
+  //       break;
+  //   }
     
     res.status(500);
     res.send(error.message);
@@ -371,7 +375,7 @@ exports.getfacturevalider = async (req, res) => {
   }
 };
 exports.updatefacturevalider = async (req, res) => {
-  const { verifiyMidelt, updatedBy, BonCommande } = req.body;
+  const { verifiyMidelt, updatedBy, BonCommande ,CatFn } = req.body;
   try {
     const pool = await getConnection();
     await pool
@@ -380,12 +384,14 @@ exports.updatefacturevalider = async (req, res) => {
       .input("verifiyMidelt", getSql().VarChar, req.body.verifiyMidelt)
       .input("BonCommande", getSql().VarChar, req.body.BonCommande)
       .input("updatedBy", getSql().VarChar, req.body.updatedBy)
+      .input("CatFn", getSql().VarChar, req.body.CatFn)
       .query(factureSaisie.validerfacture);
     res.json({
       id: req.params.id,
       verifiyMidelt,
       BonCommande,
       updatedBy,
+      CatFn
     });
   } catch (error) {
     /*      //error.originalError.info.name="déja existe"

@@ -12,17 +12,15 @@ async function calculSumFactures(facturelist) {
   try {
     console.log(`SELECT  SUM(netapayer) as Totale
   FROM(
-    select sum(TTC) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
-	  where MontantFacture is null
-    and id in ('${facturelistString}')
+    select sum(MontantAPaye) as netapayer from [dbo].[DAF_CalculRasNetApaye]
+	  where  id in ('${facturelistString}')
     ) sum `);
     const pool = await getConnection();
     const result = await pool.request()
       .query(` SELECT   SUM(netapayer)  as Totale
   FROM(
-    select sum(TTC) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
-	  where MontantFacture is null
-    and id in ('${facturelistString}')
+    select sum(MontantAPaye) as netapayer from [dbo].[DAF_CalculRasNetApaye]
+	  where  id in ('${facturelistString}')
     ) sum `);
 
     return result.recordset[0];
@@ -51,18 +49,18 @@ async function getFactureFromView(facturelist) {
     console.error(error.message);
   }
 }
+
 async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
   let query = ` `;
  
   ArrayOfFacture.forEach(
-    // ...
-    async ({ CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, NETAPAYER, id }, i) => {
+    async ({ CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, MontantAPaye, id ,RAS}, i) => {
       const escapedNom = nom?.replaceAll(/'/g, "''");
       const formattedDate = DateFacture ? new Date(DateFacture).toISOString().slice(0, 10) : 'NULL';
 
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${null}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}','${RAS}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${null}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','paiement virement','${DateFacture === null ? id : 0}','${RAS}')`);
     }
   );
   console.log(`${virements.createLogFacture} '${query}'`);
@@ -76,6 +74,74 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
     console.error(error.message);
   }
 }
+
+// async function insertAvanceInRestit(ArrayOfFacture,orderVirementId,Redacteur) {
+//   let query = ` `;
+//   ArrayOfFacture.forEach(
+//     async ({ MontantAPaye, id ,RAS ,nom }, i)=> {
+//       const Montantglobal=MontantAPaye+RAS  
+//     const idInt=id.substring(2,id.length);
+//       i != ArrayOfFacture.length - 1
+//         ? (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${nom}','${orderVirementId}'),`)
+//         : (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${nom}','${orderVirementId}')`);
+   
+//       }
+//   );
+//   console.log(`${virements.createRestit} '${query}'`);
+//   console.log(`${query}`);
+//   try {
+//     const pool = await getConnection();
+//     const result = await pool
+//       .request()
+//       .query(`${virements.createRestit}${query}`);
+//   } catch (error) {
+//     console.error(error.message);
+//   }
+// }
+
+
+
+
+
+async function insertDocInRas(ArrayOfFacture, orderVirementId) {
+  let query = '';
+  let autorise = false;
+
+  for (const { idFournisseur, CODEDOCUTIL, CatFn, nom, DateFacture, HT, MontantTVA, RAS, TVA } of ArrayOfFacture) {
+    console.log("RAS", RAS);
+    if (RAS != 0) {
+      const escapedNom = nom?.replace(/'/g, "''");
+      const formattedDate = DateFacture ? new Date(DateFacture).toISOString().slice(0, 10) : null;
+      const PourcentageRas = Math.round((RAS / MontantTVA) * 100);
+
+      const formattedDateFacture = formattedDate === null ? 'NULL' : `'${formattedDate}'`;
+      const formattedCatFn = CatFn === null ? 'NULL' : `'${CatFn}'`;
+
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', '${orderVirementId}', '${escapedNom}')`;
+
+      query += (query ? ',' : '') + queryPart;
+      autorise = true;
+    }
+  }
+
+  if (autorise) {
+    try {
+      const fullQuery = `${virements.CreateRasFactue} ${query}`;
+      console.log('fullQuery', fullQuery);
+
+      // Assuming you have a pool object available to get the connection
+      const pool = await getConnection();
+      const result = await pool.request().query(fullQuery);
+
+      console.log('Insert successful', result);
+    } catch (error) {
+      console.error('Error executing query:', error);
+    }
+  }
+}
+
+
+
 
 async function AddToTotalOv(number, id) {
   try {
@@ -125,6 +191,93 @@ async function updateLogFactureWhenAnnuleVirement(idov, nom) {
   }
 }
 
+
+
+async function updateLogFactureWhenReglerVirement(idov, nom) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, idov)
+      .input("nom", getSql().VarChar, nom)
+      .query(virements.updateLogFactureWhenReglerV);
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+async function updateRestitWhenAnnuleVirement(idov, nom) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, idov)
+      .input("nom", getSql().VarChar, nom)
+      .query(virements.updateRestitWhenAnnuleV);
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+async function updateOrderVirementwhenVRegler(idov) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, idov)
+      
+      .query(virements.updateOrderVirementwhenVRegler);
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+
+
+async function updateRasWhenAnnuleVirement(idov, nom) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, idov)
+      .input("nom", getSql().VarChar, nom)
+      .query(virements.updateRasWhenAnnuleV);
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+
+async function updateRasWhenReglerVirement(idov, nom, dateOperation) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, idov)
+      .input("nom", getSql().VarChar, nom)
+      .input("dateOperation", getSql().Date, dateOperation)
+      .query(virements.updateRasWhenReglerV);
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+async function updateRestiWhenReglerVirement(idov, nom) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, idov)
+      .input("nom", getSql().VarChar, nom)
+      
+      .query(virements.updateRestitWhenReglerV);
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
 exports.getVirementCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
@@ -146,7 +299,11 @@ exports.createVirements = async (req, res) => {
   //let num = MontantFixed(Totale);
   let ArrayOfFacture = await getFactureFromView(facturelist);
   insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
+  insertDocInRas(ArrayOfFacture, req.body.orderVirementId)
+  // insertAvanceInRestit(ArrayOfFacture,req.body.orderVirementId,req.body.Redacteur)
+  
   console.log(req.body, Totale);
+  console.log("ArrayOfFacture",ArrayOfFacture)
   console.log("virement", virements.create);
   try {
     const pool = await getConnection();
@@ -232,6 +389,14 @@ exports.updateVirmeents = async (req, res) => {
     if (Etat === "Annuler") {
       MiunsFromTotalOv(montantVirement, orderVirementId);
       updateLogFactureWhenAnnuleVirement(orderVirementId, nom);
+      updateRasWhenAnnuleVirement(orderVirementId, nom);
+      updateRestitWhenAnnuleVirement(orderVirementId, nom);
+    }
+    if (Etat === "Reglee") {
+      updateRasWhenReglerVirement(orderVirementId, nom,dateOperation);
+      updateLogFactureWhenReglerVirement(orderVirementId, nom);
+      updateOrderVirementwhenVRegler(orderVirementId);
+      updateRestiWhenReglerVirement(orderVirementId, nom);
     }
     res.json({
       id: req.params.id,

@@ -12,17 +12,15 @@ async function calculSumFactures(facturelist) {
   try {
     console.log(`SELECT  SUM(netapayer) as Totale
   FROM(
-    select sum(TTC) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
-	  where MontantFacture is null
-    and id in ('${facturelistString}')
+    select sum(MontantAPaye) as netapayer from [dbo].[DAF_CalculRasNetApaye]
+	  where  id in ('${facturelistString}')
     ) sum `);
     const pool = await getConnection();
     const result = await pool.request()
       .query(` SELECT   SUM(netapayer)  as Totale
   FROM(
-    select sum(TTC) as netapayer from [dbo].[DAF_Facture_Avance_Fusion]
-	  where MontantFacture is null
-    and id in ('${facturelistString}')
+    select sum(MontantAPaye) as netapayer from [dbo].[DAF_CalculRasNetApaye]
+	  where  id in ('${facturelistString}')
     ) sum `);
 
     return result.recordset[0];
@@ -55,13 +53,13 @@ async function getFactureFromView(facturelist) {
 async function insertFactureInLog(ArrayOfFacture, ModePaiementID,numerocheque) {
   let query = ` `;
   ArrayOfFacture.forEach(
-    async ({CODEDOCUTIL,chantier,nom,LIBREGLEMENT,DateFacture,TTC,HT,MontantTVA,NETAPAYER,id }, i)=> {
+    async ({CODEDOCUTIL, chantier, nom, LIBREGLEMENT, DateFacture, TTC, HT, MontantTVA, MontantAPaye, id ,RAS  }, i)=> {
       const escapedNom = nom?.replaceAll(/'/g, "''");
       const formattedDate = DateFacture ? new Date(DateFacture).toISOString().slice(0, 10) : 'NULL';
 
       i != ArrayOfFacture.length - 1
-        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${ModePaiementID}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}'),`)
-        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${DateFacture === null ? 0 : HT}','${DateFacture === null ? 0 : MontantTVA}','${DateFacture === null ? 0 : NETAPAYER}','${ModePaiementID}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}')`);
+        ? (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${ModePaiementID}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}','${RAS}'),`)
+        : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${DateFacture === null ? 'null' : "'" +formattedDate+"'"},'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${ModePaiementID}','paiement cheque','${DateFacture === null ? id : 0}','${numerocheque}','${RAS}')`);
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);
@@ -75,15 +73,94 @@ async function insertFactureInLog(ArrayOfFacture, ModePaiementID,numerocheque) {
     console.error(error.message);
   }
 }
+// async function insertAvanceInRestit(ArrayOfFacture,numerocheque,Redacteur) {
+//   let query = ` `;
+//   ArrayOfFacture.forEach(
+//     async ({ MontantAPaye, id ,RAS }, i)=> {
+//       const Montantglobal=MontantAPaye+RAS  
+//     const idInt=id.substring(2,id.length);
+//       i != ArrayOfFacture.length - 1
+//         ? (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${nom}','${numerocheque}'),`)
+//         : (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${nom}','${numerocheque}')`);
+   
+//       }
+//   );
+//   console.log(`${cheque.createRestit} '${query}'`);
+//   console.log(`${query}`);
+//   try {
+//     const pool = await getConnection();
+//     const result = await pool
+//       .request()
+//       .query(`${cheque.createRestit}${query}`);
+//   } catch (error) {
+//     console.error(error.message);
+//   }
+// }
 
 
-async function updateLogFactureWhenAnnuleCheque(numerocheque) {
+
+async function insertDocInRas(ArrayOfFacture, numerocheque) {
+  let query = '';
+  let autorise = false;
+
+  for (const { idFournisseur, CODEDOCUTIL, CatFn, nom, DateFacture, HT, MontantTVA, RAS, TVA } of ArrayOfFacture) {
+    console.log("RAS", RAS);
+    if (RAS != 0) {
+      const escapedNom = nom?.replace(/'/g, "''");
+      const formattedDate = DateFacture ? new Date(DateFacture).toISOString().slice(0, 10) : null;
+      const PourcentageRas = Math.round((RAS / MontantTVA) * 100);
+
+      const formattedDateFacture = formattedDate === null ? 'NULL' : `'${formattedDate}'`;
+      const formattedCatFn = CatFn === null ? 'NULL' : `'${CatFn}'`;
+
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', '${numerocheque}', '${escapedNom}')`;
+
+      query += (query ? ',' : '') + queryPart;
+      autorise = true;
+    }
+  }
+
+  if (autorise) {
+    try {
+      const fullQuery = `${cheque.CreateRasFactue} ${query}`;
+      console.log('fullQuery', fullQuery);
+
+      // Assuming you have a pool object available to get the connection
+      const pool = await getConnection();
+      const result = await pool.request().query(fullQuery);
+
+      console.log('Insert successful', result);
+    } catch (error) {
+      console.error('Error executing query:', error);
+    }
+  }
+}
+
+
+
+
+async function updateRasWhenAnnule(numerocheque) {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("numerocheque", getSql().VarChar, numerocheque)
      
+      .query(cheque.updateRasWhenAnnule);
+
+      console.log(`${cheque.u}` + "ma requete")
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+async function updateLogFactureWhenAnnuleCheque(numerocheque) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("numerocheque", getSql().VarChar, numerocheque) 
       .query(cheque.updateLogFactureWhenAnnuleV);
 
       console.log(`${cheque.updateLogFactureWhenAnnuleV}` + "ma requete")
@@ -92,9 +169,20 @@ async function updateLogFactureWhenAnnuleCheque(numerocheque) {
     console.error(error.message);
   }
 }
+async function updateRestitWhenAnnuleCheque(numerocheque) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("numerocheque", getSql().VarChar, numerocheque) 
+      .query(cheque.updateRestitWhenAnnuleCheque);
 
-
-
+      console.log(`${cheque.updateRestitWhenAnnuleCheque}` + "ma requete")
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
 async function updateLogFactureWhenRegleecheque(numerocheque) {
   try {
     const pool = await getConnection();
@@ -112,6 +200,39 @@ async function updateLogFactureWhenRegleecheque(numerocheque) {
 }
 
 
+async function updateRestitWhenRegleecheque(numerocheque) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("numerocheque", getSql().VarChar, numerocheque)
+     
+      .query(cheque.updateRestitWhenRegleecheque);
+
+    
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+
+
+async function updateRasWhenRegleecheque(numerocheque,dateOperation) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("numerocheque", getSql().VarChar, numerocheque)
+      .input("dateOperation", getSql().VarChar, dateOperation)
+      .query(cheque.updateRasWhenRegleeCheque);
+
+    
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
 
 exports.getChequeCount = async (req, res, next) => {
   try {
@@ -134,6 +255,9 @@ exports.createcheque = async (req, res) => {
   //let num = MontantFixed(Totale);
   let ArrayOfFacture = await getFactureFromView(facturelist);
   insertFactureInLog(ArrayOfFacture,req.body.RibAtner,req.body.numerocheque);
+  insertDocInRas(ArrayOfFacture, req.body.numerocheque)
+  // insertAvanceInRestit(ArrayOfFacture,req.body.numerocheque,req.body.Redacteur)
+  
   console.log(req.body, Totale);
   console.log("cheque", cheque.create);
   try {
@@ -198,9 +322,7 @@ exports.getCheque = async (req, res) => {
     if (filter.dateecheanceMax) {
       queryFilter += ` and dateecheance < '${filter.dateecheanceMax}'`;
     }
-
     console.log(queryFilter);
-
     const pool = await getConnection();
     const result = await pool.request().query(
       `${cheque.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
@@ -222,23 +344,25 @@ exports.updateCheque = async (req, res) => {
   console.log(req.body);
   const {  dateOperation,Etat,numerocheque } =
     req.body;
- 
+
   try {
     const pool = await getConnection();
-
     await pool
       .request()
       .input("dateOperation", getSql().Date, dateOperation)
       .input("Etat", getSql().VarChar, Etat)
       .input("id", getSql().Int, req.params.id)
       .input("numerocheque", getSql().VarChar, numerocheque)
-
       .query(cheque.update);
       if (Etat === "Annuler") {
         updateLogFactureWhenAnnuleCheque(numerocheque);
+        updateRasWhenAnnule(numerocheque);
+        updateRestitWhenAnnuleCheque(numerocheque)
       }
       if (Etat === "Reglee") {
         updateLogFactureWhenRegleecheque(numerocheque);
+        updateRasWhenRegleecheque(numerocheque,dateOperation);
+        updateRestitWhenRegleecheque(numerocheque)
       }
     res.json({
       id: req.params.id,
