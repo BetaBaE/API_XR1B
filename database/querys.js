@@ -1,3 +1,4 @@
+
 exports.Fournisseurs = {
   getNomfournisseur: `select  nom from DAF_FOURNISSEURS where nom  LIKE '%'+@nom+'%'`,
  
@@ -13,7 +14,7 @@ where id in(SELECT
   getAllFournisseurs: `SELECT fou.datecreation,fou.id,fou.Redacteur ,fou.addresse, fou.CodeFournisseur, fou.Identifiantfiscal, fou.ICE, fou.nom,
   echr.modalitePaiement as echeancereel , 
   echl.modalitePaiement as echeanceloi,
-  fou.mail
+  fou.mail,fou.catFournisseur
 FROM DAF_FOURNISSEURS fou
 LEFT JOIN (
 SELECT idfournisseur, MAX(id) as id
@@ -35,12 +36,20 @@ ON fou.id = echr_max.idfournisseur
 LEFT JOIN DAF_echeanceReelFournisseur echr
 ON echr.id = echr_max.id
 where 1=1 `,
+  
+  
+  getNomfournisseur: `select  nom from DAF_FOURNISSEURS where nom  LIKE '%'+@nom+'%'`,
+  getallfournisseurwithecheanceLoi: ` select * from DAF_FOURNISSEURS
+                                        where id in(SELECT [idfournisseur]
+                                        FROM [dbo].[DAF_echeanceloiFournisseur])  `,
+
+
   getFournisseursCount: `SELECT COUNT(*) as count FROM DAF_FOURNISSEURS`,
   createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,ICE,Identifiantfiscal,mail,addresse
-    ,Redacteur)
-     VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse,@Redacteur)`,
+    ,Redacteur,catFournisseur)
+     VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse,@Redacteur,@catFournisseur)`,
   RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
-  where f.id = rf.FournisseurId and rf.validation = 'Confirmer'`,
+  where f.id = rf.FournisseurId and rf.validation = 'Confirmer' and f.id not in (select FournisseurId from daf_virements where ordervirementId=@ovId and etat<>'Annuler')`,
   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
   where f.id = rf.FournisseurId
   AND rf.validation = 'Confirmer' AND f.nom not in (SELECT
@@ -49,10 +58,12 @@ where 1=1 `,
   getOne: `select * from DAF_FOURNISSEURS where id=@id`,
   update: `update DAF_FOURNISSEURS 
   set 
+    catFournisseur=@catFournisseur,
      ICE=@ICE,
      Identifiantfiscal=@IF,
      mail=@mail,
-     addresse=@addresse
+     addresse=@addresse,
+     exonorer=@exonorer
       where id=@id
   `
 };
@@ -115,10 +126,10 @@ exports.ribAtner = {
       ,[ModifierPar] = @ModifierPar
   WHERE id = @id`,
   getOne: `SELECT * FROM [dbo].[DAF_RIB_ATNER] WHERE id = @id`,
-  getRibAtnerValid :`select *  from DAF_RIB_ATNER 
+  getRibAtnerValid: `select *  from DAF_RIB_ATNER 
   where id  not in (select ribAtner from  DAF_Order_virements_Fond  where
   id =@id)
-  and id not in (select RibAtnerDestId from DAF_VIREMENTS_Fond where orderVirementFondId =@id)`, 
+  and id not in (select RibAtnerDestId from DAF_VIREMENTS_Fond where orderVirementFondId =@id)`,
 };
 
 exports.Users = {
@@ -148,7 +159,7 @@ exports.Users = {
 };
 
 exports.ordervirements = {
-  getfacturebyordervirement :`SELECT * FROM DAF_SuivieFacture
+  getfacturebyordervirement: `SELECT * FROM DAF_SuivieFacture
   WHERE ordervirementId LIKE '%'+@id+'%';`,
   getCountByYear: `SELECT  COUNT(*) +1 as count
   FROM [dbo].[DAF_Order_virements]
@@ -167,9 +178,24 @@ exports.ordervirements = {
            ,@Redacteur
       
            )`,
-  getAll: `SELECT  ov.*, ra.nom, ra.rib
-  FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
-  where ov.ribAtner = ra.id `,
+  getAll: `SELECT ov.id,
+  ov.ribAtner,
+  ov.datecreation,
+  ov.etat,
+  FORMAT(TotalOV.TotalMontant, '0.00') as total ,
+  ov.dateExecution,
+  ov.directeursigne,
+  ov.Redacteur, 
+  ra.nom, 
+  ra.rib
+  FROM [dbo].[DAF_Order_virements] ov, [dbo].[DAF_RIB_ATNER] ra, (
+      SELECT orderVirementId as id, SUM(montantvirement) AS TotalMontant
+      FROM DAF_VIREMENTS
+      WHERE Etat <> 'Annuler'
+      GROUP BY orderVirementId
+  ) TotalOV
+  WHERE ov.ribAtner = ra.id
+  and ov.id = TotalOV.id`,
   getOne: `SELECT  ov.*, ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov,[dbo].[DAF_RIB_ATNER] ra
   where ov.ribAtner = ra.id and ov.id = @id`,
@@ -179,7 +205,7 @@ exports.ordervirements = {
       ,[etat] = @etat
   WHERE id = @id`,
   orderVirementsEnCours: `SELECT * FROM [dbo].[DAF_Order_virements]
-  WHERE etat = 'En cours'`,
+  WHERE etat = 'En cours' and dateExecution is null `,
   orderVirementsEtat: `SELECT * FROM [dbo].[DAF_Order_virements]
   WHERE etat in('En cours')
   and total <> 0`,
@@ -187,13 +213,18 @@ exports.ordervirements = {
     "update [DAF_Order_virements] set total = total+@montantVirement where id =@id",
   MiunsFromTotal:
     "update [DAF_Order_virements] set total = total-@montantVirement where id =@id",
-  getHeaderPrint: `SELECT ov.* ,FORMAT(ov.total, '0.00') AS totalformater
+  getHeaderPrint: `SELECT   ov.* ,FORMAT(ov.total, '0.00') AS totalformater
   , ra.nom, ra.rib
   FROM [dbo].[DAF_Order_virements] ov
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
   
   `,
-  getBodyPrint: `SELECT v.[id]
+
+  getSumVirmentPrint: `select  FORMAT(SUM(montantvirement), '0.00') as SumVirement from DAF_VIREMENTS
+  where orderVirementId=@ovId
+  and Etat<>'Annuler'`,
+
+  getBodyPrint: `SELECT distinct  v.[id]
   ,[orderVirementId]
   ,f.nom
   ,rf.rib
@@ -212,7 +243,7 @@ and [orderVirementId] = @ovId`,
   updateLogFacture: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee'
                         where ModePaiementID = @id and Etat<>'Annulé'`,
 
-  updateDateExecution: `update [dbo].[DAF_Order_virements] set dateExecution = GETDATE()
+  updateDateExecution: `update [dbo].[DAF_Order_virements] set dateExecution =@dateExecution
                             where id = @id`,
 
 
@@ -229,8 +260,12 @@ and [orderVirementId] = @ovId`,
 
   updateLogFactureAnnuler: `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé'
                         where ModePaiementID = @id`,
+ updateRasAnnuler: `update [dbo].[DAF_RAS_Tva] set Etat = 'Annulé'
+                        where modePaiement = @id`,
+
+
   updateordervirementAnnuler: `update [dbo].[DAF_Order_virements] set Etat = 'Annule' ,
-                        total = 0
+                        total = 0 
                         where id = @id`,
 };
 
@@ -242,7 +277,7 @@ exports.factures = {
   order by nom , datedouc `,
   getfacturebyfournisseurid: `SELECT fa.* 
   FROM [dbo].[DAF_FOURNISSEURS] f
-  INNER JOIN [dbo].[DAF_Facture_Avance_Fusion] fa ON f.nom = fa.nom
+  INNER JOIN [dbo].[DAF_CalculRasNetApaye] fa ON f.nom = fa.nom
   WHERE f.id = @id 
   AND NOT EXISTS (
       SELECT 1 
@@ -250,17 +285,22 @@ exports.factures = {
       WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
       AND lf.etat <> 'Annulé'
       AND fa.nom = lf.NOM
-      AND fa.DateFacture = lf.DateDouc
+      AND (
+          (fa.DateFacture IS NULL AND lf.DateDouc IS NULL) OR
+          (fa.DateFacture = lf.DateDouc)
+      )
   )
   ORDER BY fa.DateFacture
-  
-  `,
+  `
+
+  ,
   getficheNavetebyfournisseur: `SELECT fa.*
   FROM [dbo].[DAF_FOURNISSEURS] f
   INNER JOIN [dbo].[DAF_factureNavette] fa ON f.id = @id
   WHERE fa.idfacturenavette NOT IN (SELECT idAvance FROM [dbo].[DAF_LOG_FACTURE])`
 
-};
+}
+  
 
 exports.virements = {
   create: `
@@ -282,14 +322,14 @@ exports.virements = {
       ,@Redacteur
       ,getdate()
       )`,
-    
-      // CheckedFournisseurDejaExiste :`
-      // select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
-      // where f.id = rf.FournisseurId and rf.validation = 'Validé'
-      //   and  f.id not in (select id from DAF_FOURNISSEURS )
-      //         and f.id=@fournisseurId
-      // `,
-      CheckedFournisseurDejaExiste :`  select count(*) from DAF_VIREMENTS
+
+  // CheckedFournisseurDejaExiste :`
+  // select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
+  // where f.id = rf.FournisseurId and rf.validation = 'Validé'
+  //   and  f.id not in (select id from DAF_FOURNISSEURS )
+  //         and f.id=@fournisseurId
+  // `,
+  CheckedFournisseurDejaExiste: `  select count(*) from DAF_VIREMENTS
       where ribFournisseurId=@ribFournisseurId`,
 
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS]",
@@ -308,7 +348,7 @@ exports.virements = {
     and v.ribFournisseurId = rf.id
     and 1=1
   `,
-  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_Facture_Avance_Fusion] where 1=1 `,
+  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_CalculRasNetApaye] where 1=1 `,
   createLogFacture: `
  INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]
@@ -322,8 +362,25 @@ exports.virements = {
            ,[NETAPAYER]
            ,[ModePaiementID]
            ,[modepaiement],
-           [idAvance])
+           [idAvance],
+           [Ras])
      VALUES`,
+     
+     CreateRasFactue :`INSERT INTO [dbo].[DAF_RAS_Tva]
+     ([idFournisseur]
+     ,[RefernceDOC]
+     ,[CategorieFn]
+     ,[dateFactue]
+     ,[HT]
+     ,[TauxTva]
+     ,[Pourcentage_TVA]
+     ,[RaS]
+     ,[PourcentageRas]
+     ,[modePaiement]
+     ,[Nom]
+     )
+VALUES`,
+
   update: `Update [dbo].[DAF_VIREMENTS]
             set Etat=@Etat,
             dateOperation=@dateOperation
@@ -345,12 +402,7 @@ exports.virements = {
 
   updateLogFactureWhenAnnuleV:
     "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [ModePaiementID] =@orderVirementId and nom=@nom",
-    updateLogFactureWhenRegleeV:
-    `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee' where [ModePaiementID] =@orderVirementId
-                and etat<>'Annulé'
-    `
-
-  };
+};
 
 exports.logFactures = {
   getLogFactureCount: `SELECT COUNT(*) as count
@@ -403,9 +455,9 @@ exports.chantiers = {
 };
 
 exports.factureSaisie = {
-  getTTc:`SELECT TTC FROM DAF_FactureSaisie WHERE id = @idFacture`,
-  
-  
+  getTTc: `SELECT TTC FROM DAF_FactureSaisie WHERE id = @idFacture`,
+
+
   getfactureSaisie: `SELECT
   f.id,
   f.fullName,
@@ -422,14 +474,15 @@ exports.factureSaisie = {
   f.verifiyMidelt,
   f.updatedBy,
   ch.LIBELLE as LIBELLE,
-f.dateecheance
+  f.dateecheance,
+  f.CatFn
 FROM [dbo].[DAF_FactureSaisie] f
 INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
 INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
 LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
 WHERE deletedAt is null
 `,
-getfactureSaisiecount: `
+  getfactureSaisiecount: `
 SELECT COUNT(*) as count
 FROM [dbo].[DAF_FactureSaisie] f
 inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
@@ -444,7 +497,8 @@ where deletedAt is null`,
 ,[iddesignation]
 ,[fullName],
 [codechantier],
-[dateecheance]
+[dateecheance],
+[CatFn]
 )
   values  (
      @numeroFacture
@@ -456,6 +510,7 @@ where deletedAt is null`,
     ,@fullName
     ,@codechantier
     ,@dateEcheance
+    ,@CatFn
     )`,
   getOne: `select
 f.id,
@@ -469,7 +524,8 @@ f.fullName
 d.designation as "designation" ,
 fou.nom as "nom",
 fou.CodeFournisseur,
-f.verifiyMidelt
+f.verifiyMidelt,
+f.CatFn
 FROM [dbo].[DAF_FactureSaisie] f
 inner join [dbo].[FactureDesignation] d on d.id=f.iddesignation
 inner join   [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
@@ -491,6 +547,8 @@ WHERE id = @id `,
    in(select id from [dbo].[DAF_FOURNISSEURS] where id=@nom)
    and id not in (select idfacture from DAF_factureNavette)
    `,
+
+
   gethistoriquefacture: `SELECT f.id
 ,f.numeroFacture
 ,f.BonCommande
@@ -539,7 +597,9 @@ FROM
   LEFT JOIN [dbo].[chantier] ch ON ch.id = f.codechantier
 WHERE 
   f.deletedAt IS NULL 
-  AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = '')
+  AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = ''
+  or f.CatFn is null
+  )
 `,
   getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[DAF_FactureSaisie] WHERE deletedAt IS NULL 
   AND (verifiyMidelt IS NULL OR BonCommande IS NULL OR BonCommande = '')`,
@@ -547,7 +607,8 @@ WHERE
   validerfacture: `UPDATE [dbo].[DAF_FactureSaisie]
   SET  verifiyMidelt=@verifiyMidelt,
   updatedBy=@updatedBy,
-  BonCommande=@BonCommande
+  BonCommande=@BonCommande,
+  CatFn=@CatFn
 WHERE id = @id `,
   getsumfacturebyfournisseurwithoutfn: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
 where fa.ficheNavette is null  and fa.DateFacture is not null  and 
@@ -617,11 +678,25 @@ VALUES
   create: `INSERT INTO [dbo].[DAF_factureNavette]
   ([codechantier],[montantAvance],[idfournisseur],[idFacture],[ficheNavette],[Bcommande]
     ,[fullname]
-    ,[dateSaisie])
-  VALUES 
-  (@codechantier,@montantAvance,@idfournisseur,@idFacture,@modifiedFicheNavette,@Bcommande
-    ,@fullName
-    ,getdate())`,
+    ,[dateSaisie]
+    ,[CatFn] 
+    ,[TTC]
+    ,[HT]
+    ,[MontantTVA])
+    VALUES 
+    (@codechantier,
+    @montantAvance,
+    @idfournisseur,
+    @idFacture,
+    @modifiedFicheNavette,
+    @Bcommande,
+    @fullName,
+    getdate(),
+    @CatFn,
+    @TTC,
+    @HT,
+    @MontantTVA)
+  `,
 
   get: `
   SELECT DISTINCT
@@ -648,7 +723,8 @@ VALUES
   CASE
       WHEN ch.LIBELLE IS NULL THEN fich.LIBELLE
       ELSE ch.LIBELLE
-  END AS libelle
+  END AS libelle,
+  fich.CatFn
 FROM [dbo].[DAF_ficheNavette] fich
 LEFT JOIN (SELECT * FROM chantier) ch ON fich.LIBELLE = ch.LIBELLE
 WHERE fich.deletedAt IS NULL
@@ -659,12 +735,13 @@ AND fich.ficheNavette <> 'Annuler'
     WHERE  ficheNavette<>'Annuler' `,
   getOne: `select * from DAF_ficheNavette where id=@id`,
   update: `update [dbo].[DAF_factureNavette] 
-        set ficheNavette=@ficheNavette,
+        set   ficheNavette=@ficheNavette,
               idfacture=@idFacture,
               codechantier=@codechantier,
               montantAvance=@montantAvance,
               Bcommande=@BonCommande,
-              Validateur=@Validateur
+              Validateur=@Validateur,
+              CatFn=@CatFn
         where idfacturenavette=@id `,
   getavancebyfournisseur: `select * from DAF_factureNavette
 where Bcommande is not null
@@ -706,6 +783,9 @@ group by  dfn1.ficheNavette,
      dfn1.Bcommande
      `
 };
+
+
+
 //where id>30
 exports.designation = {
   getdesignationCount:
@@ -759,7 +839,7 @@ select count(*) as count
 from DAF_SuivieFactureEchu 
 where 1=1
 `,
-getSuivieFactureNonPayé: `SELECT DISTINCT 
+  getSuivieFactureNonPayé: `SELECT DISTINCT 
 [id],
 [BonCommande],
 [chantier],
@@ -785,19 +865,19 @@ FROM DAF_SuivieFacture
 WHERE  
 1=1
 `,
-   
-getSuivieFactureNonPayéCount: `
+
+  getSuivieFactureNonPayéCount: `
 select count(*) as count
 from DAF_SuivieFacture  
 WHERE  ( Etat = 'pas encore' OR  Etat = 'En cours')
   `,
 
- getAnneSuivieFacture :`
+  getAnneSuivieFacture: `
  select distinct year(datefacture) as year
 from DAF_SuivieFacture
 order by year(datefacture)
  ` ,
- getSuivieFactureNonPayéByFournisseur: `
+  getSuivieFactureNonPayéByFournisseur: `
  SELECT 
     nom,
     SUM(CASE WHEN YEAR(datefacture) = @annee THEN ttc ELSE 0 END) AS sumFacture,
@@ -809,7 +889,7 @@ WHERE
     UPPER(nom) LIKE UPPER('%'+@nom+'%')
 GROUP BY 
     nom
-    `, 
+    `,
 };
 
 exports.cheque = {
@@ -852,7 +932,7 @@ exports.cheque = {
     and v.ribatnerid = rf.id
     and 1=1
   `,
-  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_Facture_Avance_Fusion] where 1=1 `,
+  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_CalculRasNetApaye] where 1=1 `,
   createLogFacture: `
  INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]
@@ -867,7 +947,22 @@ exports.cheque = {
            ,[ModePaiementID],
             [modepaiement],
             [idAvance],
-            [numerocheque]
+            [numerocheque],
+            [Ras]
+           )
+     VALUES`,
+     CreateRasFactue :`INSERT INTO [dbo].[DAF_RAS_Tva]
+           ([idFournisseur]
+           ,[RefernceDOC]
+           ,[CategorieFn]
+           ,[dateFactue]
+           ,[HT]
+           ,[TauxTva]
+           ,[Pourcentage_TVA]
+           ,[RaS]
+           ,[PourcentageRas]
+           ,[modePaiement]
+           ,[Nom]
            )
      VALUES`,
   update: `Update [dbo].[DAF_cheque]
@@ -890,14 +985,61 @@ where v.fournisseurId = f.id
 and v.ribatnerid = rf.id
     and v.[id] = @id
  `,
-
   updateLogFactureWhenAnnuleV:
     "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [numerocheque] =@numerocheque",
 
-  updateLogFactureWhenRegleeV:
+    updateRestitWhenAnnuleCheque:
+    "update [dbo].[DAF_RestitAvance] set Etat = 'AnnulerPaiement' where [numerocheque] =@numerocheque",
+
+    updateRasWhenAnnule:
+    "update [dbo].[DAF_RAS_Tva] set Etat = 'Annulé' where [modePaiement] =@numerocheque",
+
+  updateLogFactureWhenRegleeCheque:
     `update [dbo].[DAF_LOG_FACTURE] set Etat = 'Reglee' where [numerocheque] =@numerocheque
                 and etat<>'Annulé'
     `,
+    updateRasWhenRegleeCheque:
+    `update [dbo].[DAF_RAS_Tva] set Etat = 'Reglee' where [numerocheque] =@numerocheque , dateOperation=@dateOperation
+                and etat<>'Annulé'
+    `,
+    updateRasWhenAnnuleV:
+    "update [dbo].[DAF_RAS_Tva] set Etat = 'Annulé' where [modePaiement] =@numerocheque",
+
+  updateLogFactureWhenRegleeV:
+    `update [dbo].[DAF_RAS_Tva] set Etat = 'Regler' where [modePaiement] =@numerocheque
+                and etat<>'Annulé'
+    `,
+    updateRestitWhenRegleecheque:
+    `update [dbo].[DAF_RestitAvance] set Etat = 'Regler' where [modePaiement] =@numerocheque
+                and etat not in('AnnulerPaiement','AnnulerSasie')
+    `,
+    CreateRasFactue :`INSERT INTO [dbo].[DAF_RAS_Tva]
+    ([idFournisseur]
+    ,[RefernceDOC]
+    ,[CategorieFn]
+    ,[dateFactue]
+    ,[HT]
+    ,[TauxTva]
+    ,[Pourcentage_TVA]
+    ,[RaS]
+    ,[PourcentageRas]
+    ,[modePaiement]
+    ,[Nom]
+    )
+VALUES`,
+
+
+createRestit: `
+INSERT INTO [dbo].[DAF_RestitAvance]
+          ([idAvance]
+          ,[Montant]
+           ,[Redacteur]
+           ,[etat]
+           ,[nom]
+           ,[ModePaiement]
+          )
+    VALUES`,
+
 };
 
 
@@ -928,7 +1070,7 @@ exports.espece = {
   where v.fournisseurId = f.id
     and 1=1
   `,
-  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_Facture_Avance_Fusion] where 1=1 `,
+  getDataFromLogFacture: `SELECT * FROM [dbo].[DAF_CalculRasNetApaye] where 1=1 `,
   createLogFacture: `
  INSERT INTO [dbo].[DAF_LOG_FACTURE]
            ([CODEDOCUTIL]
@@ -943,9 +1085,45 @@ exports.espece = {
            ,[ModePaiementID],
            [etat],
            [modepaiement],
-           [idAvance]
+           [idAvance],
+           [Ras]
+         
            )
      VALUES`,
+
+     createRestit: `
+     INSERT INTO [dbo].[DAF_RestitAvance]
+               ([idAvance]
+               ,[Montant]
+                ,[Redacteur]
+                ,[etat]
+                ,[nom]
+                ,[ModePaiement]
+               )
+         VALUES`,
+
+
+
+
+
+     CreateRasFactue :`INSERT INTO [dbo].[DAF_RAS_Tva]
+           ([idFournisseur]
+           ,[RefernceDOC]
+           ,[CategorieFn]
+           ,[dateFactue],
+            [dateOperation],
+            [etat]
+           ,[HT]
+           ,[TauxTva]
+           ,[Pourcentage_TVA]
+           ,[RaS]
+           ,[PourcentageRas]
+           ,[modePaiement]
+           ,[Nom]
+           )
+     VALUES`,
+
+ 
 
   getOne: `
   SELECT v.[id]
@@ -1061,7 +1239,7 @@ exports.EcheanceReel = {
   SELECT   COUNT(*) as count
   FROM [dbo].[DAF_echeanceReelFournisseur]
     `,
-  create :`INSERT INTO [dbo].[DAF_echeanceReelFournisseur]
+  create: `INSERT INTO [dbo].[DAF_echeanceReelFournisseur]
   ([idfournisseur]
   ,[modalitePaiement]
   ,[dateecheance]
@@ -1071,7 +1249,7 @@ exports.EcheanceReel = {
     ,@dateecheance
     ,@Redacteur
     ,getdate())`,
-  getEcheanceReelbyfournisseur:`select modalitePaiement from DAF_echeanceReelFournisseur
+  getEcheanceReelbyfournisseur: `select modalitePaiement from DAF_echeanceReelFournisseur
   where idfournisseur=@idfournisseur
   and id =(select max(id) from DAF_echeanceReelFournisseur
         where idfournisseur=@idfournisseur
@@ -1093,7 +1271,7 @@ exports.EcheanceLoi = {
   SELECT   COUNT(*) as count
   FROM [dbo].[DAF_echeanceloiFournisseur]
     `,
-  create :`INSERT INTO [dbo].[DAF_echeanceloiFournisseur]
+  create: `INSERT INTO [dbo].[DAF_echeanceloiFournisseur]
   ([idfournisseur]
   ,[modalitePaiement]
   ,[dateecheance]
@@ -1101,7 +1279,7 @@ exports.EcheanceLoi = {
   ,[datesaisie]) values 
   (@idfournisseur,@modalitePaiement,@dateecheance,@Redacteur,
     getdate())`,
-  getEcheanceLoibyfournisseur:`select modalitePaiement from DAF_echeanceloiFournisseur
+  getEcheanceLoibyfournisseur: `select modalitePaiement from DAF_echeanceloiFournisseur
   where idfournisseur=@idfournisseur
   and id =(select max(id) from DAF_echeanceloiFournisseur
         where idfournisseur=@idfournisseur
@@ -1155,6 +1333,8 @@ exports.ordervirementsFond = {
   FROM [dbo].[DAF_Order_virements_Fond] ov
   JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id and ov.id = @ovId
   `,
+
+
   getBodyPrint: `SELECT v.[id]
   ,  orderVirementFondId as orderVirementId
   ,'ATNER'AS nom
@@ -1170,7 +1350,7 @@ and [orderVirementFondId] = @ovId`,
   updateVirements: `update [dbo].[DAF_Order_virements_Fond] set Etat = 'Reglee'
                       where id = @id`,
 
-  
+
 
   updateDateExecution: `update [dbo].[DAF_Order_virements_Fond] set dateExecution = GETDATE()
                             where id = @id`,
@@ -1211,9 +1391,9 @@ exports.virementsFond = {
       ,@Redacteur
       ,getdate()
       )`,
-    
-   
-    
+
+
+
   getCount: "SELECT COUNT(*) as count FROM [dbo].[DAF_VIREMENTS_Fond]",
   getAll: `
   SELECT v.[id]
@@ -1246,6 +1426,37 @@ where v.RibAtnerDestId = ra.id
     and v.[id] = @id
  `,
 };
+///////////////////////////////*/*//**/* Attestation  de  Fiscalité */
 
 
-
+exports.AttestationFiscalite = {
+  getAllAttestation: `
+  SELECT  att.id as id ,nom,fou.id as idfournisseur,
+      [dateDebut]
+      ,[dateExpiration]
+  FROM [DAF_AttestationFiscal] Att
+  inner join DAF_FOURNISSEURS fou
+  on  Att.idfournisseur=fou.id
+  where 1=1
+  `,
+  getAllAttestationCount: `
+  SELECT   COUNT(*) as count
+  FROM [dbo].[DAF_AttestationFiscal]
+    `,
+  create: `INSERT INTO [dbo].[DAF_AttestationFiscal]  (
+    [idfournisseur]
+   ,[numAttestation]
+   ,[dateDebut]
+   ,[dateExpiration]
+   ,[redacteur]
+            )
+                  VALUES
+        (@idfournisseur
+        ,@numAttestation
+        ,@dateDebut
+        ,DATEADD(MONTH, 6, @dateDebut)
+        ,@redacteur
+);
+ `,
+//   getEcheanceLoibyfournisseur:``
+};

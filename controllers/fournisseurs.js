@@ -36,7 +36,7 @@ exports.getFournissuers = async (req, res) => {
     const pool = await getConnection();
 
     const result = await pool.request().query(
-      `${Fournisseurs.getAllFournisseurs} ${queryFilter} Order by ${sort[0]} ${
+      `${Fournisseurs.get} ${queryFilter} Order by ${sort[0]} ${
         sort[1]
       }
       OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
@@ -70,7 +70,7 @@ exports.getAllFournissuers = async (req, res) => {
 
 exports.createFournisseurs = async (req, res) => {
   const { CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
-  ,Redacteur
+  ,Redacteur,catFournisseur,exonorer
   } = req.body;
 
   try {
@@ -80,18 +80,19 @@ exports.createFournisseurs = async (req, res) => {
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
-      
+      .input("catFournisseur", getSql().VarChar, catFournisseur)
     
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
       .input("Redacteur", getSql().VarChar, Redacteur)
+      .input("exonorer", getSql().VarChar, exonorer)
       .query(Fournisseurs.createFournisseur);
     console.log("success");
     res.json({
       id: "",
-      CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
+      CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE,exonorer
     });
   } catch (error) {
     
@@ -142,7 +143,7 @@ exports.FournisseursRibValid = async (req, res) => {
     const result = await pool
       .request()
       .input("ovId", getSql().VarChar, filter.id)
-      .query(Fournisseurs.FournisseursRibValid);
+      .query(Fournisseurs.RibsFournisseurValid);
     res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
 
     res.json(result.recordset);
@@ -175,12 +176,15 @@ exports.getfournisseurById = async (req, res) => {
 
 
 exports.updatefournisseur = async (req, res) => {
-  const { CodeFournisseur,
- nom,
+  const { 
+    CodeFournisseur,
+    nom,
    ICE,
    IF,
-addresse,
-  mail
+  addresse,
+  mail,
+  catFournisseur,
+  exonorer
 } =
     req.body;
   try {
@@ -196,6 +200,8 @@ addresse,
       .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
+      .input("catFournisseur", getSql().VarChar, catFournisseur)
+      .input("exonorer", getSql().VarChar, exonorer)
       .query(Fournisseurs.update);
 
     res.json({
@@ -206,6 +212,8 @@ addresse,
         IF,
      addresse,
        mail,
+       catFournisseur,
+       exonorer
     });
   } catch (error) {
    
@@ -251,6 +259,23 @@ exports.getNomfournisseur = async (req, res) => {
       "Content-Range",
       `fournisseurs 0-${req.count - 1}/${req.count - 1}`
     );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
+
+
+
+
+exports.getAllFournissuersClean = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool.request().query(Fournisseurs.getFournisseurClean);
+
+    res.set("Content-Range", `fournisseurs 0-${req.count - 1}/${req.count}`);
     res.json(result.recordset);
   } catch (error) {
     res.status(500);
