@@ -36,7 +36,7 @@ exports.getFournissuers = async (req, res) => {
     const pool = await getConnection();
 
     const result = await pool.request().query(
-      `${Fournisseurs.get} ${queryFilter} Order by ${sort[0]} ${
+      `${Fournisseurs.getAllFournisseurs} ${queryFilter} Order by ${sort[0]} ${
         sort[1]
       }
       OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`

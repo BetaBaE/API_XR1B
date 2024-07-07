@@ -1,17 +1,17 @@
 
 exports.Fournisseurs = {
-  getNomfournisseur: `select  nom from DAF_FOURNISSEURS where nom  LIKE '%'+@nom+'%'`,
- 
+  getFournisseurClean: `select * from DAF_FOURNISSEURS
+  where ICE is not null and catFournisseur is  not null
+and Identifiantfiscal is not null`,
+  getNomfournisseur: `select  nom from DAF_FOURNISSEURS where nom  LIKE '%'+@nom+'%'`, 
   getallfournisseurwithecheanceLoi:`
   select * from DAF_FOURNISSEURS
 where id in(SELECT
       [idfournisseur]
   FROM [dbo].[DAF_echeanceloiFournisseur])
-  `,
-  
-  
-  
+  `,  
   getAllFournisseurs: `SELECT fou.datecreation,fou.id,fou.Redacteur ,fou.addresse, fou.CodeFournisseur, fou.Identifiantfiscal, fou.ICE, fou.nom,
+  fou.exonorer,
   echr.modalitePaiement as echeancereel , 
   echl.modalitePaiement as echeanceloi,
   fou.mail,fou.catFournisseur
@@ -48,13 +48,17 @@ where 1=1 `,
   createFournisseur: `INSERT INTO DAF_FOURNISSEURS(CodeFournisseur,nom,ICE,Identifiantfiscal,mail,addresse
     ,Redacteur,catFournisseur)
      VALUES(@CodeFournisseur, @nom,@ICE,@IF,@mail,@addresse,@Redacteur,@catFournisseur)`,
-  RibsFournisseurValid: `select f.nom, rf.* from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
-  where f.id = rf.FournisseurId and rf.validation = 'Confirmer' and f.id not in (select FournisseurId from daf_virements where ordervirementId=@ovId and etat<>'Annuler')`,
-  FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
-  where f.id = rf.FournisseurId
-  AND rf.validation = 'Confirmer' AND f.nom not in (SELECT
- distinct [NOM]
-  FROM [dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and ModePaiementID =@ovId)`,
+     RibsFournisseurValid: `select f.nom, f.catFournisseur,
+     f.CodeFournisseur, rf.* ,f.exonorer
+from [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
+where f.id = rf.FournisseurId and rf.validation = 'Confirmer'
+and f.id not in (select FournisseurId from daf_virements where ordervirementId=@ovId and etat<>'Annuler')
+and f.catFournisseur is not null`,
+  //   FournisseursRibValid: `SELECT f.CodeFournisseur, f.nom, rf.* FROM  [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_RIB_Fournisseurs] rf
+//   where f.id = rf.FournisseurId
+//   AND rf.validation = 'Confirmer' AND f.nom not in (SELECT
+//  distinct [NOM]
+//   FROM [dbo].[DAF_LOG_FACTURE] WHERE etat!='Annulé'  and ModePaiementID =@ovId)`,
   getOne: `select * from DAF_FOURNISSEURS where id=@id`,
   update: `update DAF_FOURNISSEURS 
   set 
