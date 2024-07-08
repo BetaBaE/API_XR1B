@@ -1464,3 +1464,144 @@ exports.AttestationFiscalite = {
  `,
 //   getEcheanceLoibyfournisseur:``
 };
+
+exports. FicheNavette = {
+  create: `
+    INSERT INTO [dbo].[DAF_factureNavette]
+    ([codechantier]
+    ,[montantAvance]
+    ,[idfournisseur]
+    ,[idFacture]
+    ,[ficheNavette]
+    ,[Bcommande]
+    ,[fullname]
+    ,[dateSaisie]
+    ,[CatFn] 
+    ,[TTC]
+    ,[HT]
+    ,[MontantTVA])
+    VALUES 
+    (@codechantier,
+    @montantAvance,
+    @idfournisseur,
+    @idFacture,
+    @modifiedFicheNavette,
+    @Bcommande,
+    @fullName,
+    getdate(),
+    @CatFn,
+    @TTC,
+    @HT,
+    @MontantTVA)
+  `,
+
+  get: `
+    SELECT DISTINCT
+      fich.id,
+      fich.BonCommande AS BonCommande,
+      fich.CodeFournisseur AS CodeFournisseur,
+      fich.montantAvance,
+      fich.nom,
+      fich.MontantTVA,
+      fich.DateFacture,
+      fich.TTC,
+      fich.HT,
+      fich.designation,
+      fich.numeroFacture,
+      fich.ficheNavette,
+      fich.fullname,
+      fich.deletedAt,
+      fich.annulation,
+      CASE
+        WHEN fich.numeroFacture IS NULL THEN 'avance'
+        WHEN fich.deletedAt IS NOT NULL THEN 'facture annulée'
+        ELSE 'normal'
+      END AS etat,
+      COALESCE(ch.LIBELLE, fich.LIBELLE) AS libelle,
+      fich.CatFn
+    FROM [dbo].[DAF_ficheNavette] fich
+    LEFT JOIN chantier ch ON fich.LIBELLE = ch.LIBELLE
+    WHERE fich.deletedAt IS NULL
+      AND fich.ficheNavette <> 'Annuler'
+      AND fich.numeroFacture IS NOT NULL
+  `,
+
+  getAvance: `
+    SELECT av.*, ch.LIBELLE AS chantier, fou.nom, fou.CodeFournisseur, fou.catFournisseur
+    FROM DAF_Avance av
+    INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire
+    INNER JOIN DAF_FOURNISSEURS fou ON fou.id = av.idFournisseur
+    WHERE av.EtatRestit = 'Non'
+      AND av.etat IN ('En Cours', 'Regler')
+  `,
+
+  getCount: `
+    SELECT COUNT(*) AS count
+    FROM [dbo].[DAF_ficheNavette]
+    WHERE ficheNavette <> 'Annuler'
+  `,
+
+  getAvanceRestitById: `
+    SELECT av.*, restit.etat AS etatRestitRestit, 
+           restit.Montant, four.nom AS nom, 
+           four.CodeFournisseur AS CodeFournisseur, 
+           four.id AS idfournisseur,
+           restit.ModePaiement
+    FROM DAF_RestitAvance restit 
+    INNER JOIN DAF_Avance av ON av.id = restit.idAvance
+    INNER JOIN DAF_FOURNISSEURS four ON four.id = av.idFournisseur
+    INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire
+    WHERE av.id = @id AND idfacture IS NULL
+  `,
+
+  update: `
+    UPDATE [dbo].[DAF_factureNavette] 
+    SET ficheNavette = @ficheNavette,
+        idfacture = @idFacture,
+        codechantier = @codechantier,
+        montantAvance = @montantAvance,
+        Bcommande = @BonCommande,
+        Validateur = @Validateur,
+        CatFn = @CatFn
+    WHERE idfacturenavette = @id 
+  `,
+
+
+  annulationFn: `
+    UPDATE DAF_factureNavette
+    SET idfacture = 0, ficheNavette = 'Annuler'
+    WHERE idfacturenavette = @id
+  `,
+
+  updateficheNavette: `
+    UPDATE DAF_factureNavette
+    SET ficheNavette = @ficheNavette,
+        idFacture = @idFacture,
+        codechantier = @codechantier,
+        idfournisseur = @idfournisseur,
+        montantAvance = @montantAvance
+    WHERE idfacturenavette = @id
+  `,
+
+  getMontantAvance: `
+    SELECT montantAvance
+    FROM DAF_factureNavette
+    WHERE idFacture = @idFacture
+  `,
+
+  updateNetApayer: `
+    UPDATE DAF_FactureSaisie
+    SET NetAPayer = @netAPayer
+    WHERE id = @idFacture
+  `,
+
+  existingCompositionAvance: `
+    SELECT COUNT(*)
+    FROM daf_factureNavette AS dfn1
+    WHERE dfn1.ficheNavette = @ficheNavette
+      AND dfn1.Bcommande = @Bcommande
+      AND dfn1.idfournisseur = @idfournisseur
+      AND idfacture = 0
+    GROUP BY dfn1.ficheNavette, dfn1.Bcommande
+  `,
+};
