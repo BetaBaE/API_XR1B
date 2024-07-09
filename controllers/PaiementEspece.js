@@ -219,7 +219,7 @@ exports.createEspece = async (req, res) => {
       .input("fournisseurId", getSql().Int, req.body.fournisseurId)    
       .input("montantVirement", getSql().Float, Totale)
       .query(espece.create);
-      insertAvanceInRestit(ArrayOfFacture,req.body.redacteur)
+      // insertAvanceInRestit(ArrayOfFacture,req.body.redacteur)
     insertFactureInLog(ArrayOfFacture);
     insertDocInRas(ArrayOfFacture)
     res.json({ id: "" });
