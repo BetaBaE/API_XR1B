@@ -661,18 +661,7 @@ exports.factureFicheNavette = {
         WHERE id = @idFacture
       `,
 
-  
-  updateFactureQuery : `
-  UPDATE DAF_factureNavette
-  SET ficheNavette = @ficheNavette,
-      idFacture = @idFacture,
-      codechantier = @codechantier,
-      idfournisseur = @idfournisseur,
-      montantAvance = @montantAvance,
-      dateSaisie=getdate(),
-      Validateur=@Validateur
-  WHERE idfacturenavette = @id
-`,
+
 getMontantAvanceQuery : `
         SELECT montantAvance
         FROM DAF_factureNavette
@@ -1469,6 +1458,19 @@ exports.AttestationFiscalite = {
 };
 
 exports. FicheNavette = {
+ 
+   
+  updateficheNavette : `
+  UPDATE DAF_factureNavette
+  SET 
+      idFacture = @idFacture,
+      dateSaisie=getdate(),
+      Validateur=@Validateur
+  WHERE idfacturenavette = @id
+`,
+ 
+ 
+  getOne: `select * from DAF_ficheNavette where id=@id`,
   create: `
     INSERT INTO [dbo].[DAF_factureNavette]
     ([codechantier]
@@ -1526,7 +1528,7 @@ exports. FicheNavette = {
     LEFT JOIN chantier ch ON fich.LIBELLE = ch.LIBELLE
     WHERE fich.deletedAt IS NULL
       AND fich.ficheNavette <> 'Annuler'
-      AND fich.numeroFacture IS NOT NULL
+     
   `,
 
   getAvance: `
@@ -1576,15 +1578,15 @@ exports. FicheNavette = {
     WHERE idfacturenavette = @id
   `,
 
-  updateficheNavette: `
-    UPDATE DAF_factureNavette
-    SET ficheNavette = @ficheNavette,
-        idFacture = @idFacture,
-        codechantier = @codechantier,
-        idfournisseur = @idfournisseur,
-        montantAvance = @montantAvance
-    WHERE idfacturenavette = @id
-  `,
+  // updateficheNavette: `
+  //   UPDATE DAF_factureNavette
+  //   SET ficheNavette = @ficheNavette,
+  //       idFacture = @idFacture,
+  //       codechantier = @codechantier,
+  //       idfournisseur = @idfournisseur,
+  //       montantAvance = @montantAvance
+  //   WHERE idfacturenavette = @id
+  // `,
 
   getMontantAvance: `
     SELECT montantAvance
