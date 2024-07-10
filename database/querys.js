@@ -205,7 +205,8 @@ exports.ordervirements = {
   where ov.ribAtner = ra.id and ov.id = @id`,
   update: `UPDATE [dbo].[DAF_Order_virements]
    SET [ribAtner] = @ribAtner,
-   [directeursigne]=@directeursigne
+   [directeursigne]=@directeursigne,
+   [dateExecution]=@dateExecution
       ,[etat] = @etat
   WHERE id = @id`,
   orderVirementsEnCours: `SELECT * FROM [dbo].[DAF_Order_virements]

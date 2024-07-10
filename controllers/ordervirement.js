@@ -162,7 +162,7 @@ exports.getorderVirements = async (req, res) => {
 };
 
 exports.updateOrderVirements = async (req, res) => {
-  const { ribAtner, etat, directeursigne } = req.body;
+  const { ribAtner, etat, directeursigne, dateExecution } = req.body;
   if (ribAtner == null || etat == null) {
     return res.status(400).json({ error: "all field is required" });
   }
@@ -222,6 +222,7 @@ exports.updateOrderVirements = async (req, res) => {
     res.json({
       ribAtner,
       etat,
+      dateExecution,
       id: req.params.id,
     });
   } catch (error) {
