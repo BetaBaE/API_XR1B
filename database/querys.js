@@ -599,7 +599,7 @@ WHERE
   );
 	
 `,
-  getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[DAF_FactureSaisie]WHERE 
+  getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[DAF_FactureSaisie] WHERE 
 
    (
     f.deletedAt IS NULL
