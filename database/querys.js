@@ -596,7 +596,7 @@ WHERE
     OR f.BonCommande IS NULL
     OR f.BonCommande = ''
     OR f.CatFn IS NULL
-  );
+  )
 	
 `,
   getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[DAF_FactureSaisie] f  WHERE 
