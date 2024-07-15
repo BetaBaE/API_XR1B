@@ -599,7 +599,7 @@ WHERE
   );
 	
 `,
-  getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[DAF_FactureSaisie] WHERE 
+  getcountvalider: `SELECT COUNT(*) as count FROM [dbo].[DAF_FactureSaisie] f  WHERE 
 
    (
     f.deletedAt IS NULL
@@ -608,7 +608,7 @@ WHERE
     OR f.BonCommande IS NULL
     OR f.BonCommande = ''
     OR f.CatFn IS NULL
-  );
+  )
 `,
 
   validerfacture: `UPDATE [dbo].[DAF_FactureSaisie]
