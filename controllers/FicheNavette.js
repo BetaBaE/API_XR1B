@@ -1,5 +1,10 @@
 const { getConnection, getSql } = require("../database/connection");
-const { FicheNavette, factures, BonLivraison, factureSaisie } = require("../database/querys");
+const {
+  FicheNavette,
+  factures,
+  BonLivraison,
+  factureSaisie,
+} = require("../database/querys");
 
 exports.getFactureCount = async (req, res, next) => {
   try {
@@ -51,11 +56,9 @@ exports.getFacture = async (req, res) => {
     }
     console.log(queryFilter);
     const pool = await getConnection();
-   
+
     const result = await pool.request().query(
-      `${FicheNavette.get} ${queryFilter} Order by ${sort[0]} ${
-        sort[1]
-      }
+      `${FicheNavette.get} ${queryFilter} Order by ${sort[0]} ${sort[1]}
     OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
@@ -83,13 +86,13 @@ exports.CreateFicheNavette = async (req, res) => {
     CatFn,
     TTC,
     HT,
-    MontantTVA
+    MontantTVA,
   } = req.body;
 
   try {
     const pool = await getConnection();
-    console.log('Connected to database');
-    console.log('Checking if composition already exists');
+    console.log("Connected to database");
+    console.log("Checking if composition already exists");
 
     const existingCompositionResult = await pool
       .request()
@@ -99,16 +102,24 @@ exports.CreateFicheNavette = async (req, res) => {
       .input("idfournisseur", getSql().Int, idfournisseur)
       .query(FicheNavette.existingCompositionAvance);
 
-    console.log('Existing composition result:', existingCompositionResult.recordset);
+    console.log(
+      "Existing composition result:",
+      existingCompositionResult.recordset
+    );
 
     if (existingCompositionResult.recordset.length > 0) {
-      return res.status(400).json({ message: "La composition existe déjà dans la table daf_factureNavette" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "La composition existe déjà dans la table daf_factureNavette",
+        });
     }
 
     let modifiedFicheNavette = ficheNavette;
     if (service) {
       modifiedFicheNavette = `admin/${new Date().getFullYear()}/${service}/${ficheNavette}`;
-      console.log('Modified ficheNavette with service:', modifiedFicheNavette);
+      console.log("Modified ficheNavette with service:", modifiedFicheNavette);
     }
 
     const insertResult = await pool
@@ -125,10 +136,9 @@ exports.CreateFicheNavette = async (req, res) => {
       .input("HT", getSql().Numeric(10, 2), HT)
       .input("MontantTVA", getSql().Numeric(10, 2), MontantTVA)
       .query(FicheNavette.create);
-   
 
     res.json({
-      id :"",
+      id: "",
       codechantier,
       idFacture,
       ficheNavette: modifiedFicheNavette,
@@ -137,21 +147,14 @@ exports.CreateFicheNavette = async (req, res) => {
       CatFn,
       TTC,
       HT,
-      MontantTVA
+      MontantTVA,
     });
-    console.log('Response sent successfully');
-
+    console.log("Response sent successfully");
   } catch (error) {
     res.status(500).send(error.message);
-    console.error('Error occurred:', error);
+    console.error("Error occurred:", error);
   }
 };
-
-   
-
-
-
-
 
 exports.getfactureresById = async (req, res) => {
   try {
@@ -198,7 +201,7 @@ exports.getavanceByfournisseur = async (req, res) => {
       res.set("Content-Range", `ficheNavette 0-1/1`);
       res.json(result.recordset);
     } else {
-      res.json([]); 
+      res.json([]);
     }
   } catch (error) {
     res.send(error.message);
@@ -223,13 +226,17 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   }
 };
 
-
-
-
 exports.correction = async (req, res) => {
-  const { ficheNavette, idFacture,montantAvance
-    ,idfournisseur,codechantier,BonCommande,
-    annulation,Validateur,CatFn
+  const {
+    ficheNavette,
+    idFacture,
+    montantAvance,
+    idfournisseur,
+    codechantier,
+    BonCommande,
+    annulation,
+    Validateur,
+    CatFn,
   } = req.body;
   try {
     const pool = await getConnection();
@@ -246,9 +253,9 @@ exports.correction = async (req, res) => {
       .input("Validateur", getSql().VarChar, Validateur)
       .input("CatFn", getSql().VarChar, CatFn)
       .query(FicheNavette.update);
-      if (annulation === "Annuler") {
-        updateFNWhenAnnuleVirement(req.params.id);
-      }
+    if (annulation === "Annuler") {
+      updateFNWhenAnnuleVirement(req.params.id);
+    }
 
     res.json({
       id: req.params.id,
@@ -257,7 +264,7 @@ exports.correction = async (req, res) => {
       codechantier,
       montantAvance,
       annulation,
-      CatFn
+      CatFn,
     });
   } catch (error) {
     res.status(500);
@@ -266,19 +273,15 @@ exports.correction = async (req, res) => {
   }
 };
 
-
-
 exports.annulation = async (req, res) => {
-  const { id
-    
-  } = req.body;
+  const { id } = req.body;
   try {
     const pool = await getConnection();
     await pool
-    .request()
-    .input("id", getSql().Int, id)
-    
-    .query(FicheNavette.annulationFn);
+      .request()
+      .input("id", getSql().Int, id)
+
+      .query(FicheNavette.annulationFn);
 
     res.json({
       message: "Annulation réussie",
@@ -289,40 +292,38 @@ exports.annulation = async (req, res) => {
   }
 };
 
-
 async function updateFNWhenAnnuleVirement(id) {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("id", getSql().VarChar, id)
-     
+
       .query(FicheNavette.annulationFn);
 
-      console.log(`${factureFicheNavette.annulationFn}` + "ma requete")
+    console.log(`${factureFicheNavette.annulationFn}` + "ma requete");
     return result.recordset;
   } catch (error) {
     console.error(error.message);
   }
 }
 
-
 exports.getBonLivraisonByFactureId = async (req, res) => {
   const factureId = req.params.id;
 
   try {
-   
     const bonLivraisons = await BonLivraison.findAll({
-      where: { idFacture: factureId }
+      where: { idFacture: factureId },
     });
 
     res.json(bonLivraisons);
-    console.log("gh",bonLivraisons)
+    console.log("gh", bonLivraisons);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
 exports.updatenavette = async (req, res) => {
   try {
     const {
@@ -332,13 +333,13 @@ exports.updatenavette = async (req, res) => {
       idfournisseur,
       codechantier,
       annulation,
-      Validateur
+      Validateur,
     } = req.body;
 
     // Vérifier si montantAvance est spécifié dans la requête
     if (inputMontantAvance !== undefined) {
-   
-      const result = await pool.request()
+      const result = await pool
+        .request()
         .input("idFacture", getSql().Int, idFacture)
         .input("Validateur", getSql().VarChar, Validateur)
         .query(FicheNavette.updateficheNavette);
@@ -352,7 +353,9 @@ exports.updatenavette = async (req, res) => {
       });
     } else {
       // Si 'montantAvance' n'est pas spécifié, renvoyer une réponse d'erreur
-      res.status(400).json({ error: "Montant d'avance non spécifié dans la requête." });
+      res
+        .status(400)
+        .json({ error: "Montant d'avance non spécifié dans la requête." });
     }
   } catch (error) {
     // Gérer les erreurs

@@ -1,5 +1,12 @@
 const { getConnection, getSql } = require("../database/connection");
-const { factureFicheNavette, factures, BonLivraison, factureSaisie, FicheNavette, avance } = require("../database/querys");
+const {
+  factureFicheNavette,
+  factures,
+  BonLivraison,
+  factureSaisie,
+  FicheNavette,
+  avance,
+} = require("../database/querys");
 
 exports.getFactureCount = async (req, res, next) => {
   try {
@@ -51,11 +58,9 @@ exports.getFacture = async (req, res) => {
     }
     console.log(queryFilter);
     const pool = await getConnection();
-   
+
     const result = await pool.request().query(
-      `${FicheNavette.get} ${queryFilter} Order by ${sort[0]} ${
-        sort[1]
-      }
+      `${FicheNavette.get} ${queryFilter} Order by ${sort[0]} ${sort[1]}
     OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
@@ -71,12 +76,6 @@ exports.getFacture = async (req, res) => {
   }
 };
 
-
-
-   
-
-
-
 exports.createfacture = async (req, res) => {
   const {
     codechantier,
@@ -91,12 +90,11 @@ exports.createfacture = async (req, res) => {
     CatFn,
     TTC,
     HT,
-    MontantTVA
+    MontantTVA,
   } = req.body;
 
   try {
     const pool = await getConnection();
-
 
     const existingCompositionResult = await pool
       .request()
@@ -107,15 +105,15 @@ exports.createfacture = async (req, res) => {
       .query(factureFicheNavette.existingCompositionAvance);
 
     if (existingCompositionResult.recordset.length > 0) {
-      res.status(400).json({ message: "La composition existe déjà dans la table daf_factureNavette" });
+      res.status(400).json({
+        message: "La composition existe déjà dans la table daf_factureNavette",
+      });
     } else {
       let modifiedFicheNavette = ficheNavette;
 
       if (service) {
         modifiedFicheNavette = `admin/${new Date().getFullYear()}/${service}/${ficheNavette}`;
       }
-
-
 
       await pool
         .request()
@@ -143,7 +141,7 @@ exports.createfacture = async (req, res) => {
         CatFn,
         TTC,
         HT,
-        MontantTVA
+        MontantTVA,
       });
     }
   } catch (error) {
@@ -151,7 +149,6 @@ exports.createfacture = async (req, res) => {
     console.log(error.message);
   }
 };
-
 
 exports.getfactureresById = async (req, res) => {
   try {
@@ -198,7 +195,7 @@ exports.getavanceByfournisseur = async (req, res) => {
       res.set("Content-Range", `ficheNavette 0-1/1`);
       res.json(result.recordset);
     } else {
-      res.json([]); 
+      res.json([]);
     }
   } catch (error) {
     res.send(error.message);
@@ -223,13 +220,17 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   }
 };
 
-
-
-
 exports.correction = async (req, res) => {
-  const { ficheNavette, idFacture,montantAvance
-    ,idfournisseur,codechantier,BonCommande,
-    annulation,Validateur,CatFn
+  const {
+    ficheNavette,
+    idFacture,
+    montantAvance,
+    idfournisseur,
+    codechantier,
+    BonCommande,
+    annulation,
+    Validateur,
+    CatFn,
   } = req.body;
   try {
     const pool = await getConnection();
@@ -246,9 +247,9 @@ exports.correction = async (req, res) => {
       .input("Validateur", getSql().VarChar, Validateur)
       .input("CatFn", getSql().VarChar, CatFn)
       .query(factureFicheNavette.update);
-      if (annulation === "Annuler") {
-        updateFNWhenAnnuleVirement(req.params.id);
-      }
+    if (annulation === "Annuler") {
+      updateFNWhenAnnuleVirement(req.params.id);
+    }
 
     res.json({
       id: req.params.id,
@@ -257,7 +258,7 @@ exports.correction = async (req, res) => {
       codechantier,
       montantAvance,
       annulation,
-      CatFn
+      CatFn,
     });
   } catch (error) {
     res.status(500);
@@ -266,19 +267,15 @@ exports.correction = async (req, res) => {
   }
 };
 
-
-
 exports.annulation = async (req, res) => {
-  const { id
-    
-  } = req.body;
+  const { id } = req.body;
   try {
     const pool = await getConnection();
     await pool
-    .request()
-    .input("id", getSql().Int, id)
-    
-    .query(FicheNavette.annulationFn);
+      .request()
+      .input("id", getSql().Int, id)
+
+      .query(FicheNavette.annulationFn);
 
     res.json({
       message: "Annulation réussie",
@@ -289,128 +286,69 @@ exports.annulation = async (req, res) => {
   }
 };
 
-
 async function updateFNWhenAnnuleVirement(id) {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("id", getSql().VarChar, id)
-     
+
       .query(FicheNavette.annulationFn);
 
-      console.log(`${factureFicheNavette.annulationFn}` + "ma requete")
+    console.log(`${factureFicheNavette.annulationFn}` + "ma requete");
     return result.recordset;
   } catch (error) {
     console.error(error.message);
   }
 }
 
-
 exports.getBonLivraisonByFactureId = async (req, res) => {
   const factureId = req.params.id;
 
   try {
-   
     const bonLivraisons = await BonLivraison.findAll({
-      where: { idFacture: factureId }
+      where: { idFacture: factureId },
     });
 
     res.json(bonLivraisons);
-    console.log("gh",bonLivraisons)
+    console.log("gh", bonLivraisons);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
 exports.updatenavette = async (req, res) => {
   try {
-    const {
-      ficheNavette,
-      idFacture,
-      montantAvance: inputMontantAvance,
-      idfournisseur,
-      codechantier,
-      annulation,
-      Validateur
-    } = req.body;
-
-    // Vérifier si 'montantAvance' est spécifié dans la requête
-    if (req.body && req.body.montantAvance !== undefined) {
-      console.log("Montant Avance:", req.body.montantAvance);
-
+    const { ficheNavette, idFacture, montantAvance, codechantier, Validateur } =
+      req.body;
+    if (montantAvance !== undefined) {
       const pool = await getConnection();
-
-     
-
-      await pool
-        .request()
-        .input("id", getSql().Int, req.params.id)
-        .input("ficheNavette", getSql().VarChar, ficheNavette)
-        .input("codechantier", getSql().VarChar, codechantier)
-        .input("idFacture", getSql().Int, idFacture)
-        .input("idfournisseur", getSql().Int, idfournisseur)
-        .input("montantAvance", getSql().Int, inputMontantAvance)
-        .input("annulation", getSql().VarChar, annulation)
-        .input("Validateur", getSql().VarChar, Validateur)
-        .query(factureFicheNavette.updateFactureQuery);
-
- 
       const result = await pool
         .request()
         .input("idFacture", getSql().Int, idFacture)
-        .query(factureFicheNavette.getMontantAvanceQuery);
+        .input("Validateur", getSql().VarChar, Validateur)
+        .query(FicheNavette.updateficheNavette);
 
-      const updatedMontantAvance = result.recordset[0].montantAvance;
-
-      
-      const ttcResult = await pool
-        .request()
-        .input("idFacture", getSql().Int, idFacture)
-        .query(factureFicheNavette.getTtcQuery);
-
-      let ttc = 0;
-
-      if (ttcResult.recordset.length > 0) {
-        ttc = ttcResult.recordset[0]?.TTC || 0;
+      if (result.recordset.length > 0) {
+        res.json({
+          id: req.params.id,
+          ficheNavette,
+          idFacture,
+          codechantier,
+          montantAvance: result.recordset[0].montantAvance,
+        });
+      } else {
+        res
+          .status(404)
+          .json({ error: "Aucun enregistrement trouvé pour la mise à jour." });
       }
-
-      
-      const netAPayer = ttc - updatedMontantAvance;
-
-  
-   
-      await pool
-        .request()
-        .input("netAPayer", getSql().Float, netAPayer)
-        .input("idFacture", getSql().Int, idFacture)
-        .query(factureFicheNavette.updateQuery);
-
-      console.log(`NetAPayer mis à jour pour idFacture ${idFacture}: ${netAPayer}`);
-
-      // Répondre avec les données mises à jour
-      res.json({
-        id: req.params.id,
-        ficheNavette,
-        idFacture,
-        codechantier,
-        montantAvance: updatedMontantAvance,
-      });
     } else {
-      // Si 'montantAvance' n'est pas spécifié, renvoyer une réponse d'erreur
-      res.status(400).json({ error: "Montant d'avance non spécifié dans la requête." });
+      res
+        .status(400)
+        .json({ error: "Montant d'avance non spécifié dans la requête." });
     }
   } catch (error) {
-    // Gérer les erreurs
+    console.error(error.message);
     res.status(500).send(error.message);
-    console.log(error.message);
   }
 };
-
-
-
-
-
-
-
-
