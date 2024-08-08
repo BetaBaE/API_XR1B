@@ -1,7 +1,10 @@
 exports.Fournisseurs = {
-  getFournisseurClean: `select * from DAF_FOURNISSEURS
-  where ICE is not null and catFournisseur is  not null
-and Identifiantfiscal is not null`,
+//   getFournisseurClean: `select * from DAF_FOURNISSEURS
+//   where ICE is not null and catFournisseur is  not null
+// and Identifiantfiscal is not null`,
+getFournisseurClean: `select * from DAF_FOURNISSEURS
+where   catFournisseur is  not null
+`,
   getNomfournisseur: `select  nom from DAF_FOURNISSEURS where nom  LIKE '%'+@nom+'%'`,
   getallfournisseurwithecheanceLoi: `
   select * from DAF_FOURNISSEURS

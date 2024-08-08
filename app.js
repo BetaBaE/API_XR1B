@@ -5,13 +5,14 @@ const morgen = require("morgan");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 
+// CORS middleware for handling Cross-Origin Resource Sharing
 app.use(
   cors({
-    origin: "*",
-    methods: ["GET", "PUT", "POST", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "Range"],
-    exposedHeaders: ["Content-Range", "X-Content-Range"],
-    credentials: true,
+    origin: "*", // Allow requests from any origin (you might want to restrict this in production)
+    methods: ["GET", "PUT", "POST", "DELETE"], // Allow these HTTP methods
+    allowedHeaders: ["Content-Type", "Authorization", "Range"], // Allow these headers in the request
+    exposedHeaders: ["Content-Range", "X-Content-Range"], // Allow these headers to be exposed
+    credentials: true, // Allow credentials to be sent with requests (e.g., cookies)
   })
 );
 
@@ -44,6 +45,7 @@ const EcheanceReel = require("./routers/EcheanceReel");
 const EcheanceLoi = require("./routers/EcheanceLoi");
 const avanceespece = require("./routers/AvanceEspeceRoute");
 const Attestaion = require("./routers/Attestaion");
+
 app.use("/", Attestaion);
 app.use("/", fournissues);
 app.use("/", virementsFond);

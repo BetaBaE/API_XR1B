@@ -1,47 +1,34 @@
 const sql = require("mssql");
-// const sql2 = require("mssql/msnodesqlv8");
-
-// const dbSettings2 = {
-//   database: "ATNER_DW",
-//   server: "YIHRAI-JJ53ODN\\LOCALHOST",
-//   driver: "msnodesqlv8",
-//   pool: {
-//     max: 10,
-//     min: 0,
-//     idleTimeoutMillis: 30000
-//   },
-//   options: {
-//     trustedConnection: true,
-//     requestTimeout: 300000 // délai d'attente de requête en millisecondes (par exemple 5 minutes)
-//   }
-// };
-
 
 const dbSettings = {
   user: "saisie.erp",
-  password: "Sage123+",
-  server: "192.168.1.202",
- database: "ATNER_DW",
+  password: "NouveauM0tDeP@ss!",
+  server: "10.111.1.68", // Adresse IP et port
+  database: "ATNER_DW",
   pool: {
     max: 10,
     min: 0,
-    idleTimeoutMillis: 30000
+    idleTimeoutMillis: 30000,
   },
   options: {
     encrypt: false,
-    trustServerCertificate: true
-  }
+    trustServerCertificate: true,
+  },
 };
 
 exports.getConnection = async () => {
   try {
     const pool = await sql.connect(dbSettings);
+    console.log("Connected to SQL Server");
     return pool;
   } catch (error) {
-    console.error(error);
+    console.error("Error connecting to SQL Server:", error);
   }
 };
 
 exports.getSql = () => {
   return sql;
 };
+
+// Test the connection
+exports.getConnection();
