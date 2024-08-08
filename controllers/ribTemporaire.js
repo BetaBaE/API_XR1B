@@ -1,6 +1,6 @@
 const { getConnection, getSql } = require("../database/connection");
-const { ribTemporaire } = require("../database/querys");
-const { createRibFournisseurs } = require("./ribFournisseurs");
+const { ribTemporaire } = require("../database/RibTemporaireQuery");
+const { createRibFournisseurs } = require("./RibFournisseurs");
 
 exports.getRibCount = async (req, res, next) => {
   try {
@@ -68,12 +68,12 @@ exports.getRibs = async (req, res) => {
 };
 
 exports.createRibs = async (req, res) => {
-  const { FournisseurId, rib,swift,banque,Redacteur,path_rib } = req.body;
-//  console.log("path_rib",path_rib.rawFile.path)
-// const RIB_fournisseur="\\10.200.1.20/03_Compta/02-Dossier Comptabilité/01-fichiers comptabilité/04-RIB DES FRS/"+path_rib.rawFile.path
-// const RIB_fournisseur="C:/Users/y.ihrai/Downloads/"+path_rib.rawFile.path
+  const { FournisseurId, rib, swift, banque, Redacteur, path_rib } = req.body;
+  //  console.log("path_rib",path_rib.rawFile.path)
+  // const RIB_fournisseur="\\10.200.1.20/03_Compta/02-Dossier Comptabilité/01-fichiers comptabilité/04-RIB DES FRS/"+path_rib.rawFile.path
+  // const RIB_fournisseur="C:/Users/y.ihrai/Downloads/"+path_rib.rawFile.path
 
-try {
+  try {
     const pool = await getConnection();
     await pool
       .request()
@@ -84,14 +84,14 @@ try {
       .input("Redacteur", getSql().VarChar, Redacteur)
       .query(ribTemporaire.createRibs);
     console.log("errour");
-    createRibFournisseurs(FournisseurId, rib, swift,banque,Redacteur);
+    createRibFournisseurs(FournisseurId, rib, swift, banque, Redacteur);
     res.json({
       id: "",
       FournisseurId,
       rib,
       swift,
       banque,
-      Redacteur
+      Redacteur,
     });
   } catch (error) {
     res.status(500);

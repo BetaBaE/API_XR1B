@@ -1,10 +1,10 @@
 const { getConnection, getSql } = require("../database/connection");
-const { ordervirements, virements } = require("../database/querys");
+const { ordervirements } = require("../database/OrderVirementQuery");
 const html_to_pdf = require("html-pdf-node");
 const fs = require("fs");
 const { ToWords } = require("to-words");
 const { DateTime } = require("mssql");
-
+// Ajoute des zéros aux nombres pour le formatage
 const addZerotonumbers = (num) => {
   let str = num.toString();
   if (str.includes(".")) {
@@ -21,6 +21,7 @@ const addZerotonumbers = (num) => {
   return str;
 };
 
+// Ajoute un zéro devant les nombres à un chiffre
 const addZero = (num) => {
   let str = num.toString();
   if (str.length === 1) {
@@ -29,7 +30,7 @@ const addZero = (num) => {
   }
   return str;
 };
-
+// Ajoute deux zéros devant les nombres
 const addTwoZero = (num) => {
   let str = num.toString();
   if (str.length === 1) {
@@ -41,7 +42,7 @@ const addTwoZero = (num) => {
   }
   return str;
 };
-
+// Récupère l'ordre de virements  par année
 const getOrderCountbyYear = async () => {
   try {
     const pool = await getConnection();
@@ -56,7 +57,7 @@ const getOrderCountbyYear = async () => {
     // res.send(error.message);
   }
 };
-
+// Middleware pour obtenir le nombre des ordre de virements
 exports.getOrderCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
@@ -70,7 +71,7 @@ exports.getOrderCount = async (req, res, next) => {
     res.send(error.message);
   }
 };
-
+// Génère un  id des ordres de virements
 const generateOvID = (id) => {
   let currentDate = new Date();
   let Id = addTwoZero(id);
@@ -80,9 +81,9 @@ const generateOvID = (id) => {
 
   return `OV${Id}-${day}-${month}-${year}`;
 };
-
+// Crée un nouvel ordre de virement
 exports.createOrderVirements = async (req, res) => {
-  const { ribAtner,Redacteur } = req.body;
+  const { ribAtner, Redacteur } = req.body;
   console.log(getOrderCountbyYear());
   try {
     const pool = await getConnection();
@@ -91,7 +92,7 @@ exports.createOrderVirements = async (req, res) => {
       .request()
       .input("id", getSql().VarChar, generateOvID(await getOrderCountbyYear()))
       .input("directeursigne", getSql().VarChar, req.body.directeursigne)
-      .input("Redacteur", getSql().VarChar,Redacteur)
+      .input("Redacteur", getSql().VarChar, Redacteur)
       .input("ribAtner", getSql().Int, ribAtner)
       .query(ordervirements.create);
     console.log("errour");
@@ -105,7 +106,7 @@ exports.createOrderVirements = async (req, res) => {
     res.send(error.message);
   }
 };
-
+// Récupère les ordres de virement
 exports.getorderVirements = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
@@ -161,6 +162,78 @@ exports.getorderVirements = async (req, res) => {
   }
 };
 
+async function updateRestitWhenAnnuleVirement(orderVirementId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("orderVirementId", getSql().VarChar, orderVirementId)
+
+      .query(ordervirements.updateRestitWhenAnnuleV);
+
+    console.log(
+      `${virements.updateRestitWhenAnnuleV} '${orderVirementId}' , '${nom}'`
+    );
+    return result.recordset;
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+async function ChangeEtatAnnulerAvanceFacture(orderVirementId) {
+  try {
+    const pool = await getConnection();
+
+    // Requête 1 : Mise à jour de DAF_Avance
+    let query1 = `
+      UPDATE DAF_Avance
+      SET Etat = 'AnnulerPaiement'
+      WHERE id IN (
+        SELECT idavance
+        FROM DAF_RestitAvance
+        WHERE Etat NOT IN ('Regler')
+          AND ModePaiement = @orderVirementId
+      )
+      AND etat NOT IN ('AnnulerSasie')
+    `;
+
+    // Requête 2 : Mise à jour de DAF_FactureSaisie
+    let query2 = `
+   UPDATE  fs
+SET  fs.AcompteReg -= rs.Montant
+FROM DAF_FactureSaisie fs
+INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
+WHERE rs.ModePaiement = @orderVirementId
+  AND rs.Etat  IN ('AnnulerPaiement');
+    `;
+
+    // Préparation des requêtes
+    const request1 = pool.request();
+    request1.input("orderVirementId", orderVirementId);
+
+    const request2 = pool.request();
+    request2.input("orderVirementId", orderVirementId);
+
+    // Exécution des requêtes
+    console.log("Requête SQL exécutée 1:", query1);
+    const result1 = await request1.query(query1);
+    console.log("Résultat de la requête 1:", result1);
+
+    console.log("Requête SQL exécutée 2:", query2);
+    const result2 = await request2.query(query2);
+    console.log("Résultat de la requête 2:", result2);
+
+    return {
+      result1: result1.recordset,
+      result2: result2.recordset,
+    };
+  } catch (error) {
+    console.error("Erreur lors de la modification de l'état :", error.message);
+    throw error;
+  }
+}
+// Met à jour un ordre de virement
+
 exports.updateOrderVirements = async (req, res) => {
   const { ribAtner, etat, directeursigne, dateExecution } = req.body;
   if (ribAtner == null || etat == null) {
@@ -178,38 +251,19 @@ exports.updateOrderVirements = async (req, res) => {
       .input("id", getSql().VarChar, req.params.id)
       .query(ordervirements.update);
 
-    if (etat == "Reglee") {
-      // await pool
-      //   .request()
-      //   .input("id", getSql().VarChar, req.params.id)
-      //   .query(ordervirements.updateVirements);
-      // await pool
-      //   .request()
-      //   .input("id", getSql().VarChar, req.params.id)
-      //   .query(ordervirements.updateLogFacture);
-      await pool
-        .request()
-        .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updateDateExecution);
-
-        await pool
-        .request()
-        .input("id", getSql().VarChar, req.params.id)
-        .query(ordervirements.updatvirementRegler);
-
-    } else if (etat == "Annule") {
+    if (etat == "Annule") {
+      updateRestitWhenAnnuleVirement(req.params.id);
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateVirementsAnnuler);
-    
-        await pool
+
+      await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateRasAnnuler);
-      
 
-        await pool
+      await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateLogFactureAnnuler);
@@ -218,6 +272,7 @@ exports.updateOrderVirements = async (req, res) => {
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirements.updateordervirementAnnuler);
     }
+    ChangeEtatAnnulerAvanceFacture(req.params.id);
 
     res.json({
       ribAtner,
@@ -230,7 +285,7 @@ exports.updateOrderVirements = async (req, res) => {
     res.send(error.message);
   }
 };
-
+// Récupère un ordre par son ID
 exports.getOneOrderById = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -247,7 +302,7 @@ exports.getOneOrderById = async (req, res) => {
     res.status(500);
   }
 };
-
+// Récupère les ordres de virement en cours
 exports.orderVirementsEnCours = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -264,7 +319,7 @@ exports.orderVirementsEnCours = async (req, res) => {
     res.status(500);
   }
 };
-
+// Récupère les états des ordres de virement
 exports.orderVirementsEtat = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -281,25 +336,26 @@ exports.orderVirementsEtat = async (req, res) => {
     res.status(500);
   }
 };
-
+// Imprime l'ordre de virement
 exports.PrintOrderVirement = async (req, res) => {
   const toWords = new ToWords({
     localeCode: "fr-FR",
     converterOptions: {
       currency: true,
       ignoreDecimal: false,
-      ignoreZeroCurrency: false ,
+      ignoreZeroCurrency: false,
       currencyOptions: {
         // can be used to override defaults for the selected locale
         // name: 'DIRHAMS',
-        plural: 'DIRHAMS',
+        plural: "DIRHAMS",
         fractionalUnit: {
           // name: 'CENTIMES',
-          plural: 'CENTIMES',
-          symbol: '',
+          plural: "CENTIMES",
+          symbol: "",
         },
       },
-    }});
+    },
+  });
 
   function numberWithSpaces(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -312,11 +368,11 @@ exports.PrintOrderVirement = async (req, res) => {
     body: [],
     edit: false,
     path: "",
-    resulsumvirement : function(data) {
-        // Fonction pour formater les données avec des virgules
-        return data.toLocaleString();
-    }
-};
+    resulsumvirement: function (data) {
+      // Fonction pour formater les données avec des virgules
+      return data.toLocaleString();
+    },
+  };
 
   let filter = req.query.ordervirment || "{}";
   filter = JSON.parse(filter);
@@ -374,8 +430,6 @@ exports.PrintOrderVirement = async (req, res) => {
       .input("ovId", getSql().VarChar, filter.id)
       .query(ordervirements.getBodyPrint);
     printData.body = result.recordset;
-   
-  
 
     let resultsumov = await pool
       .request()
@@ -386,52 +440,51 @@ exports.PrintOrderVirement = async (req, res) => {
     const wordToNumber = (x) => {
       let res = "";
       let to_words = toWords.convert(x).toLocaleUpperCase();
-  console.log("to_words",to_words)
+      console.log("to_words", to_words);
       if (to_words.includes("VIRGULE")) {
-          let [integerPart, decimalPart] = to_words.split("VIRGULE");
-  
-          // Vérifie si decimalPart est null et le remplace par une chaîne vide
-          decimalPart = decimalPart || "";
-  
-          // res = integerPart + " DIRHAMS";
-          res = integerPart ;
-          // Traitement de la partie décimale
-          if (decimalPart) {
-              let decimalInWords = "";
-                  if (decimalPart.trim() === "UN") {
-                    decimalInWords = "DIX CENTIMES";
-                } else if (decimalPart.trim() === "DEUX") {
-                    decimalInWords = "VINGT CENTIMES";
-                } else if (decimalPart.trim() === "TROIS") {
-                    decimalInWords = "TRENTE CENTIMES";
-                } else if (decimalPart.trim() === "QUATRE") {
-                    decimalInWords = "QUARANTE CENTIMES";
-                } else if (decimalPart.trim() === "CINQ") {
-                    decimalInWords = "CINQUANTE CENTIMES";
-                } else if (decimalPart.trim() === "SIX") {
-                    decimalInWords = "SOIXANTE CENTIMES";
-                } else if (decimalPart.trim() === "SEPT") {
-                    decimalInWords = "SOIXANTE-DIX CENTIMES";
-                } else if (decimalPart.trim() === "HUIT") {
-                    decimalInWords = "QUATRE-VINGTS CENTIMES";
-                } else if (decimalPart.trim() === "NEUF") {
-                    decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
-                } else {
-                  // decimalInWords =decimalPart + " CENTIMES";
-                  decimalInWords =decimalPart ;
-                }
-  
-              // res += " ET " + decimalInWords;
+        let [integerPart, decimalPart] = to_words.split("VIRGULE");
+
+        // Vérifie si decimalPart est null et le remplace par une chaîne vide
+        decimalPart = decimalPart || "";
+
+        // res = integerPart + " DIRHAMS";
+        res = integerPart;
+        // Traitement de la partie décimale
+        if (decimalPart) {
+          let decimalInWords = "";
+          if (decimalPart.trim() === "UN") {
+            decimalInWords = "DIX CENTIMES";
+          } else if (decimalPart.trim() === "DEUX") {
+            decimalInWords = "VINGT CENTIMES";
+          } else if (decimalPart.trim() === "TROIS") {
+            decimalInWords = "TRENTE CENTIMES";
+          } else if (decimalPart.trim() === "QUATRE") {
+            decimalInWords = "QUARANTE CENTIMES";
+          } else if (decimalPart.trim() === "CINQ") {
+            decimalInWords = "CINQUANTE CENTIMES";
+          } else if (decimalPart.trim() === "SIX") {
+            decimalInWords = "SOIXANTE CENTIMES";
+          } else if (decimalPart.trim() === "SEPT") {
+            decimalInWords = "SOIXANTE-DIX CENTIMES";
+          } else if (decimalPart.trim() === "HUIT") {
+            decimalInWords = "QUATRE-VINGTS CENTIMES";
+          } else if (decimalPart.trim() === "NEUF") {
+            decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
+          } else {
+            // decimalInWords =decimalPart + " CENTIMES";
+            decimalInWords = decimalPart;
           }
+
+          // res += " ET " + decimalInWords;
+        }
       } else {
-          res = to_words ;
+        res = to_words;
       }
-  
+
       return res;
-  };
-  
-  
-  console.log("printData:",printData)
+    };
+
+    console.log("printData:", printData);
 
     printData.body.forEach((virement, index) => {
       trdata += `
@@ -569,7 +622,7 @@ exports.PrintOrderVirement = async (req, res) => {
                 ${wordToNumber(printData.resulsumvirement)}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-              printData.resulsumvirement
+                printData.resulsumvirement
               )}</th>
             </tfoot>
           </table>
@@ -625,12 +678,12 @@ exports.getfacturebyordervirement = async (req, res) => {
       .request()
       .input("id", getSql().VarChar, req.params.id)
       .query(ordervirements.getfacturebyordervirement);
-     console.log(`${ordervirements.getfacturebyordervirement}`,req.params.id)
-      console.log("ordervirement id",)
+    console.log(`${ordervirements.getfacturebyordervirement}`, req.params.id);
+    console.log("ordervirement id");
     res.set("Content-Range", `cahntier 0-1/1`);
 
     res.json(result.recordset);
-    console.log(result.recordset)
+    console.log(result.recordset);
   } catch (error) {
     res.send(error.message);
     res.status(500);

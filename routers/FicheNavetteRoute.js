@@ -1,19 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const { CreateFicheNavette, getFactureCount, getFacture, getfactureresById, updatenavette, getficheNavetteByfournisseur, getavanceByfournisseur, getsumavancebyfournisseurwithfn, correction, annulation, getBonLivraisonByFactureId } = require("../controllers/FicheNavette");
+const {
+  CreateFicheNavette,
 
+  getDocById,
+  UpdateorAnnuler,
+  getFicheNavetteCount,
+  getFicheNavette,
+} = require("../controllers/FicheNavette");
 router.post("/FicheNavette", CreateFicheNavette);
-router.get("/FicheNavette/:id", getfactureresById);
-router.put("/FicheNavette/:id", updatenavette);
-router.get("/FicheNavette", getFactureCount, getFacture);
-router.get("/getficheNavettebyfournisseur/:id", getficheNavetteByfournisseur);
-router.get("/getavancebyfournisseur/:idfournisseur", getavanceByfournisseur);
-router.get("/getsumavancebyfournisseur/:id",getsumavancebyfournisseurwithfn);
-router.get("/ModificationFichnavette", getFactureCount, getFacture);
-router.get("/ModificationFichnavette/:id", getfactureresById);
-router.put("/ModificationFichnavette/:id", correction);
-router.patch("/AnnulationFn", annulation);
-router.get('/FicheNavette/:factureId/BonLivraison', getBonLivraisonByFactureId);
-
-
+router.get("/FicheNavette", getFicheNavetteCount, getFicheNavette);
+// router.get("/ModificationFichnavette", getDocCount, getDoc);
+router.get("/FicheNavette/:id", getDocById);
+router.put("/FicheNavette/:id", UpdateorAnnuler);
 module.exports = router;

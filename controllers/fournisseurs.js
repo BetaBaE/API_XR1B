@@ -1,40 +1,47 @@
 const { getConnection, getSql } = require("../database/connection");
-const { Fournisseurs } = require("../database/querys");
+const { Fournisseurs } = require("../database/FournisseurQuery");
 
+// Récupérer le nombre total de fournisseurs
 exports.getFournisseursCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .query(Fournisseurs.getFournisseursCount);
-    req.count = result.recordset[0].count;
-    next();
+    req.count = result.recordset[0].count; // Stocker le compte des fournisseurs
+    next(); // Passer au middleware suivant
   } catch (error) {
     res.status(500);
     console.log(error.message);
-    res.send(error.message);
+    res.send(error.message); // Retourner l'erreur
   }
 };
 
+// Récupérer les fournisseurs avec pagination et tri
 exports.getFournissuers = async (req, res) => {
   try {
-    let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["id" , "ASC"]';
-    let filter = req.query.filter || "{}";
+    let range = req.query.range || "[0,9]"; // Définir la plage par défaut
+    let sort = req.query.sort || '["id", "ASC"]'; // Définir le tri par défaut
+    let filter = req.query.filter || "{}"; // Définir les filtres par défaut
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
     console.log(filter);
+
     let queryFilter = "";
+    // Ajouter un filtre sur le nom si présent
     if (filter.nom) {
       queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
     }
+    // Ajouter un filtre sur le code fournisseur si présent
     if (filter.codeFournisseur) {
       queryFilter += ` and upper(fou.codeFournisseur) like('%${filter.codeFournisseur}%')`;
     }
     console.log(queryFilter);
+
     const pool = await getConnection();
 
+    // Exécuter la requête pour récupérer les fournisseurs
     const result = await pool.request().query(
       `${Fournisseurs.getAllFournisseurs} ${queryFilter} Order by ${sort[0]} ${
         sort[1]
@@ -54,10 +61,10 @@ exports.getFournissuers = async (req, res) => {
   }
 };
 
+// Récupérer tous les fournisseurs sans pagination
 exports.getAllFournissuers = async (req, res) => {
   try {
     const pool = await getConnection();
-
     const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
 
     res.set("Content-Range", `fournisseurs 0-${req.count - 1}/${req.count}`);
@@ -68,9 +75,19 @@ exports.getAllFournissuers = async (req, res) => {
   }
 };
 
+// Créer un nouveau fournisseur
 exports.createFournisseurs = async (req, res) => {
-  const { CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE
-  ,Redacteur,catFournisseur,exonorer
+  const {
+    CodeFournisseur,
+    nom,
+    Echeance,
+    IF,
+    mail,
+    addresse,
+    ICE,
+    Redacteur,
+    catFournisseur,
+    exonorer,
   } = req.body;
 
   try {
@@ -81,7 +98,6 @@ exports.createFournisseurs = async (req, res) => {
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
       .input("nom", getSql().VarChar, nom)
       .input("catFournisseur", getSql().VarChar, catFournisseur)
-    
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
       .input("addresse", getSql().VarChar, addresse)
@@ -89,30 +105,27 @@ exports.createFournisseurs = async (req, res) => {
       .input("Redacteur", getSql().VarChar, Redacteur)
       .input("exonorer", getSql().VarChar, exonorer)
       .query(Fournisseurs.createFournisseur);
+
     console.log("success");
     res.json({
       id: "",
-      CodeFournisseur, nom ,Echeance,IF,mail,addresse,ICE,exonorer
+      CodeFournisseur,
+      nom,
+      Echeance,
+      IF,
+      mail,
+      addresse,
+      ICE,
+      exonorer,
     });
   } catch (error) {
-    
-    // switch (error.originalError.info.number) {
-    //   case 547:
-    //       error.message = "date invalid";
-    //       break;
-    //     case 2627:
-    //       error.message = "déja existe";
-    //       break;
-    //   }
-      
-      res.status(500);
-      res.send(error.message);
-  console.log(error.message)
-  
-  
-    }
+    res.status(500);
+    res.send(error.message);
+    console.log(error.message);
+  }
 };
 
+// Récupérer les RIB des fournisseurs valides
 exports.getRibsFournisseurValid = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -133,6 +146,7 @@ exports.getRibsFournisseurValid = async (req, res) => {
   }
 };
 
+// Récupérer les RIB d'un fournisseur spécifique basé sur l'ID
 exports.FournisseursRibValid = async (req, res) => {
   let filter = req.query.ordervirment || "{}";
   filter = JSON.parse(filter);
@@ -144,8 +158,8 @@ exports.FournisseursRibValid = async (req, res) => {
       .request()
       .input("ovId", getSql().VarChar, filter.id)
       .query(Fournisseurs.RibsFournisseurValid);
-    res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
 
+    res.set("Content-Range", `fournisseurs 0 - ${req.count}/${req.count}`);
     res.json(result.recordset);
   } catch (error) {
     res.send(error.message);
@@ -153,10 +167,7 @@ exports.FournisseursRibValid = async (req, res) => {
   }
 };
 
-
-
-
-
+// Récupérer un fournisseur par son ID
 exports.getfournisseurById = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -166,7 +177,6 @@ exports.getfournisseurById = async (req, res) => {
       .query(Fournisseurs.getOne);
 
     res.set("Content-Range", `factures 0-1/1`);
-
     res.json(result.recordset[0]);
   } catch (error) {
     res.send(error.message);
@@ -174,30 +184,19 @@ exports.getfournisseurById = async (req, res) => {
   }
 };
 
-
+// Mettre à jour un fournisseur existant
 exports.updatefournisseur = async (req, res) => {
-  const { 
-    CodeFournisseur,
-    nom,
-   ICE,
-   IF,
-  addresse,
-  mail,
-  catFournisseur,
-  exonorer
-} =
+  const { ICE, Identifiantfiscal, addresse, mail, catFournisseur, exonorer } =
     req.body;
+
   try {
     const pool = await getConnection();
 
     await pool
       .request()
-
       .input("id", getSql().Int, req.params.id)
-     .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
-      .input("nom", getSql().VarChar, nom)
       .input("ICE", getSql().VarChar, ICE)
-      .input("IF", getSql().VarChar, IF)
+      .input("Identifiantfiscal", getSql().VarChar, Identifiantfiscal)
       .input("addresse", getSql().VarChar, addresse)
       .input("mail", getSql().VarChar, mail)
       .input("catFournisseur", getSql().VarChar, catFournisseur)
@@ -206,24 +205,20 @@ exports.updatefournisseur = async (req, res) => {
 
     res.json({
       id: req.params.id,
-      CodeFournisseur,
-      nom,
-        ICE,
-        IF,
-     addresse,
-       mail,
-       catFournisseur,
-       exonorer
+      ICE,
+      Identifiantfiscal,
+      addresse,
+      mail,
+      catFournisseur,
+      exonorer,
     });
   } catch (error) {
-   
-
     res.status(500);
     res.send(error.message);
   }
 };
 
-
+// Récupérer tous les fournisseurs ayant une échéance
 exports.getfournisseurwithecheance = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -244,9 +239,9 @@ exports.getfournisseurwithecheance = async (req, res) => {
   }
 };
 
-/* get fournisseur nomination */
+/* Récupérer le fournisseur par nom */
 exports.getNomfournisseur = async (req, res) => {
-  const {nom} = req.body;
+  const { nom } = req.body;
   console.log("req.body", req.body);
   try {
     const pool = await getConnection();
@@ -254,6 +249,7 @@ exports.getNomfournisseur = async (req, res) => {
       .request()
       .input("nom", getSql().VarChar, nom)
       .query(Fournisseurs.getNomfournisseur);
+
     console.log(req.count);
     res.set(
       "Content-Range",
@@ -266,9 +262,7 @@ exports.getNomfournisseur = async (req, res) => {
   }
 };
 
-
-
-
+// Récupérer tous les fournisseurs "propres" qui ont ice IF , Catégorie
 exports.getAllFournissuersClean = async (req, res) => {
   try {
     const pool = await getConnection();

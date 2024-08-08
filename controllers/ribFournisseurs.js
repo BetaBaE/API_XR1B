@@ -1,7 +1,13 @@
 const { getConnection, getSql } = require("../database/connection");
-const { ribFournisseur } = require("../database/querys");
+const { ribFournisseur } = require("../database/RibFournisseurQuery");
 
-exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque,Redacteur) => {
+exports.createRibFournisseurs = async (
+  FournisseurId,
+  rib,
+  swift,
+  banque,
+  Redacteur
+) => {
   try {
     const pool = await getConnection();
 
@@ -13,7 +19,7 @@ exports.createRibFournisseurs = async (FournisseurId, rib,swift,banque,Redacteur
       .input("Redacteur", getSql().VarChar, Redacteur)
       .input("banque", getSql().VarChar, banque)
       // .input("path_rib", getSql().VarChar, path_rib)
-    
+
       .query(ribFournisseur.create);
   } catch (error) {
     console.log(error);
@@ -80,7 +86,8 @@ exports.getRibFCount = async (req, res, next) => {
 };
 
 exports.updateRibsFournisseurs = async (req, res) => {
-  const { FournisseurId, rib, validateur,swift, banque, validation } = req.body;
+  const { FournisseurId, rib, validateur, swift, banque, validation } =
+    req.body;
   if (FournisseurId == null || rib == null) {
     return res.status(400).json({ error: "all field is required" });
   }
@@ -89,7 +96,7 @@ exports.updateRibsFournisseurs = async (req, res) => {
 
     await pool
       .request()
-      
+
       .input("FournisseurId", getSql().Int, FournisseurId)
       .input("validation", getSql().VarChar, validation)
       .input("rib", getSql().VarChar, rib)
@@ -115,7 +122,7 @@ exports.updateRibsFournisseurs = async (req, res) => {
       validation,
       swift,
       banque,
-      validateur
+      validateur,
     });
   } catch (error) {
     res.status(500);

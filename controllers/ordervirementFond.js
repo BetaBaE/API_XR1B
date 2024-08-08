@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { ordervirementsFond, virements } = require("../database/querys");
+const { ordervirementsFond } = require("../database/ordervirementsFondQuery");
 const html_to_pdf = require("html-pdf-node");
 const fs = require("fs");
 const { ToWords } = require("to-words");
@@ -45,7 +45,9 @@ const addTwoZero = (num) => {
 const getOrderCountbyYear = async () => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query(ordervirementsFond.getCountByYear);
+    const result = await pool
+      .request()
+      .query(ordervirementsFond.getCountByYear);
     // req.countyear = result.recordset[0].count;
     console.log(ordervirementsFond.getCountByYear);
     // console.log(req.countyear);
@@ -82,7 +84,7 @@ const generateOvID = (id) => {
 };
 
 exports.createOrderVirementsFond = async (req, res) => {
-  const { ribAtner,Redacteur } = req.body;
+  const { ribAtner, Redacteur } = req.body;
   console.log(getOrderCountbyYear());
   try {
     const pool = await getConnection();
@@ -91,7 +93,7 @@ exports.createOrderVirementsFond = async (req, res) => {
       .request()
       .input("id", getSql().VarChar, generateOvID(await getOrderCountbyYear()))
       .input("directeursigne", getSql().VarChar, req.body.directeursigne)
-      .input("Redacteur", getSql().VarChar,Redacteur)
+      .input("Redacteur", getSql().VarChar, Redacteur)
       .input("ribAtner", getSql().Int, ribAtner)
 
       .query(ordervirementsFond.create);
@@ -140,14 +142,16 @@ exports.getorderVirementsFond = async (req, res) => {
     console.log(queryFilter);
 
     const pool = await getConnection();
-    console.log(`${ordervirementsFond.getAll} ${queryFilter} Order by ${sort[0]} ${
-      sort[1]
-    }
+    console.log(`${ordervirementsFond.getAll} ${queryFilter} Order by ${
+      sort[0]
+    } ${sort[1]}
         OFFSET ${range[0]} ROWS FETCH NEXT ${
       range[1] + 1 - range[0]
     } ROWS ONLY`);
     const result = await pool.request().query(
-      `${ordervirementsFond.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
+      `${ordervirementsFond.getAll} ${queryFilter} Order by ${sort[0]} ${
+        sort[1]
+      }
         OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
     res.set(
@@ -183,28 +187,23 @@ exports.updateOrderVirementsFond = async (req, res) => {
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirementsFond.updateVirements);
-      await pool
-        .request()
-        .input("id", getSql().VarChar, req.params.id)
+      await pool.request().input("id", getSql().VarChar, req.params.id);
 
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirementsFond.updateDateExecution);
 
-        await pool
+      await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirementsFond.updatvirementRegler);
-
-
-
     } else if (etat == "Annule") {
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirementsFond.updateVirementsAnnuler);
-   
+
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)
@@ -273,7 +272,6 @@ exports.orderVirementsEtatFond = async (req, res) => {
   }
 };
 
-
 exports.getfacturebyordervirement = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -282,20 +280,17 @@ exports.getfacturebyordervirement = async (req, res) => {
       .request()
       .input("id", getSql().VarChar, req.params.id)
       .query(ordervirements.getfacturebyordervirement);
-     console.log(`${ordervirements.getfacturebyordervirement}`,req.params.id)
-      console.log("ordervirement id",)
+    console.log(`${ordervirements.getfacturebyordervirement}`, req.params.id);
+    console.log("ordervirement id");
     res.set("Content-Range", `cahntier 0-1/1`);
 
     res.json(result.recordset);
-    console.log(result.recordset)
+    console.log(result.recordset);
   } catch (error) {
     res.send(error.message);
     res.status(500);
   }
 };
-
-
-
 
 exports.PrintOrderVirementFond = async (req, res) => {
   const toWords = new ToWords({
@@ -374,53 +369,49 @@ exports.PrintOrderVirementFond = async (req, res) => {
     const wordToNumber = (x) => {
       let res = "";
       let to_words = toWords.convert(x).toLocaleUpperCase();
-  
-      if (to_words.includes("VIRGULE")) {
-          let [integerPart, decimalPart] = to_words.split("VIRGULE");
-  
-          // Vérifie si decimalPart est null et le remplace par une chaîne vide
-          decimalPart = decimalPart || "";
-  
-          res = integerPart + " DIRHAMS";
-  
-          // Traitement de la partie décimale
-          if (decimalPart) {
-              let decimalInWords = "";
-          
 
-                  if (decimalPart.trim() === "UN") {
-                    decimalInWords = "DIX CENTIMES";
-                } else if (decimalPart.trim() === "DEUX") {
-                    decimalInWords = "VINGT CENTIMES";
-                } else if (decimalPart.trim() === "TROIS") {
-                    decimalInWords = "TRENTE CENTIMES";
-                } else if (decimalPart.trim() === "QUATRE") {
-                    decimalInWords = "QUARANTE CENTIMES";
-                } else if (decimalPart.trim() === "CINQ") {
-                    decimalInWords = "CINQUANTE CENTIMES";
-                } else if (decimalPart.trim() === "SIX") {
-                    decimalInWords = "SOIXANTE CENTIMES";
-                } else if (decimalPart.trim() === "SEPT") {
-                    decimalInWords = "SOIXANTE-DIX CENTIMES";
-                } else if (decimalPart.trim() === "HUIT") {
-                    decimalInWords = "QUATRE-VINGTS CENTIMES";
-                } else if (decimalPart.trim() === "NEUF") {
-                    decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
-                } else {
-                  decimalInWords =decimalPart + " CENTIMES";
-              }
-  
-              res += " ET " + decimalInWords;
+      if (to_words.includes("VIRGULE")) {
+        let [integerPart, decimalPart] = to_words.split("VIRGULE");
+
+        // Vérifie si decimalPart est null et le remplace par une chaîne vide
+        decimalPart = decimalPart || "";
+
+        res = integerPart + " DIRHAMS";
+
+        // Traitement de la partie décimale
+        if (decimalPart) {
+          let decimalInWords = "";
+
+          if (decimalPart.trim() === "UN") {
+            decimalInWords = "DIX CENTIMES";
+          } else if (decimalPart.trim() === "DEUX") {
+            decimalInWords = "VINGT CENTIMES";
+          } else if (decimalPart.trim() === "TROIS") {
+            decimalInWords = "TRENTE CENTIMES";
+          } else if (decimalPart.trim() === "QUATRE") {
+            decimalInWords = "QUARANTE CENTIMES";
+          } else if (decimalPart.trim() === "CINQ") {
+            decimalInWords = "CINQUANTE CENTIMES";
+          } else if (decimalPart.trim() === "SIX") {
+            decimalInWords = "SOIXANTE CENTIMES";
+          } else if (decimalPart.trim() === "SEPT") {
+            decimalInWords = "SOIXANTE-DIX CENTIMES";
+          } else if (decimalPart.trim() === "HUIT") {
+            decimalInWords = "QUATRE-VINGTS CENTIMES";
+          } else if (decimalPart.trim() === "NEUF") {
+            decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
+          } else {
+            decimalInWords = decimalPart + " CENTIMES";
           }
+
+          res += " ET " + decimalInWords;
+        }
       } else {
-          res = to_words + " DIRHAMS";
+        res = to_words + " DIRHAMS";
       }
-  
+
       return res;
-  };
-  
-  
-  
+    };
 
     printData.body.forEach((virement, index) => {
       trdata += `
@@ -558,7 +549,7 @@ exports.PrintOrderVirementFond = async (req, res) => {
                 ${wordToNumber(printData.header[0].total)}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-              printData.header[0].totalformater
+                printData.header[0].totalformater
               )}</th>
             </tfoot>
           </table>

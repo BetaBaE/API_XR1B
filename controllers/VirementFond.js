@@ -1,7 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { virementsFond } = require("../database/querys");
-
-
+const { virementsFond } = require("../database/VirementsFondQuery");
 
 async function AddToTotalOv(number, id) {
   try {
@@ -11,7 +9,7 @@ async function AddToTotalOv(number, id) {
       .query(
         `update [DAF_Order_virements_Fond] set total = total+${number} ,tailleOvPrint=tailleOvPrint+1  where id ='${id}'`
       );
-console.log("id",id)
+    console.log("id", id);
     return result.recordset;
   } catch (error) {
     console.error(error.message);
@@ -32,7 +30,6 @@ async function MiunsFromTotalOv(number, id) {
   }
 }
 
-
 exports.getVirementFondCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
@@ -52,20 +49,22 @@ exports.createVirementsFond = async (req, res) => {
     const result = await pool
       .request()
       .input("Redacteur", getSql().VarChar, req.body.Redacteur)
-      .input("orderVirementFondId", getSql().VarChar, req.body.orderVirementFondId)
+      .input(
+        "orderVirementFondId",
+        getSql().VarChar,
+        req.body.orderVirementFondId
+      )
       .input("RibAtnerDestId", getSql().Int, req.body.RibAtnerDestId)
       .input("montantVirement", getSql().Float, req.body.montantVirement)
       .query(virementsFond.create);
-    
+
     await AddToTotalOv(req.body.montantVirement, req.body.orderVirementFondId);
-    res.json({ id:"", montantVirement: req.body.montantVirement });
+    res.json({ id: "", montantVirement: req.body.montantVirement });
   } catch (error) {
     res.status(500).send(error);
-  console.log(error)
+    console.log(error);
   }
 };
-
-
 
 exports.getVirementsFond = async (req, res) => {
   try {
@@ -130,7 +129,6 @@ exports.updateVirmeentsFond = async (req, res) => {
       .query(virementsFond.update);
     if (Etat === "Annuler") {
       MiunsFromTotalOv(montantVirement, orderVirementId);
-     
     }
     res.json({
       id: req.params.id,

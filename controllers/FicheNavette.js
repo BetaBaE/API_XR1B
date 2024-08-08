@@ -1,12 +1,8 @@
 const { getConnection, getSql } = require("../database/connection");
-const {
-  FicheNavette,
-  factures,
-  BonLivraison,
-  factureSaisie,
-} = require("../database/querys");
 
-exports.getFactureCount = async (req, res, next) => {
+const { FicheNavette } = require("../database/FicheNavetteQuery");
+
+exports.getFicheNavetteCount = async (req, res, next) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(FicheNavette.getCount);
@@ -18,7 +14,7 @@ exports.getFactureCount = async (req, res, next) => {
     res.send(error.message);
   }
 };
-exports.getFacture = async (req, res) => {
+exports.getFicheNavette = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
     let sort = req.query.sort || '["id" , "desc"]';
@@ -65,7 +61,7 @@ exports.getFacture = async (req, res) => {
     console.log(req.count);
     res.set(
       "Content-Range",
-      `facturesresptionne ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+      `DOC ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
     res.json(result.recordset);
   } catch (error) {
@@ -83,7 +79,6 @@ exports.CreateFicheNavette = async (req, res) => {
     service,
     fullName,
     Bcommande,
-    CatFn,
     TTC,
     HT,
     MontantTVA,
@@ -108,12 +103,9 @@ exports.CreateFicheNavette = async (req, res) => {
     );
 
     if (existingCompositionResult.recordset.length > 0) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "La composition existe déjà dans la table daf_factureNavette",
-        });
+      return res.status(400).json({
+        message: "La composition existe déjà dans la table daf_factureNavette",
+      });
     }
 
     let modifiedFicheNavette = ficheNavette;
@@ -131,7 +123,6 @@ exports.CreateFicheNavette = async (req, res) => {
       .input("modifiedFicheNavette", getSql().VarChar, modifiedFicheNavette)
       .input("Bcommande", getSql().VarChar, Bcommande)
       .input("fullName", getSql().VarChar, fullName)
-      .input("CatFn", getSql().VarChar, CatFn)
       .input("TTC", getSql().Numeric(10, 2), TTC)
       .input("HT", getSql().Numeric(10, 2), HT)
       .input("MontantTVA", getSql().Numeric(10, 2), MontantTVA)
@@ -144,7 +135,6 @@ exports.CreateFicheNavette = async (req, res) => {
       ficheNavette: modifiedFicheNavette,
       idfournisseur,
       montantAvance,
-      CatFn,
       TTC,
       HT,
       MontantTVA,
@@ -156,15 +146,15 @@ exports.CreateFicheNavette = async (req, res) => {
   }
 };
 
-exports.getfactureresById = async (req, res) => {
+exports.getDocById = async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("id", getSql().VarChar, req.params.id)
-      .query(FicheNavette.getOne);
+      .query(FicheNavette.getone);
 
-    res.set("Content-Range", `factures 0-1/1`);
+    res.set("Content-Range", `AvanceFacture 0-1/1`);
 
     res.json(result.recordset[0]);
   } catch (error) {
@@ -172,42 +162,7 @@ exports.getfactureresById = async (req, res) => {
     res.status(500);
   }
 };
-exports.getficheNavetteByfournisseur = async (req, res) => {
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", getSql().VarChar, req.params.id)
-      .query(factures.getficheNavetebyfournisseur);
 
-    res.set("Content-Range", `ficheNavette 0-1/1`);
-
-    res.json(result.recordset);
-  } catch (error) {
-    res.send(error.message);
-    res.status(500);
-  }
-};
-
-exports.getavanceByfournisseur = async (req, res) => {
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("idfournisseur", getSql().VarChar, req.params.idfournisseur)
-      .query(FicheNavette.getavancebyfournisseur);
-
-    if (result.recordset) {
-      res.set("Content-Range", `ficheNavette 0-1/1`);
-      res.json(result.recordset);
-    } else {
-      res.json([]);
-    }
-  } catch (error) {
-    res.send(error.message);
-    res.status(500);
-  }
-};
 exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -226,140 +181,35 @@ exports.getsumavancebyfournisseurwithfn = async (req, res) => {
   }
 };
 
-exports.correction = async (req, res) => {
-  const {
-    ficheNavette,
-    idFacture,
-    montantAvance,
-    idfournisseur,
-    codechantier,
-    BonCommande,
-    annulation,
-    Validateur,
-    CatFn,
-  } = req.body;
+exports.UpdateorAnnuler = async (req, res) => {
+  const { ficheNavette, codechantier, BonCommande, annulation, CatFn } =
+    req.body;
   try {
     const pool = await getConnection();
-    await pool
+    const request = pool
       .request()
       .input("id", getSql().Int, req.params.id)
       .input("ficheNavette", getSql().VarChar, ficheNavette)
-      .input("codechantier", getSql().VarChar, codechantier)
-      .input("idFacture", getSql().Int, idFacture)
-      .input("idfournisseur", getSql().Int, idfournisseur)
-      .input("montantAvance", getSql().Int, montantAvance)
       .input("BonCommande", getSql().VarChar, BonCommande)
       .input("annulation", getSql().VarChar, annulation)
-      .input("Validateur", getSql().VarChar, Validateur)
-      .input("CatFn", getSql().VarChar, CatFn)
-      .query(FicheNavette.update);
+      .input("CatFn", getSql().VarChar, CatFn);
+
     if (annulation === "Annuler") {
-      updateFNWhenAnnuleVirement(req.params.id);
+      await request.query(FicheNavette.AnnulationFnAvance);
+    } else {
+      await request.query(FicheNavette.update);
     }
 
     res.json({
       id: req.params.id,
       ficheNavette,
-      idFacture,
       codechantier,
-      montantAvance,
+      BonCommande,
       annulation,
       CatFn,
     });
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    res.status(500).send(error.message);
     console.log(error.message);
-  }
-};
-
-exports.annulation = async (req, res) => {
-  const { id } = req.body;
-  try {
-    const pool = await getConnection();
-    await pool
-      .request()
-      .input("id", getSql().Int, id)
-
-      .query(FicheNavette.annulationFn);
-
-    res.json({
-      message: "Annulation réussie",
-    });
-  } catch (error) {
-    res.status(500).send(error.message);
-    console.error(error.message);
-  }
-};
-
-async function updateFNWhenAnnuleVirement(id) {
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", getSql().VarChar, id)
-
-      .query(FicheNavette.annulationFn);
-
-    console.log(`${factureFicheNavette.annulationFn}` + "ma requete");
-    return result.recordset;
-  } catch (error) {
-    console.error(error.message);
-  }
-}
-
-exports.getBonLivraisonByFactureId = async (req, res) => {
-  const factureId = req.params.id;
-
-  try {
-    const bonLivraisons = await BonLivraison.findAll({
-      where: { idFacture: factureId },
-    });
-
-    res.json(bonLivraisons);
-    console.log("gh", bonLivraisons);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-};
-
-exports.updatenavette = async (req, res) => {
-  try {
-    const {
-      ficheNavette,
-      idFacture,
-      montantAvance: inputMontantAvance,
-      idfournisseur,
-      codechantier,
-      annulation,
-      Validateur,
-    } = req.body;
-
-    // Vérifier si montantAvance est spécifié dans la requête
-    if (inputMontantAvance !== undefined) {
-      const result = await pool
-        .request()
-        .input("idFacture", getSql().Int, idFacture)
-        .input("Validateur", getSql().VarChar, Validateur)
-        .query(FicheNavette.updateficheNavette);
-
-      res.json({
-        id: req.params.id,
-        ficheNavette,
-        idFacture,
-        codechantier,
-        montantAvance: updatedMontantAvance,
-      });
-    } else {
-      // Si 'montantAvance' n'est pas spécifié, renvoyer une réponse d'erreur
-      res
-        .status(400)
-        .json({ error: "Montant d'avance non spécifié dans la requête." });
-    }
-  } catch (error) {
-    // Gérer les erreurs
-    console.error(error.message);
-    res.status(500).send(error.message);
   }
 };
