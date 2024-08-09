@@ -27,28 +27,10 @@ exports.getAvance = async (req, res) => {
     let queryFilter = "";
 
     if (filter.ficheNavette) {
-      queryFilter += ` and upper(fou.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
-    }
-    if (filter.chantier) {
-      queryFilter += ` and upper(fou.LIBELLE) like (upper('%${filter.chantier}%'))`;
-    }
-
-    if (filter.BonCommande) {
-      queryFilter += ` and upper(BonCommande)  like ('%${filter.BonCommande}%')`;
+      queryFilter += ` and upper(fn.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
     }
     if (filter.fournisseur) {
       queryFilter += ` and upper(fou.nom) like (upper('%${filter.fournisseur}%'))`;
-    }
-
-    if (filter.designation) {
-      queryFilter += ` and upper(designation) like (upper('%${filter.designation}%'))`;
-    }
-
-    if (filter.numeroFacture) {
-      queryFilter += ` and upper(fou.numeroFacture)  like ('%${filter.numeroFacture}%')`;
-    }
-    if (filter.CodeFournisseur) {
-      queryFilter += ` and upper(CodeFournisseur) like (upper('%${filter.CodeFournisseur}%'))`;
     }
     console.log(queryFilter);
     const pool = await getConnection();
