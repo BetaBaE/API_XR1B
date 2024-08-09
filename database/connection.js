@@ -17,7 +17,7 @@ const sql = require("mssql");
 
 const dbSettings = {
   user: "saisie.erp",
-  password: "NouveauM0tDeP@ss!",
+  password: "Sage123+",
   server: "10.111.1.68",
   database: "ATNER_DW",
   pool: {
