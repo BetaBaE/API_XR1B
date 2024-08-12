@@ -191,7 +191,7 @@ async function ChangeEtatAnnulerAvanceFacture(orderVirementId) {
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
-        WHERE Etat NOT IN ('Regler')
+        WHERE Etat NOT IN ('Reglee')
           AND ModePaiement = @orderVirementId
       )
       AND etat NOT IN ('AnnulerSasie')

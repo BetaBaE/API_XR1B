@@ -1,7 +1,7 @@
 const sql = require("mssql");
 // const sql2 = require("mssql/msnodesqlv8");
 // const dbSettings2 = {
-//   database: "ATNER_DW",
+//   database: "APP_COMPTA",
 //   server: "YIHRAI-JJ53ODN\\LOCALHOST_TEST",
 //   driver: "msnodesqlv8",
 //   pool: {

@@ -109,40 +109,40 @@ exports.cheque = {
 
   // Met à jour l'état d'une facture dans les logs lorsque le chèque est annulé
   updateLogFactureWhenAnnuleV:
-    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annulé' where [numerocheque] =@numerocheque",
+    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annuler' where [numerocheque] =@numerocheque",
 
   // Met à jour l'état d'une restitution d'avance lorsque le chèque est annulé
   updateRestitWhenAnnuleCheque:
     "update [dbo].[DAF_RestitAvance] set Etat = 'AnnulerPaiement' where [ModePaiement] =@numerocheque",
 
-  // Met à jour l'état d'une RAS lorsque le chèque est annulé
+  // Met à jour l'état d'une RAS lorsque le chèque est Annuler
   updateRasWhenAnnule:
-    "update [dbo].[DAF_RAS_Tva] set Etat = 'Annulé' where [modePaiement] =@numerocheque",
+    "update [dbo].[DAF_RAS_Tva] set Etat = 'Annuler' where [modePaiement] =@numerocheque",
 
   // Met à jour l'état d'une facture dans les logs lorsque le chèque est réglé
   updateLogFactureWhenRegleeCheque: `update [dbo].[DAF_LOG_FACTURE] 
                   set Etat = 'Reglee' ,dateOperation=@dateOperation
                 where [numerocheque] =@numerocheque
-                  and etat<>'Annulé'
+                  and etat<>'Annuler'
       `,
 
   // Met à jour l'état d'une RAS lorsque le chèque est réglé
-  updateRasWhenRegleeCheque: `update [dbo].[DAF_RAS_Tva] set Etat = 'Regler', dateOperation=@dateOperation
+  updateRasWhenRegleeCheque: `update [dbo].[DAF_RAS_Tva] set Etat = 'Reglee', dateOperation=@dateOperation
                 where [modePaiement] =@numerocheque 
-                  and etat<>'Annulé'
+                  and etat<>'Annuler'
       `,
 
   // Met à jour l'état d'une RAS lorsque le chèque est annulé (duplication de la fonction)
   updateRasWhenAnnuleV:
-    "update [dbo].[DAF_RAS_Tva] set Etat = 'Annulé' where [modePaiement] =@numerocheque",
+    "update [dbo].[DAF_RAS_Tva] set Etat = 'Annuler' where [modePaiement] =@numerocheque",
 
   // Met à jour l'état d'une facture dans les logs lorsque le chèque est réglé (duplication de la fonction)
-  updateLogFactureWhenRegleeV: `update [dbo].[DAF_RAS_Tva] set Etat = 'Regler' where [modePaiement] =@numerocheque
-                  and etat<>'Annulé'
+  updateLogFactureWhenRegleeV: `update [dbo].[DAF_RAS_Tva] set Etat = 'Reglee' where [modePaiement] =@numerocheque
+                  and etat<>'Annuler'
       `,
 
   // Met à jour l'état d'une restitution d'avance lorsque le chèque est réglé
-  updateRestitWhenRegleecheque: `update [dbo].[DAF_RestitAvance] set Etat = 'Regler' where [modePaiement] =@numerocheque
+  updateRestitWhenRegleecheque: `update [dbo].[DAF_RestitAvance] set Etat = 'Reglee' where [modePaiement] =@numerocheque
                   and etat not in('AnnulerPaiement','AnnulerSasie')
       `,
 

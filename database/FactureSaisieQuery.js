@@ -180,21 +180,21 @@ exports.factureSaisie = {
 
   // Somme des factures d'un fournisseur sans facture navette
   getsumfacturebyfournisseurwithoutfn: `SELECT SUM(fa.ttc) AS sumfacturewithoutfn FROM [dbo].[DAF_FOURNISSEURS] f,
-       [dbo].[DAF_Facture_Avance_Fusion] fa
+       [dbo].[DAF_Facture_Avance_Fusion_RAS] fa
   WHERE fa.ficheNavette IS NULL  
     AND fa.DateFacture IS NOT NULL  
     AND f.id = @id 
     AND NOT EXISTS (SELECT CODEDOCUTIL, nom
                      FROM [dbo].[DAF_LOG_FACTURE] lf
                      WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
-                     AND lf.etat <> 'Annulé'
+                     AND lf.etat <> 'Annuler'
                      AND fa.nom = lf.NOM) 
     AND fa.nom = f.nom`,
 
   // Somme des factures d'un fournisseur avec facture navette
   getsumfacturebyfournisseurwithfn: `SELECT SUM(fa.ttc) AS sumfactureValuefn 
     FROM [dbo].[DAF_FOURNISSEURS] f
-    INNER JOIN [dbo].[DAF_Facture_Avance_Fusion] fa ON f.nom = fa.nom
+    INNER JOIN [dbo].[DAF_Facture_Avance_Fusion_RAS] fa ON f.nom = fa.nom
     WHERE fa.ficheNavette IS NOT NULL 
       AND fa.DateFacture IS NOT NULL 
       AND f.id = @id 
@@ -202,7 +202,7 @@ exports.factureSaisie = {
           SELECT 1 
           FROM [dbo].[DAF_LOG_FACTURE] lf
           WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
-          AND lf.etat <> 'Annulé'
+          AND lf.etat <> 'Annuler'
           AND fa.nom = lf.NOM
           AND fa.DateFacture = lf.DateDouc
       )`,
@@ -230,8 +230,8 @@ exports.factureSaisie = {
         FROM [dbo].[DAF_LOG_FACTURE] lf
         WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
         -- La facture doit avoir le même CODEDOCUTIL que dans la table des logs
-        AND lf.etat <> 'Annulé'
-        -- Le statut de la facture ne doit pas être 'Annulé'
+        AND lf.etat <> 'Annuler'
+        -- Le statut de la facture ne doit pas être 'Annuler'
         AND fa.nom = lf.NOM
         -- Le nom du fournisseur doit correspondre
 

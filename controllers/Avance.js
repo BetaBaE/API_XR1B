@@ -26,6 +26,12 @@ exports.getAvance = async (req, res) => {
 
     let queryFilter = "";
 
+    if (filter.chantier) {
+      queryFilter += ` and upper(ch.LIBELLE) like (upper('%${filter.chantier}%'))`;
+    }
+    if (filter.BonCommande) {
+      queryFilter += ` and upper(av.BonCommande) like (upper('%${filter.BonCommande}%'))`;
+    }
     if (filter.ficheNavette) {
       queryFilter += ` and upper(fn.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
     }
@@ -43,7 +49,7 @@ exports.getAvance = async (req, res) => {
     console.log(req.count);
     res.set(
       "Content-Range",
-      `facturesresptionne ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+      `Avance ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
     res.json(result.recordset);
   } catch (error) {
@@ -342,8 +348,9 @@ exports.getAvanceRestitById = async (req, res) => {
     // Récupérer l'avance de restitution par ID
     const result = await pool
       .request()
-      .input("id", getSql().Int, req.params.id)
+      .input("Id", getSql().Int, req.params.id)
       .query(avance.getAvanceRestitById);
+    console.log(req.params.id, "req.params.id");
 
     console.log("Résultat de la requête getAvanceRestitById :", result);
 
@@ -371,7 +378,7 @@ exports.getAvanceRestitById = async (req, res) => {
       factureResult
     );
 
-    if (factureResult.recordset.length === 0) {
+    if (factureResult.recordset.length == 0) {
       return res
         .status(404)
         .json({ message: "Aucune facture trouvée pour le fournisseur donné." });

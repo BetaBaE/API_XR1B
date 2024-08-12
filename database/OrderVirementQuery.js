@@ -122,7 +122,7 @@ exports.ordervirements = {
   updateLogFacture: `
     UPDATE [dbo].[DAF_LOG_FACTURE]
     SET Etat = 'Reglee'
-    WHERE ModePaiementID = @id AND Etat <> 'Annulé'
+    WHERE ModePaiementID = @id AND Etat <> 'Annuler'
   `,
 
   // Met à jour la date d'exécution
@@ -149,14 +149,14 @@ exports.ordervirements = {
   // Met à jour l'état des factures à "Annulé"
   updateLogFactureAnnuler: `
     UPDATE [dbo].[DAF_LOG_FACTURE]
-    SET Etat = 'Annulé'
+    SET Etat = 'Annuler'
     WHERE ModePaiementID = @id
   `,
 
   // Met à jour l'état des RAS à "Annulé"
   updateRasAnnuler: `
     UPDATE [dbo].[DAF_RAS_Tva]
-    SET Etat = 'Annulé'
+    SET Etat = 'Annuler'
     WHERE modePaiement = @id
   `,
 
