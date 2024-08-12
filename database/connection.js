@@ -19,7 +19,7 @@ const dbSettings = {
   user: "saisie.erp",
   password: "Sage123+",
   server: "10.111.1.68",
-  database: "ATNER_DW",
+  database: "APP_COMPTA",
   pool: {
     max: 10,
     min: 0,
