@@ -16,7 +16,7 @@ exports.avance = {
   // Récupère les détails des avances qui ne sont pas encore restituées
   getAvance: `
     SELECT av.*, ch.LIBELLE AS chantier, fou.nom, fou.CodeFournisseur, fou.catFournisseur,
-   fn.ficheNavette, fn.CatFn as categorieDoc
+         fn.ficheNavette, fn.CatFn as categorieDoc
     FROM DAF_Avance av
     INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire  --Jointure pour obtenir le nom du chantier
     INNER JOIN DAF_FOURNISSEURS fou ON fou.id = av.idFournisseur  --Jointure pour obtenir les détails du fournisseur
@@ -45,7 +45,7 @@ exports.avance = {
         SELECT CODEDOCUTIL, nom
         FROM [dbo].[DAF_LOG_FACTURE] lf
         WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
-          AND lf.etat <> 'Annulé'  // Exclut les avances qui ne sont pas annulées
+          AND lf.etat <> 'Annuler'  // Exclut les avances qui ne sont pas Annuler
           AND fa.nom = lf.NOM
       )
       AND fa.nom = f.nom
