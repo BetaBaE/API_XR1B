@@ -127,7 +127,7 @@ exports.FicheNavette = {
      --   AND fich.numeroFacture IS NOT NULL`,
 
   AnnulationFnAvance: `update daf_facturenavette  set
-        ficheNavette='Annuler'
+        ficheNavette='Annuler', idfacture=0
         where idfacturenavette=@id ; 
         update daf_avance 
         set etat ='AnnulerSasie'

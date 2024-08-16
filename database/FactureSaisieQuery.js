@@ -180,7 +180,7 @@ exports.factureSaisie = {
 
   // Somme des factures d'un fournisseur sans facture navette
   getsumfacturebyfournisseurwithoutfn: `SELECT SUM(fa.ttc) AS sumfacturewithoutfn FROM [dbo].[DAF_FOURNISSEURS] f,
-       [dbo].[DAF_Facture_Avance_Fusion] fa
+       [dbo].[DAF_Facture_Avance_Fusion_RAS] fa
   WHERE fa.ficheNavette IS NULL  
     AND fa.DateFacture IS NOT NULL  
     AND f.id = @id 
@@ -194,7 +194,7 @@ exports.factureSaisie = {
   // Somme des factures d'un fournisseur avec facture navette
   getsumfacturebyfournisseurwithfn: `SELECT SUM(fa.ttc) AS sumfactureValuefn 
     FROM [dbo].[DAF_FOURNISSEURS] f
-    INNER JOIN [dbo].[DAF_Facture_Avance_Fusion] fa ON f.nom = fa.nom
+    INNER JOIN [dbo].[DAF_Facture_Avance_Fusion_RAS] fa ON f.nom = fa.nom
     WHERE fa.ficheNavette IS NOT NULL 
       AND fa.DateFacture IS NOT NULL 
       AND f.id = @id 
