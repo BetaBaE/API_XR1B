@@ -20,6 +20,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
+    "msnodesqlv8": "^4.2.1",
     "mssql": "^8.1.2",
     "nodemon": "^2.0.19",
     "to-words": "^3.3.1",

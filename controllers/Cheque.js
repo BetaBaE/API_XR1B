@@ -240,11 +240,11 @@ async function ChangeEtatReglerAvanceFacture(numerocheque) {
     // Requête 1 : Mise à jour de DAF_Avance
     let query1 = `
       UPDATE DAF_Avance
-      SET Etat = 'Regler'
+      SET Etat = 'Reglee'
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
-        WHERE Etat   IN ('Regler')
+        WHERE Etat   IN ('Reglee')
           AND ModePaiement = @numerocheque
       
       )
@@ -258,7 +258,7 @@ SET  fs.AcompteVal += rs.Montant
 FROM DAF_FactureSaisie fs
 INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
 WHERE rs.ModePaiement = @numerocheque
-  AND rs.Etat  IN ('Regler');
+  AND rs.Etat  IN ('Reglee');
 
     `;
 
@@ -295,11 +295,11 @@ async function ChangeEtatReglerAvanceFacture(numerocheque) {
     // Requête 1 : Mise à jour de DAF_Avance
     let query1 = `
       UPDATE DAF_Avance
-      SET Etat = 'Regler'
+      SET Etat = 'Reglee'
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
-        WHERE Etat   IN ('Regler')
+        WHERE Etat   IN ('Reglee')
           AND ModePaiement = @numerocheque
           
       )
@@ -314,7 +314,7 @@ FROM DAF_FactureSaisie fs
 INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
 WHERE rs.ModePaiement = @numerocheque
   
-  AND rs.Etat  IN ('Regler');
+  AND rs.Etat  IN ('Reglee');
 
     `;
 
@@ -413,7 +413,7 @@ async function ChangeEtatAnnulerAvanceFacture(numerocheque) {
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
-        WHERE Etat NOT IN ('Regler')
+        WHERE Etat NOT IN ('Reglee')
           AND ModePaiement = @numerocheque
       )
       AND etat NOT IN ('AnnulerSasie')

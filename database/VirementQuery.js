@@ -114,7 +114,7 @@ exports.virements = {
   // Cette requête met à jour l'état d'une entrée dans le journal de factures DAF_LOG_FACTURE lorsqu'un virement est annulé.
   updateLogFactureWhenAnnuleV: `
     update [dbo].[DAF_LOG_FACTURE] 
-    set Etat = 'Annulé'           -- Mise à jour de l'état à 'Annulé'
+    set Etat = 'Annuler'           -- Mise à jour de l'état à 'Annulé'
     where [ModePaiementID] =@orderVirementId -- Condition de mise à jour : ID de l'ordre de virement
     and nom=@nom                 -- Condition de mise à jour : nom
   `,
@@ -123,7 +123,7 @@ exports.virements = {
     where  modePaiement =@orderVirementId  and nom =@nom  
   `,
   updateRasWhenAnnuleV: `update DAF_RAS_Tva
- set etat='Annulé'
+ set etat='Annuler'
    where  modePaiement =@orderVirementId  and nom =@nom
   `,
 
@@ -142,15 +142,15 @@ exports.virements = {
       `,
 
   updateRestitwhenVRegler: ` update DAF_RestitAvance 
-      set Etat='Regler'
+      set Etat='Reglee'
       where  modePaiement =@orderVirementId  and nom =@nom
    `,
   updateAvanceWhenVRegler: `update DAF_Avance 
-         where  etat= 'Regler'
+         where  etat= 'Reglee'
          where id in()
    `,
   updateRasWhenReglerV: ` update  DAF_RAS_Tva
-   set etat='Regler', dateOperation=@dateOperation
+   set etat='Reglee', dateOperation=@dateOperation
    where  modePaiement =@orderVirementId  and nom =@nom
    
    

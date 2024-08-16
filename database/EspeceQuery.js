@@ -80,7 +80,7 @@ exports.espece = {
               [Nom])
        VALUES`,
   ChangeEtatAvanceWhenRegler: ` update DAF_Avance 
-     set Etat='Regler'
+     set Etat='Reglee'
      where id=@idAvance
     
     `,
