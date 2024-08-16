@@ -24,7 +24,7 @@ exports.avance = {
     INNER JOIN DAF_FOURNISSEURS fou ON fou.id = av.idFournisseur  --Jointure pour obtenir les détails du fournisseur
     inner join DAF_factureNavette fn on fn.idfacturenavette=av.id
 	WHERE av.EtatRestit = 'Non'  -- Filtre pour les avances qui ne sont pas restituées
- AND av.etat IN ('En Cours', 'Regler')   -- Filtre potentiel pour les états des avances
+ AND av.etat IN ('En Cours', 'Reglee')   -- Filtre potentiel pour les états des avances
     `,
 
   // Récupère les avances par fournisseur, filtrées par ceux qui ont une commande et dont les avances ne sont pas encore facturées
@@ -47,7 +47,7 @@ exports.avance = {
         SELECT CODEDOCUTIL, nom
         FROM [dbo].[DAF_LOG_FACTURE] lf
         WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
-          AND lf.etat <> 'Annulé'  // Exclut les avances qui ne sont pas annulées
+          AND lf.etat <> 'Annuler'  // Exclut les avances qui ne sont pas annulées
           AND fa.nom = lf.NOM
       )
       AND fa.nom = f.nom
@@ -119,12 +119,12 @@ exports.avance = {
   updateFactureRestituition: `
     UPDATE Daf_factureSaisie
     SET AcompteReg = CASE 
-                      WHEN @etat = 'Regler' THEN AcompteReg
+                      WHEN @etat = 'Reglee' THEN AcompteReg
                       WHEN @etat = 'En cours' THEN AcompteReg + @MontantRestantARestituer
                      END,
       AcompteVal = CASE 
                     WHEN @etat = 'En cours' THEN AcompteVal
-                    WHEN @etat = 'Regler' THEN AcompteVal + @MontantRestantARestituer
+                    WHEN @etat = 'Reglee' THEN AcompteVal + @MontantRestantARestituer
                    END
     WHERE id = @idfacture  -- Filtre par identifiant de la facture
   `,
@@ -270,7 +270,7 @@ INNER JOIN
      EXISTS (SELECT  CODEDOCUTIL,nom
      FROM [dbo].[DAF_LOG_FACTURE] lf
      where fa.CODEDOCUTIL=lf.CODEDOCUTIL
-     and lf.etat <>'Annulé'
+     and lf.etat <>'Annuler'
      and fa.nom=lf.NOM
      )
       and  fa.nom=f.nom

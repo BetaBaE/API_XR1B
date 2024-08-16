@@ -389,11 +389,11 @@ async function ChangeEtatReglerAvanceFacture(orderVirementId, nom) {
     // Requête 1 : Mise à jour de DAF_Avance
     let query1 = `
       UPDATE DAF_Avance
-      SET Etat = 'Regler'
+      SET Etat = 'Reglee'
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
-        WHERE Etat   IN ('Regler')
+        WHERE Etat   IN ('Reglee')
           AND ModePaiement = @orderVirementId
           AND nom = @nom
       )
@@ -408,7 +408,7 @@ FROM DAF_FactureSaisie fs
 INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
 WHERE rs.ModePaiement = @orderVirementId
   AND rs.nom = @nom
-  AND rs.Etat  IN ('Regler');
+  AND rs.Etat  IN ('Reglee');
 
     `;
 
@@ -451,7 +451,7 @@ async function ChangeEtatAnnulerAvanceFacture(orderVirementId, nom) {
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
-        WHERE Etat NOT IN ('Regler')
+        WHERE Etat NOT IN ('Reglee')
           AND ModePaiement = @orderVirementId
           AND nom = @nom
       )

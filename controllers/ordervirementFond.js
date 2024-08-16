@@ -198,7 +198,7 @@ exports.updateOrderVirementsFond = async (req, res) => {
         .request()
         .input("id", getSql().VarChar, req.params.id)
         .query(ordervirementsFond.updatvirementRegler);
-    } else if (etat == "Annule") {
+    } else if (etat == "Annuler") {
       await pool
         .request()
         .input("id", getSql().VarChar, req.params.id)

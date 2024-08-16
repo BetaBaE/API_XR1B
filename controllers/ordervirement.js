@@ -191,7 +191,7 @@ async function ChangeEtatAnnulerAvanceFacture(orderVirementId) {
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
-        WHERE Etat NOT IN ('Regler')
+        WHERE Etat NOT IN ('Reglee')
           AND ModePaiement = @orderVirementId
       )
       AND etat NOT IN ('AnnulerSasie')
@@ -251,7 +251,7 @@ exports.updateOrderVirements = async (req, res) => {
       .input("id", getSql().VarChar, req.params.id)
       .query(ordervirements.update);
 
-    if (etat == "Annule") {
+    if (etat == "Annuler") {
       updateRestitWhenAnnuleVirement(req.params.id);
       await pool
         .request()

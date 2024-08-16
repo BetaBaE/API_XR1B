@@ -119,7 +119,7 @@ exports.ordervirementsFond = {
   // Met à jour un virement à l'état "Annulé"
   updateordervirementAnnuler: `
     UPDATE [dbo].[DAF_Order_virements_Fond]
-    SET Etat = 'Annule', total = 0
+    SET Etat = 'Annuler', total = 0
     WHERE id = @id
   `,
 };

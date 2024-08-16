@@ -115,8 +115,8 @@ async function insertAvanceInRestit(ArrayOfFacture, Redacteur) {
       const idInt = id.substring(2, id.length);
 
       i != ArrayOfFacture.length - 1
-        ? (query += `('${idInt}','${Montantglobal}','${Redacteur}','Regler','${nom}','espece'),`)
-        : (query += `('${idInt}','${Montantglobal}','${Redacteur}','Regler','${nom}','espece')`);
+        ? (query += `('${idInt}','${Montantglobal}','${Redacteur}','Reglee','${nom}','espece'),`)
+        : (query += `('${idInt}','${Montantglobal}','${Redacteur}','Reglee','${nom}','espece')`);
     }
   });
 
@@ -161,7 +161,7 @@ async function insertDocInRas(ArrayOfFacture) {
         formattedDate === null ? "NULL" : `'${formattedDate}'`;
       const formattedCatFn = CatFn === null ? "NULL" : `'${CatFn}'`;
 
-      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, ${formattedDateFacture},'Regler', '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', 'paiement espece', '${escapedNom}')`;
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, ${formattedDateFacture},'Reglee', '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', 'paiement espece', '${escapedNom}')`;
 
       query += (query ? "," : "") + queryPart;
       autorise = true;
@@ -200,11 +200,11 @@ async function ChangeEtatReglerAvanceFacture(ArrayOfFacture) {
         const idInt = id.substring(2, id.length);
         // Construire la partie de la requête pour cet ID
         query1 += `UPDATE DAF_Avance
-        SET Etat = 'Regler'
+        SET Etat = 'Reglee'
         WHERE id IN (
           SELECT idavance
           FROM DAF_RestitAvance
-          WHERE Etat IN ('Regler')
+          WHERE Etat IN ('Reglee')
         )
         AND etat NOT IN ('AnnulerSasie') AND id = '${idInt}';\n`;
 
@@ -213,7 +213,7 @@ async function ChangeEtatReglerAvanceFacture(ArrayOfFacture) {
         FROM DAF_FactureSaisie fs
         INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
         WHERE rs.idavance = '${idInt}'
-        AND rs.Etat IN ('Regler');\n`;
+        AND rs.Etat IN ('Reglee');\n`;
       }
       if (id.startsWith("fr")) {
         // throw new Error("Aucun ID valide trouvé commençant par 'Av'");
