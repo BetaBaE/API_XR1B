@@ -1,9 +1,7 @@
 // Exportations pour Avance
 exports.avance = {
   // Vérifie si une composition d'avance existe déjà pour une fiche navette, une commande et un fournisseur spécifiques
-  getCount: `SELECT COUNT(*) as count
-  FROM  [dbo].[DAF_ficheNavette]
-  WHERE  ficheNavette<>'Annuler' `,
+  getCount: ` SELECT COUNT(*) as count from daf_avance where etat IN ('En Cours', 'Reglee') `,
   existingCompositionAvance: `
     SELECT COUNT(*)
     FROM daf_factureNavette AS dfn1
@@ -18,7 +16,7 @@ exports.avance = {
   // Récupère les détails des avances qui ne sont pas encore restituées
   getAvance: `
     SELECT av.*, ch.LIBELLE AS chantier, fou.nom, fou.CodeFournisseur, fou.catFournisseur,
-   fn.ficheNavette, fn.CatFn as categorieDoc
+         fn.ficheNavette, fn.CatFn as categorieDoc
     FROM DAF_Avance av
     INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire  --Jointure pour obtenir le nom du chantier
     INNER JOIN DAF_FOURNISSEURS fou ON fou.id = av.idFournisseur  --Jointure pour obtenir les détails du fournisseur
@@ -39,7 +37,7 @@ exports.avance = {
   // Calcule la somme des avances par fournisseur qui n'ont pas encore été facturées
   getsumavancebyforurnisseur: `
     SELECT SUM(fa.ttc) AS sum
-    FROM [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_Facture_Avance_Fusion] fa
+    FROM [dbo].[DAF_FOURNISSEURS] f, [dbo].[DAF_Facture_Avance_Fusion_RAS] fa
     WHERE fa.ficheNavette IS NOT NULL  --  Filtre pour les fiches navettes non nulles
       AND fa.DateFacture IS NULL  -- Filtre pour les avances non encore facturées
       AND f.id = @id  --  Filtre par identifiant du fournisseur
@@ -47,7 +45,7 @@ exports.avance = {
         SELECT CODEDOCUTIL, nom
         FROM [dbo].[DAF_LOG_FACTURE] lf
         WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
-          AND lf.etat <> 'Annuler'  // Exclut les avances qui ne sont pas annulées
+          AND lf.etat <> 'Annuler'  // Exclut les avances qui ne sont pas Annuler
           AND fa.nom = lf.NOM
       )
       AND fa.nom = f.nom
@@ -194,9 +192,11 @@ exports.avance = {
     FROM DAF_RestitAvance restit 
     INNER JOIN DAF_Avance av ON av.id = restit.idAvance
     INNER JOIN DAF_FOURNISSEURS four ON four.id = av.idFournisseur
-    INNER JOIN chantier ch ON ch.id = av.CodeAffaire
-    WHERE  av.id = @id AND idfacture IS NULL --  Filtre par identifiant de l'avance et vérifie que l'avance n'est pas encore facturée
-    and restit.etat not in ('AnnulerPaiement')  
+    INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire
+
+    WHERE idfacture IS NULL --  Filtre par identifiant de l'avance et vérifie que l'avance n'est pas encore facturée
+    and restit.etat not in ('AnnulerPaiement')
+    AND av.id = @Id 
   `,
   annulationFn: `update DAF_factureNavette   ficheNavette='Annuler' where idfacturenavette=@id`,
 
@@ -264,17 +264,6 @@ INNER JOIN
 INNER JOIN 
   UniqueIds U ON Av.id = U.id;
 `,
-  getsumavancebyforurnisseur: `Select SUM(fa.ttc) as sum from [dbo].[DAF_FOURNISSEURS] f,[dbo].[DAF_Facture_Avance_Fusion] fa
-     where fa.ficheNavette is not null and fa.DateFacture is  null and 
-     f.id=@id and not
-     EXISTS (SELECT  CODEDOCUTIL,nom
-     FROM [dbo].[DAF_LOG_FACTURE] lf
-     where fa.CODEDOCUTIL=lf.CODEDOCUTIL
-     and lf.etat <>'Annuler'
-     and fa.nom=lf.NOM
-     )
-      and  fa.nom=f.nom
-     `,
   getAvanceForUpdate: `
      SELECT av.*, ch.LIBELLE AS chantier, fou.nom, fou.CodeFournisseur, fou.catFournisseur,
     fn.ficheNavette, fn.CatFn as categorieDoc

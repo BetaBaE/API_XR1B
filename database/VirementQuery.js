@@ -114,7 +114,7 @@ exports.virements = {
   // Cette requête met à jour l'état d'une entrée dans le journal de factures DAF_LOG_FACTURE lorsqu'un virement est annulé.
   updateLogFactureWhenAnnuleV: `
     update [dbo].[DAF_LOG_FACTURE] 
-    set Etat = 'Annuler'           -- Mise à jour de l'état à 'Annulé'
+    set Etat = 'Annuler'           -- Mise à jour de l'état à 'Annuler'
     where [ModePaiementID] =@orderVirementId -- Condition de mise à jour : ID de l'ordre de virement
     and nom=@nom                 -- Condition de mise à jour : nom
   `,

@@ -353,7 +353,7 @@ async function updateRasWhenReglerVirement(
       .input("orderVirementId", getSql().VarChar, orderVirementId)
       .input("nom", getSql().VarChar, nom)
       .input("dateOperation", getSql().Date, dateOperation)
-      .query(virements.updateRasWhenReglerV);
+      .query(virements.updateRasWhenV);
 
     console.log(
       `${virements.updateRasWhenReglerV} '${orderVirementId}'  '${nom}'`

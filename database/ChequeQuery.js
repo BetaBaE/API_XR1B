@@ -115,7 +115,7 @@ exports.cheque = {
   updateRestitWhenAnnuleCheque:
     "update [dbo].[DAF_RestitAvance] set Etat = 'AnnulerPaiement' where [ModePaiement] =@numerocheque",
 
-  // Met à jour l'état d'une RAS lorsque le chèque est annulé
+  // Met à jour l'état d'une RAS lorsque le chèque est Annuler
   updateRasWhenAnnule:
     "update [dbo].[DAF_RAS_Tva] set Etat = 'Annuler' where [modePaiement] =@numerocheque",
 
