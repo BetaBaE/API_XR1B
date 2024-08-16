@@ -33,7 +33,7 @@ const dbSettings = {
 
 exports.getConnection = async () => {
   try {
-    const pool = await sql.connect(dbSettings2);
+    const pool = await sql.connect(dbSettings);
     return pool;
   } catch (error) {
     console.error(error);
@@ -41,5 +41,5 @@ exports.getConnection = async () => {
 };
 
 exports.getSql = () => {
-  return sql2;
+  return sql;
 };
