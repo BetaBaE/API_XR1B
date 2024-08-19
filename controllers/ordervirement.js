@@ -435,7 +435,9 @@ exports.PrintOrderVirement = async (req, res) => {
       .request()
       .input("ovId", getSql().VarChar, filter.id)
       .query(ordervirements.getSumVirmentPrint);
+
     printData.resulsumvirement = resultsumov.recordset[0].SumVirement;
+
     let trdata = "";
     const wordToNumber = (x) => {
       let res = "";
@@ -645,6 +647,7 @@ exports.PrintOrderVirement = async (req, res) => {
       </body>
       </html>
     `;
+
     fs.writeFileSync(`${__dirname}\\assets\\ordervirment.html`, html);
 
     let file = { url: `${__dirname}\\assets\\ordervirment.html` };
@@ -680,7 +683,7 @@ exports.getfacturebyordervirement = async (req, res) => {
       .query(ordervirements.getfacturebyordervirement);
     console.log(`${ordervirements.getfacturebyordervirement}`, req.params.id);
     console.log("ordervirement id");
-    res.set("Content-Range", `cahntier 0-1/1`);
+    res.set("Content-Range", `chantier 0-1/1`);
 
     res.json(result.recordset);
     console.log(result.recordset);
