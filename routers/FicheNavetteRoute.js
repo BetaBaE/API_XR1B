@@ -8,6 +8,7 @@ const {
   getFicheNavetteCount,
   getFicheNavette,
 } = require("../controllers/FicheNavette");
+
 router.post("/FicheNavette", CreateFicheNavette);
 router.get("/FicheNavette", getFicheNavetteCount, getFicheNavette);
 // router.get("/ModificationFichnavette", getDocCount, getDoc);
