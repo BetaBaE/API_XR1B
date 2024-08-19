@@ -9,7 +9,7 @@ const {
   PrintOrderVirement,
   orderVirementsEtat,
   getfacturebyordervirement,
-} = require("../controllers/Ordervirement");
+} = require("../controllers/ordervirement");
 const router = express.Router();
 
 router.post("/ordervirement", createOrderVirements);
