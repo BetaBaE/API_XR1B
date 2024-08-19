@@ -436,7 +436,9 @@ exports.PrintOrderVirement = async (req, res) => {
       .input("ovId", getSql().VarChar, filter.id)
       .query(ordervirements.getSumVirmentPrint);
 
-    printData.resulsumvirement = resultsumov.recordset[0].SumVirement;
+    printData.resulsumvirement = parseFloat(
+      resultsumov.recordset[0].SumVirement.replace(",", ".")
+    );
 
     let trdata = "";
     const wordToNumber = (x) => {
