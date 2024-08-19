@@ -34,7 +34,7 @@ exports.getFicheNavette = async (req, res) => {
     }
 
     if (filter.BonCommande) {
-      queryFilter += ` and upper(Bcommande)  like ('%${filter.BonCommande}%')`;
+      queryFilter += ` and upper(BonCommande)  like ('%${filter.BonCommande}%')`;
     }
     if (filter.fournisseur) {
       queryFilter += ` and upper(fich.nom) like (upper('%${filter.fournisseur}%'))`;
