@@ -29,7 +29,7 @@ exports.FicheNavette = {
 
   // Récupère toutes les fiches navettes
   get: `
-      SELECT DISTINCT
+         SELECT DISTINCT
         fich.id,
         fich.BonCommande AS BonCommande,
         fich.CodeFournisseur AS CodeFournisseur,
@@ -55,9 +55,9 @@ exports.FicheNavette = {
       FROM [dbo].[DAF_ficheNavette] fich
       LEFT JOIN chantier ch ON fich.LIBELLE = ch.LIBELLE
       WHERE fich.deletedAt IS NULL
-        AND fich.ficheNavette <> 'Annuler' 
-        and fich.numerofacture is not  null
-     --   AND fich.numeroFacture IS NOT NULL
+      AND fich.ficheNavette <> 'Annuler' 
+ --   and fich.numerofacture is not  null
+		  and BonCommande = 'CF243185'
     `,
 
   // Compte le nombre de fiches navettes valides
