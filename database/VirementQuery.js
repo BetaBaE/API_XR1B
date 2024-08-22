@@ -66,7 +66,9 @@ exports.virements = {
              ,[ModePaiementID]    -- ID du mode de paiement
              ,[modepaiement]      -- Mode de paiement
              ,[idAvance]          -- ID de l'avance
-             ,[Ras])              -- RAS (retenue à la source)
+             ,[Ras]               -- RAS (retenue à la source)
+             ,[idDocPaye]         -- Ref doc a paye
+             )             
        VALUES
   `,
 

@@ -15,6 +15,21 @@ const dbSettings2 = {
   },
 };
 
+const dbSettings3 = {
+  database: "APP_COMPTA",
+  server: "YIHRAI-JJ53ODN\\LOCALHOST",
+  driver: "msnodesqlv8",
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 30000,
+  },
+  options: {
+    trustedConnection: true,
+    requestTimeout: 2000000, // Augmenter le délai d'attente
+  },
+};
+
 const dbSettings = {
   user: "saisie.erp",
   password: "Sage123+",

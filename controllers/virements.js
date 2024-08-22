@@ -115,12 +115,12 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','paiement virement','${
             DateFacture === null ? id : 0
-          }','${RAS}'),`)
+          }','${RAS}','${id}'),`)
         : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${null}',${
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','paiement virement','${
             DateFacture === null ? id : 0
-          }','${RAS}')`);
+          }','${RAS}','${id}')`);
     }
   );
   console.log(`${virements.createLogFacture} '${query}'`);
