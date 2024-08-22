@@ -49,6 +49,7 @@ exports.espece = {
               [modepaiement],
               [idAvance],
               [Ras],
+              [idDocPaye],
               [DateOperation])
        VALUES`,
 

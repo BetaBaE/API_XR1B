@@ -63,7 +63,8 @@ exports.cheque = {
               [modepaiement],
               [idAvance],
               [numerocheque],
-              [Ras]
+              [Ras],
+              [idDocPaye]
              )
        VALUES`,
 

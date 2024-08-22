@@ -83,12 +83,12 @@ async function insertFactureInLog(
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${ModePaiementID}','paiement cheque','${
             DateFacture === null ? id : 0
-          }','${numerocheque}','${RAS}'),`)
+          }','${numerocheque}','${RAS}','${id}'),`)
         : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${ModePaiementID}','paiement cheque','${
             DateFacture === null ? id : 0
-          }','${numerocheque}','${RAS}')`);
+          }','${numerocheque}','${RAS}','${id}')`);
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);

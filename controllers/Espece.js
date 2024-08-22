@@ -81,14 +81,14 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','Reglee','paiement espece','${
             DateFacture === null ? id : 0
-          }','${RAS}', '${
+          }','${RAS}','${id}', '${
             DateFacture === null ? GetDateFormated : DateFacture
           }'),`)
         : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','Reglee','paiement espece','${
             DateFacture === null ? id : 0
-          }','${RAS}','${
+          }','${RAS}','${id}','${
             DateFacture === null ? GetDateFormated : formattedDate
           }')`);
     }
