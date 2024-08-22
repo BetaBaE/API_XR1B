@@ -164,7 +164,7 @@ exports.factureSaisie = {
   WHERE 
     f.deletedAt IS NULL 
     AND (f.verifiyMidelt IS NULL OR f.BonCommande IS NULL OR f.BonCommande = ''
-    OR f.CatFn IS NULL)`,
+    OR f.CatFn IS NULL OR f.CatFn = '')`,
 
   // Compte le nombre de factures à valider
   getcountvalider: `SELECT COUNT(*) AS count FROM [dbo].[DAF_FactureSaisie] WHERE deletedAt IS NULL 
