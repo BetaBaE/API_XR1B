@@ -210,7 +210,7 @@ exports.avance = {
     FROM DAF_RestitAvance restit 
     INNER JOIN DAF_Avance av ON av.id = restit.idAvance
     INNER JOIN DAF_FOURNISSEURS four ON four.id = av.idFournisseur
-    INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire
+    --INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire
 
     WHERE idfacture IS NULL --  Filtre par identifiant de l'avance et vérifie que l'avance n'est pas encore facturée
     and restit.etat not in ('AnnulerPaiement')
