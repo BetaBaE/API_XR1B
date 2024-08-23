@@ -26,21 +26,28 @@ exports.avance = {
    */
   getAvance: `
         select 
-        ra.*,
-        a.MontantAvanceTTC,
-        a.MontantAvanceHT,
-        a.MontantAvanceTVA,
-        f.CodeFournisseur,
-        f.catFournisseur,
-        fn.ficheNavette,
-        a.CatFn as categorieDoc,
-        a.BonCommande
-        from DAF_RestitAvance ra inner join DAF_Avance a on ra.idAvance = a.id
-                      inner join DAF_factureNavette fn on fn.idfacturenavette = ra.idAvance
-                      inner join DAF_FOURNISSEURS f on f.nom = ra.nom
-        where  
-        ra.idFacture is null
-
+          ra.[idAvance] as id
+          ,ra.[idFacture]
+          ,ra.[Montant]
+          ,ra.[Etat]
+          ,ra.[DateCreation]
+          ,ra.[Redacteur]
+          ,ra.[Attributeur]
+          ,ra.	[nom]
+          ,[ModePaiement],
+          a.MontantAvanceTTC,
+          a.MontantAvanceHT,
+          a.MontantAvanceTVA,
+          f.CodeFournisseur,
+          f.catFournisseur,
+          fn.ficheNavette,
+          a.CatFn as categorieDoc,
+          a.BonCommande
+          from DAF_RestitAvance ra inner join DAF_Avance a on ra.idAvance = a.id
+                        inner join DAF_factureNavette fn on fn.idfacturenavette = ra.idAvance
+                        inner join DAF_FOURNISSEURS f on f.nom = ra.nom
+          where  
+          ra.idFacture is null
     `,
 
   // Récupère les avances par fournisseur, filtrées par ceux qui ont une commande et dont les avances ne sont pas encore facturées
