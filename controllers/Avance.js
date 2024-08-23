@@ -26,17 +26,14 @@ exports.getAvance = async (req, res) => {
 
     let queryFilter = "";
 
-    if (filter.chantier) {
-      queryFilter += ` and upper(ch.LIBELLE) like (upper('%${filter.chantier}%'))`;
-    }
     if (filter.BonCommande) {
-      queryFilter += ` and upper(av.BonCommande) like (upper('%${filter.BonCommande}%'))`;
+      queryFilter += ` and upper(a.BonCommande) like (upper('%${filter.BonCommande}%'))`;
     }
     if (filter.ficheNavette) {
       queryFilter += ` and upper(fn.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
     }
     if (filter.fournisseur) {
-      queryFilter += ` and upper(fou.nom) like (upper('%${filter.fournisseur}%'))`;
+      queryFilter += ` and upper(ra.nom) like (upper('%${filter.fournisseur}%'))`;
     }
     console.log(queryFilter);
     const pool = await getConnection();
