@@ -14,15 +14,33 @@ exports.avance = {
   `,
 
   // Récupère les détails des avances qui ne sont pas encore restituées
-  getAvance: `
-    SELECT av.*, ch.LIBELLE AS chantier, fou.nom, fou.CodeFournisseur, fou.catFournisseur,
-         fn.ficheNavette, fn.CatFn as categorieDoc
+  /**
+ *    SELECT av.*, ch.LIBELLE AS chantier, fou.nom, fou.CodeFournisseur, fou.catFournisseur,
+   fn.ficheNavette, fn.CatFn as categorieDoc
     FROM DAF_Avance av
-    INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire  --Jointure pour obtenir le nom du chantier
+    INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire  --Join ture pour obtenir le nom du chantier
     INNER JOIN DAF_FOURNISSEURS fou ON fou.id = av.idFournisseur  --Jointure pour obtenir les détails du fournisseur
     inner join DAF_factureNavette fn on fn.idfacturenavette=av.id
-	WHERE av.EtatRestit = 'Non'  -- Filtre pour les avances qui ne sont pas restituées
- AND av.etat IN ('En Cours', 'Reglee')   -- Filtre potentiel pour les états des avances
+    WHERE av.EtatRestit = 'Non'  -- Filtre pour les avances qui ne sont pas restituées
+    AND av.etat IN ('En Cours', 'Reglee')   -- Filtre potentiel pour les états des avances
+   */
+  getAvance: `
+        select 
+        ra.*,
+        a.MontantAvanceTTC,
+        a.MontantAvanceHT,
+        a.MontantAvanceTVA,
+        f.CodeFournisseur,
+        f.catFournisseur,
+        fn.ficheNavette,
+        a.CatFn as categorieDoc,
+        a.BonCommande
+        from DAF_RestitAvance ra inner join DAF_Avance a on ra.idAvance = a.id
+                      inner join DAF_factureNavette fn on fn.idfacturenavette = ra.idAvance
+                      inner join DAF_FOURNISSEURS f on f.nom = ra.nom
+        where  
+        ra.idFacture is null
+
     `,
 
   // Récupère les avances par fournisseur, filtrées par ceux qui ont une commande et dont les avances ne sont pas encore facturées
@@ -103,12 +121,12 @@ exports.avance = {
 
   // Met à jour les informations de restitution dans la table DAF_RestitAvance
   updateRestitution: `
+
     UPDATE DAF_RestitAvance
     SET idFacture = @idfacture,
         --  Met à jour l'identifiant de la facture
       montant = @MontantRestantARestituer --  Met à jour le montant restant à restituer
     WHERE idavance = @id AND idFacture IS NULL  ; --  Filtre par identifiant de l'avance et vérifie que l'avance n'est pas encore facturée
- 
  
   
     `,
