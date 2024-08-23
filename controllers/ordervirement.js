@@ -626,7 +626,7 @@ exports.PrintOrderVirement = async (req, res) => {
                 ${wordToNumber(printData.resulsumvirement)}
               </th>
               <th class="thorder montant">${numberWithSpaces(
-                printData.resulsumvirement
+                printData.header[0].totalformater
               )}</th>
             </tfoot>
           </table>
