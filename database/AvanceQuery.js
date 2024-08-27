@@ -54,7 +54,7 @@ exports.avance = {
   getavancebyfournisseurNonRestituer: `
           select * from DAF_Avance
       where id  in(select idavance from DAF_RestitAvance where idfacture is null  
-       and  Etat  not In('AnnulerPaiement','AnnulerSasie') )
+       and  Etat  not In('Annuler') )
       and idFournisseur=@idfournisseur
 
   `,
@@ -220,12 +220,12 @@ exports.avance = {
     --INNER JOIN chantier ch ON ch.CODEAFFAIRE = av.CodeAffaire
 
     WHERE idfacture IS NULL --  Filtre par identifiant de l'avance et vérifie que l'avance n'est pas encore facturée
-    and restit.etat not in ('AnnulerPaiement')
+    and restit.etat not in ('Annuler')
     AND av.id = @Id 
   `,
   annulationFn: `update DAF_factureNavette   ficheNavette='Annuler' where idfacturenavette=@id`,
 
-  AnnulerAvance: `Update DAF_avance set etat='AnnulerSaisie' where id=@id`,
+  AnnulerAvance: `Update DAF_avance set etat='Annuler' where id=@id`,
 
   getOne: `select * from DAF_ficheNavette where id=@id`,
 
@@ -332,7 +332,7 @@ INNER JOIN
   // Annule une fiche navette
   annulationAvance: `
   UPDATE DAF_Avance
-  SET etat = 'AnnulerSasie'
+  SET etat = 'Annuler'
   WHERE id = @id ;
       UPDATE DAF_factureNavette
       SET   ficheNavette = 'Annuler'

@@ -49,40 +49,41 @@ exports.cheque = {
 
   // Crée un log de facture
   createLogFacture: `
-   INSERT INTO [dbo].[DAF_LOG_FACTURE]
-             ([CODEDOCUTIL]
-             ,[CODECHT]
-              ,[NOM]
-             ,[LIBREGLEMENT]
-             ,[datedouc]
-             ,[TOTALTTC]
-             ,[TOTHTNET]
-             ,[TOTTVANET]
-             ,[NETAPAYER]
-             ,[ModePaiementID],
-              [modepaiement],
-              [idAvance],
-              [numerocheque],
-              [Ras],
-              [idDocPaye]
-             )
-       VALUES`,
+  INSERT INTO [dbo].[DAF_LOG_FACTURE]
+            ([CODEDOCUTIL]
+            ,[CODECHT]
+            ,[NOM]
+            ,[LIBREGLEMENT]
+            ,[datedouc]
+            ,[TOTALTTC]
+            ,[TOTHTNET]
+            ,[TOTTVANET]
+            ,[NETAPAYER]
+            ,[ModePaiementID],
+            [modepaiement],
+            [idAvance],
+            [numerocheque],
+            [Ras],
+            [idDocPaye]
+          )
+      VALUES`,
 
   // Crée une entrée RAS pour une facture
   CreateRasFactue: `INSERT INTO [dbo].[DAF_RAS_Tva]
-             ([idFournisseur]
-             ,[RefernceDOC]
-             ,[CategorieFn]
-             ,[dateFactue]
-             ,[HT]
-             ,[TauxTva]
-             ,[Pourcentage_TVA]
-             ,[RaS]
-             ,[PourcentageRas]
-             ,[modePaiement]
-             ,[Nom]
-             )
-       VALUES`,
+            ([idFournisseur]
+            ,[RefernceDOC]
+            ,[CategorieFn]
+            ,[dateFactue]
+            ,[HT]
+            ,[TauxTva]
+            ,[Pourcentage_TVA]
+            ,[RaS]
+            ,[PourcentageRas]
+            ,[modePaiement]
+            ,[Nom]
+            ,[idDocPaye]
+            )
+      VALUES`,
 
   // Met à jour un enregistrement de chèque existant
   update: `Update [dbo].[DAF_cheque]
@@ -106,7 +107,7 @@ exports.cheque = {
   where v.fournisseurId = f.id
   and v.ribatnerid = rf.id
       and v.[id] = @id
-   `,
+  `,
 
   // Met à jour l'état d'une facture dans les logs lorsque le chèque est annulé
   updateLogFactureWhenAnnuleV:
@@ -114,7 +115,7 @@ exports.cheque = {
 
   // Met à jour l'état d'une restitution d'avance lorsque le chèque est annulé
   updateRestitWhenAnnuleCheque:
-    "update [dbo].[DAF_RestitAvance] set Etat = 'AnnulerPaiement' where [ModePaiement] =@numerocheque",
+    "update [dbo].[DAF_RestitAvance] set Etat = 'Annuler' where [ModePaiement] =@numerocheque",
 
   // Met à jour l'état d'une RAS lorsque le chèque est Annuler
   updateRasWhenAnnule:
@@ -144,7 +145,7 @@ exports.cheque = {
 
   // Met à jour l'état d'une restitution d'avance lorsque le chèque est réglé
   updateRestitWhenRegleecheque: `update [dbo].[DAF_RestitAvance] set Etat = 'Reglee' where [modePaiement] =@numerocheque
-                  and etat not in('AnnulerPaiement','AnnulerSasie')
+                  and etat not in('Annuler')
       `,
 
   // Crée une entrée RAS pour une facture (duplication de la fonction)
@@ -160,6 +161,7 @@ exports.cheque = {
       ,[PourcentageRas]
       ,[modePaiement]
       ,[Nom]
+      ,[idDocPaye]
       )
   VALUES`,
 
@@ -168,10 +170,10 @@ exports.cheque = {
   INSERT INTO [dbo].[DAF_RestitAvance]
             ([idAvance]
             ,[Montant]
-             ,[Redacteur]
-             ,[etat]
-             ,[nom]
-             ,[ModePaiement]
+            ,[Redacteur]
+            ,[etat]
+            ,[nom]
+            ,[ModePaiement]
             )
       VALUES`,
 };

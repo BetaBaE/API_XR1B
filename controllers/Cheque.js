@@ -181,6 +181,7 @@ async function insertDocInRas(ArrayOfFacture, numerocheque) {
     MontantTVA,
     RAS,
     TVA,
+    id,
   } of ArrayOfFacture) {
     console.log("RAS", RAS);
     if (RAS != 0) {
@@ -194,7 +195,7 @@ async function insertDocInRas(ArrayOfFacture, numerocheque) {
         formattedDate === null ? "NULL" : `'${formattedDate}'`;
       const formattedCatFn = CatFn === null ? "NULL" : `'${CatFn}'`;
 
-      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', '${numerocheque}', '${escapedNom}')`;
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', '${numerocheque}', '${escapedNom}', '${id}')`;
 
       query += (query ? "," : "") + queryPart;
       autorise = true;
@@ -248,10 +249,10 @@ async function ChangeEtatReglerAvanceFacture(numerocheque) {
           AND ModePaiement = @numerocheque
       
       )
-      AND etat NOT IN ('AnnulerSasie')
+      AND etat NOT IN ('Annuler')
     `;
 
-    // Requête 2 : Mise à jour de DAF_FactureSaisie
+    // RFactureSaisieequête 2 : Mise à jour de DAF_
     let query2 = `
    UPDATE  fs
 SET  fs.AcompteVal += rs.Montant
@@ -303,7 +304,7 @@ async function ChangeEtatReglerAvanceFacture(numerocheque) {
           AND ModePaiement = @numerocheque
           
       )
-      AND etat NOT IN ('AnnulerSasie')
+      AND etat NOT IN ('Annuler')
     `;
 
     // Requête 2 : Mise à jour de DAF_FactureSaisie
@@ -409,14 +410,14 @@ async function ChangeEtatAnnulerAvanceFacture(numerocheque) {
     // Requête 1 : Mise à jour de DAF_Avance
     let query1 = `
       UPDATE DAF_Avance
-      SET Etat = 'AnnulerPaiement'
+      SET Etat = 'Annuler'
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
         WHERE Etat NOT IN ('Reglee')
           AND ModePaiement = @numerocheque
       )
-      AND etat NOT IN ('AnnulerSasie')
+      AND etat NOT IN ('Annuler')
     `;
 
     // Requête 2 : Mise à jour de DAF_FactureSaisie
@@ -427,7 +428,7 @@ FROM DAF_FactureSaisie fs
 INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
 WHERE rs.ModePaiement = @numerocheque
  
-  AND rs.Etat  IN ('AnnulerPaiement');
+  AND rs.Etat  IN ('Annuler');
 
     `;
 
@@ -498,7 +499,7 @@ exports.createcheque = async (req, res) => {
     req.body.numerocheque,
     req.body.Redacteur
   );
-  ChangeEtatEnCoursAvance(ArrayOfFacture);
+  // ChangeEtatEnCoursAvance(ArrayOfFacture); // trigger log_facture
   console.log(req.body, Totale);
   console.log("cheque", cheque.create);
   try {
@@ -596,15 +597,15 @@ exports.updateCheque = async (req, res) => {
       .query(cheque.update);
     if (Etat === "Annuler") {
       updateLogFactureWhenAnnuleCheque(numerocheque);
-      updateRasWhenAnnule(numerocheque);
-      updateRestitWhenAnnuleCheque(numerocheque);
-      ChangeEtatAnnulerAvanceFacture(numerocheque);
+      // updateRasWhenAnnule(numerocheque);
+      // updateRestitWhenAnnuleCheque(numerocheque);// replace with trigger log_facture et restit
+      // ChangeEtatAnnulerAvanceFacture(numerocheque); // replace with trigger log_facture et restit
     }
     if (Etat === "Reglee") {
       updateLogFactureWhenRegleecheque(numerocheque, dateOperation);
-      updateRasWhenRegleecheque(numerocheque, dateOperation);
-      updateRestitWhenRegleecheque(numerocheque);
-      ChangeEtatReglerAvanceFacture(numerocheque);
+      // updateRasWhenRegleecheque(numerocheque, dateOperation);
+      // updateRestitWhenRegleecheque(numerocheque);
+      // ChangeEtatReglerAvanceFacture(numerocheque);
     }
     res.json({
       id: req.params.id,

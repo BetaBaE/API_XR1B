@@ -86,6 +86,7 @@ exports.virements = {
        ,[PourcentageRas]       -- Pourcentage de RAS
        ,[modePaiement]         -- Mode de paiement
        ,[Nom]                  -- Nom
+       ,[idDocPaye]            -- Ref doc a paye
        )
   VALUES
   `,
@@ -121,7 +122,7 @@ exports.virements = {
     and nom=@nom                 -- Condition de mise à jour : nom
   `,
   updateRestitWhenAnnuleV: `update DAF_RestitAvance
-   set Etat='AnnulerPaiement'
+   set Etat='Annuler'
     where  modePaiement =@orderVirementId  and nom =@nom  
   `,
   updateRasWhenAnnuleV: `update DAF_RAS_Tva

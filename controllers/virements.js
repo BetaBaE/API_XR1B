@@ -184,6 +184,7 @@ async function insertDocInRas(ArrayOfFacture, orderVirementId) {
     MontantTVA,
     RAS,
     TVA,
+    id,
   } of ArrayOfFacture) {
     console.log("RAS", RAS);
     if (RAS != 0) {
@@ -197,7 +198,7 @@ async function insertDocInRas(ArrayOfFacture, orderVirementId) {
         formattedDate === null ? "NULL" : `'${formattedDate}'`;
       const formattedCatFn = CatFn === null ? "NULL" : `'${CatFn}'`;
 
-      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', '${orderVirementId}', '${escapedNom}')`;
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', '${orderVirementId}', '${escapedNom}', '${id}')`;
 
       query += (query ? "," : "") + queryPart;
       autorise = true;
@@ -397,7 +398,7 @@ async function ChangeEtatReglerAvanceFacture(orderVirementId, nom) {
           AND ModePaiement = @orderVirementId
           AND nom = @nom
       )
-      AND etat NOT IN ('AnnulerSasie')
+      AND etat NOT IN ('Annuler')
     `;
 
     // Requête 2 : Mise à jour de DAF_FactureSaisie
@@ -423,7 +424,7 @@ WHERE rs.ModePaiement = @orderVirementId
 
     // Exécution des requêtes
     console.log("Requête SQL exécutée 1:", query1);
-    const result1 = await request1.query(query1);
+    // const result1 = await request1.query(query1);
     console.log("Résultat de la requête 1:", result1);
 
     console.log("Requête SQL exécutée 2:", query2);
@@ -447,7 +448,7 @@ async function ChangeEtatAnnulerAvanceFacture(orderVirementId, nom) {
     // Requête 1 : Mise à jour de DAF_Avance
     let query1 = `
       UPDATE DAF_Avance
-      SET Etat = 'AnnulerPaiement'
+      SET Etat = 'Annuler'
       WHERE id IN (
         SELECT idavance
         FROM DAF_RestitAvance
@@ -455,7 +456,7 @@ async function ChangeEtatAnnulerAvanceFacture(orderVirementId, nom) {
           AND ModePaiement = @orderVirementId
           AND nom = @nom
       )
-      AND etat NOT IN ('AnnulerSasie')
+      AND etat NOT IN ('Annuler')
     `;
 
     // Requête 2 : Mise à jour de DAF_FactureSaisie
@@ -466,7 +467,7 @@ FROM DAF_FactureSaisie fs
 INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
 WHERE rs.ModePaiement = @orderVirementId
   AND rs.nom = @nom
-  AND rs.Etat  IN ('AnnulerPaiement');
+  AND rs.Etat  IN ('Annuler');
 
     `;
 
@@ -524,7 +525,7 @@ exports.createVirements = async (req, res) => {
     req.body.orderVirementId,
     req.body.Redacteur
   );
-  ChangeEtatEnCoursAvance(ArrayOfFacture);
+  // ChangeEtatEnCoursAvance(ArrayOfFacture);
   console.log(req.body, Totale);
   console.log("ArrayOfFacture", ArrayOfFacture);
   console.log("virement", virements.create);
@@ -611,16 +612,16 @@ exports.updateVirmeents = async (req, res) => {
     if (Etat === "Annuler") {
       MiunsFromTotalOv(montantVirement, orderVirementId);
       updateLogFactureWhenAnnuleVirement(orderVirementId, nom);
-      updateRasWhenAnnuleVirement(orderVirementId, nom);
-      updateRestitWhenAnnuleVirement(orderVirementId, nom);
-      ChangeEtatAnnulerAvanceFacture(orderVirementId, nom);
+      // updateRasWhenAnnuleVirement(orderVirementId, nom);
+      // updateRestitWhenAnnuleVirement(orderVirementId, nom);
+      // ChangeEtatAnnulerAvanceFacture(orderVirementId, nom);
     }
     if (Etat === "Reglee") {
-      updateRasWhenReglerVirement(orderVirementId, nom, dateOperation);
+      // updateRasWhenReglerVirement(orderVirementId, nom, dateOperation);
       updateOrderVirementwhenVRegler(orderVirementId);
-      updateRestiWhenReglerVirement(orderVirementId, nom);
+      // updateRestiWhenReglerVirement(orderVirementId, nom);
       updateLogFactureWhenRegleevirement(orderVirementId, nom, dateOperation);
-      ChangeEtatReglerAvanceFacture(orderVirementId, nom);
+      // ChangeEtatReglerAvanceFacture(orderVirementId, nom);
     }
 
     res.json({

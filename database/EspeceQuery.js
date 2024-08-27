@@ -78,7 +78,9 @@ exports.espece = {
               [RaS],
               [PourcentageRas],
               [modePaiement],
-              [Nom])
+              [Nom],
+              [idDocPaye]
+              )
        VALUES`,
   ChangeEtatAvanceWhenRegler: ` update DAF_Avance 
      set Etat='Reglee'
