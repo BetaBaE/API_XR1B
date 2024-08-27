@@ -6,7 +6,8 @@ exports.AvancePayer = {
     FROM [dbo].[DAF_LOG_FACTURE] lf 
     INNER JOIN [dbo].[DAF_factureNavette] fn ON 
       CASE 
-        WHEN lf.idAvance LIKE 'av%' THEN TRY_CAST(SUBSTRING(lf.idAvance, 3, LEN(lf.idAvance)) AS INT)
+        WHEN lf.idAvance 
+        LIKE 'av%' THEN TRY_CAST(SUBSTRING(lf.idAvance, 3, LEN(lf.idAvance)) AS INT)
         ELSE lf.idAvance
       END = fn.idfacturenavette
     INNER JOIN [dbo].[DAF_FOURNISSEURS] fou ON fou.id = fn.idfournisseur 

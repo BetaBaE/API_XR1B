@@ -130,7 +130,7 @@ exports.FicheNavette = {
         ficheNavette='Annuler', idfacture=0
         where idfacturenavette=@id ; 
         update daf_avance 
-        set etat ='AnnulerSasie'
+        set etat ='Annuler'
         where id=@id
      `,
 };

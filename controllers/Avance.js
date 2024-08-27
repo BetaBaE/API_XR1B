@@ -442,6 +442,10 @@ exports.RestitutionAvance = async (req, res) => {
         console.log("MontantRestantARestituer", MontantRestantARestituer);
         console.log("Montant > MontantRestantARestituer");
         console.log("idfacture", idfacture);
+        /**
+         * Trigger replace restit
+         */
+
         await pool
           .request()
           .input("etat", getSql().VarChar, etat)
@@ -591,8 +595,8 @@ exports.getAvanceDétailRestit = async (req, res) => {
         chantier ch ON ch.CODEAFFAIRE = Av.CodeAffaire
       INNER JOIN 
         UniqueIds U ON Av.id = U.id
-      WHERE  av.Etat not in('AnnulerSasie', 'AnnulerPaiement') ${queryFilter}
-       and  Rav.Etat  not in('AnnulerPaiement') 
+      WHERE  av.Etat not in('Annuler') ${queryFilter}
+       and  Rav.Etat  not in('Annuler') 
       ORDER BY ${sort[0]} ${sort[1]}
     `);
 
@@ -636,7 +640,7 @@ exports.getAvanceForUpdate = async (req, res) => {
       queryFilter += ` and upper(fn.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
     }
     if (filter.chantier) {
-      queryFilter += ` and upper(fou.LIBELLE) like (upper('%${filter.chantier}%'))`;
+      queryFilter += ` and upper(ch.LIBELLE) like (upper('%${filter.chantier}%'))`;
     }
 
     if (filter.BonCommande) {

@@ -168,7 +168,7 @@ exports.ordervirements = {
     WHERE id = @id
   `,
   updateRestitWhenAnnuleV: `update DAF_RestitAvance
-  set Etat='AnnulerPaiement'
+  set Etat='Annuler'
    where  modePaiement =@orderVirementId  
  `,
 };

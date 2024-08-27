@@ -148,6 +148,7 @@ async function insertDocInRas(ArrayOfFacture) {
     MontantTVA,
     RAS,
     TVA,
+    id,
   } of ArrayOfFacture) {
     console.log("RAS", RAS);
     if (RAS != 0) {
@@ -161,7 +162,7 @@ async function insertDocInRas(ArrayOfFacture) {
         formattedDate === null ? "NULL" : `'${formattedDate}'`;
       const formattedCatFn = CatFn === null ? "NULL" : `'${CatFn}'`;
 
-      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, ${formattedDateFacture},'Reglee', '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', 'paiement espece', '${escapedNom}')`;
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, ${formattedDateFacture},'Reglee', '${HT}', '${MontantTVA}', '${TVA}', '${RAS}', '${PourcentageRas}', 'paiement espece', '${escapedNom}', '${id}')`;
 
       query += (query ? "," : "") + queryPart;
       autorise = true;
@@ -206,7 +207,7 @@ async function ChangeEtatReglerAvanceFacture(ArrayOfFacture) {
           FROM DAF_RestitAvance
           WHERE Etat IN ('Reglee')
         )
-        AND etat NOT IN ('AnnulerSasie') AND id = '${idInt}';\n`;
+        AND etat NOT IN ('Annuler') AND id = '${idInt}';\n`;
 
         query2 += `UPDATE fs
         SET fs.AcompteVal += rs.Montant
@@ -315,7 +316,7 @@ exports.createEspece = async (req, res) => {
     insertAvanceInRestit(ArrayOfFacture, req.body.redacteur);
     insertFactureInLog(ArrayOfFacture);
     insertDocInRas(ArrayOfFacture);
-    ChangeEtatReglerAvanceFacture(ArrayOfFacture);
+    // ChangeEtatReglerAvanceFacture(ArrayOfFacture); // trigger FactureSaisie Replace this function
     res.json({ id: "" });
   } catch (error) {
     // switch (error.originalError.info.number) {
