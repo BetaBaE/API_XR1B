@@ -60,8 +60,18 @@ exports.ordervirements = {
 
   // Récupère les virements en cours
   orderVirementsEnCours: `
-    SELECT * FROM [dbo].[DAF_Order_virements]
-    WHERE etat = 'En cours' AND dateExecution IS NULL
+
+	WITH experation10 as (
+		select af.dateExpiration, v.orderVirementId ,iif( af.dateExpiration <= GETDATE() + 10,'Expiration dans les 10 jours','') as alert  
+		from DAF_AttestationFiscal af 
+			inner join DAF_FOURNISSEURS f on f.id = af.idFournisseur
+			inner join DAF_VIREMENTS v on f.id = v.fournisseurId
+		where v.etat <> 'Annuler' and iif( af.dateExpiration <= GETDATE() + 10,'Expiration dans les 10 jours','') = 'Expiration dans les 10 jours'
+	)
+
+	SELECT o.*,e.dateExpiration,e.alert FROM [dbo].[DAF_Order_virements] o
+	left join experation10 e on e.orderVirementId = o.id
+  WHERE o.etat = 'En cours' AND o.dateExecution IS NULL
   `,
 
   // Récupère les virements d'état spécifique
