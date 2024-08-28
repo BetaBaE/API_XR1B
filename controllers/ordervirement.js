@@ -4,6 +4,7 @@ const html_to_pdf = require("html-pdf-node");
 const fs = require("fs");
 const { ToWords } = require("to-words");
 const { DateTime } = require("mssql");
+const { toUpper } = require("lodash");
 // Ajoute des zéros aux nombres pour le formatage
 const addZerotonumbers = (num) => {
   let str = num.toString();
@@ -621,7 +622,14 @@ exports.PrintOrderVirement = async (req, res) => {
             <tfoot>
               <th class="thorder">Total</th>
               <th colspan="2" class="thorder ">
-                ${wordToNumber(printData.resulsumvirement)}
+                ${
+                  // wordToNumber(parseFloat(printData.resulsumvirement))
+                  toUpper(
+                    toWords.convert(
+                      parseFloat(printData.resulsumvirement.replace(",", "."))
+                    )
+                  )
+                } 
               </th>
               <th class="thorder montant">${numberWithSpaces(
                 printData.header[0].totalformater
