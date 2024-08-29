@@ -22,6 +22,13 @@ exports.getAlertAttestationRegFisc = async (req, res) => {
     }
 
     const pool = await getConnection();
+    console.log(`${Alerts.expirationAttestationFisc} ${queryFilter} Order by ${
+      sort[0]
+    } ${sort[1]}
+      OFFSET ${range[0]} ROWS FETCH NEXT ${
+      range[1] + 1 - range[0]
+    } ROWS ONLY     
+      `);
 
     const result = await pool.request().query(
       `${Alerts.expirationAttestationFisc} ${queryFilter} Order by ${sort[0]} ${
