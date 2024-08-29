@@ -208,7 +208,8 @@ exports.factureSaisie = {
       )`,
 
   //  LISTER LES FACTURES LES AVANCE NON PAYER
-  getAvancesNonPayeesParFournisseurId: `SELECT fa.*,
+  getAvancesNonPayeesParFournisseurId: `
+  SELECT fa.*,
 	Case
     when fa.TTC > 5000 and fa.dateExpiration < GETDATE() 
 	     AND (fa.CatFn = 'FET' OR (fa.catFournisseur='personne physique' and fa.CatFn='Service') )  
@@ -221,24 +222,24 @@ exports.factureSaisie = {
     -- Jointure avec la table DAF_FOURNISSEURS sur le nom
     INNER JOIN [dbo].[DAF_CalculRasNetApaye] fa ON f.nom = fa.nom
     WHERE 
-    f.id = @id 
+    f.id = 2621
     -- Filtre pour le fournisseur ayant l'identifiant spécifié
-
-    AND NOT EXISTS (
+	 AND
+     NOT EXISTS (
         -- Vérifie qu'il n'existe pas de factures dans DAF_LOG_FACTURE avec les conditions suivantes
         SELECT 1 
         FROM [dbo].[DAF_LOG_FACTURE] lf
-        WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
+        WHERE fa.id = lf.iddocpaye
         -- La facture doit avoir le même CODEDOCUTIL que dans la table des logs
         AND lf.etat <> 'Annuler'
         -- Le statut de la facture ne doit pas être 'Annuler'
         AND fa.nom = lf.NOM
         -- Le nom du fournisseur doit correspondre
 
-        AND (
+        /*AND (
             (fa.DateFacture IS NULL AND lf.DateDouc IS NULL) OR
             (fa.DateFacture = lf.DateDouc)
-        )
+        )*/
         -- Vérifie que soit les dates des factures sont toutes deux NULL,
         -- soit les dates correspondent
     )

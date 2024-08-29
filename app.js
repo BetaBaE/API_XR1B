@@ -48,6 +48,10 @@ const EcheanceReelRoute = require("./routers/EcheanceReelRoute");
 const EcheanceLoiRoute = require("./routers/EcheanceLoiRoute");
 const AttestationRoute = require("./routers/AttestationRoute"); // Typo: Corrected 'AttestaionRoute' to 'AttestationRoute'
 
+/**    Alerts V2 */
+
+const Alert1Route = require("./routers/alerts");
+
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
 app.use("/", FournisseursRoute);
@@ -70,6 +74,9 @@ app.use("/", EspeceRoute);
 app.use("/", AvanceRoute);
 app.use("/", EcheanceReelRoute);
 app.use("/", EcheanceLoiRoute);
+
+/**  Alert V2 */
+app.use("/", Alert1Route);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;
