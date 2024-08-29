@@ -4,7 +4,7 @@ exports.Alerts = {
         f.nom,
         af.dateDebut,
         af.dateExpiration,
-        Datediff(dd,GETDATE(),af.dateExpiration) as Expiré,
+        Datediff(dd,GETDATE(),af.dateExpiration) as ExpiréDans,
         f.exonorer,
         f.catFournisseur
 	from DAF_AttestationFiscal af

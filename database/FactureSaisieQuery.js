@@ -222,7 +222,7 @@ exports.factureSaisie = {
     -- Jointure avec la table DAF_FOURNISSEURS sur le nom
     INNER JOIN [dbo].[DAF_CalculRasNetApaye] fa ON f.nom = fa.nom
     WHERE 
-    f.id = 2621
+    f.id = @id
     -- Filtre pour le fournisseur ayant l'identifiant spécifié
 	 AND
      NOT EXISTS (
@@ -246,5 +246,6 @@ exports.factureSaisie = {
     
     ORDER BY fa.DateFacture
     -- Trie les résultats par DateFacture
+
 `,
 };
