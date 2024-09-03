@@ -6,7 +6,7 @@ exports.GetDesignations = async (req, res) => {
   try {
     // Récupération des paramètres de pagination, tri et filtre depuis la requête
     let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["iddesignation" , "ASC"]';
+    let sort = req.query.sort || '["id" , "ASC"]';
     let filter = req.query.filter || "{}";
 
     // Conversion des paramètres JSON en objets JavaScript
@@ -21,8 +21,6 @@ exports.GetDesignations = async (req, res) => {
       // Construction de la clause de filtre SQL si un code de designation est spécifié
       queryFilter += ` and upper(codeDesignation) like(upper('%${filter.codeDesignation}%'))`;
     }
-
-    console.log(queryFilter); // Affichage de la clause de filtre pour débogage
 
     const pool = await getConnection(); // Obtention d'une connexion pool à la base de données
 
@@ -47,15 +45,12 @@ exports.GetDesignations = async (req, res) => {
       return record;
     });
 
-    console.log(req.count); // Affichage du nombre total de designations (préalablement stocké dans req.count par le middleware GetDesignationCount)
-
     // Définition de l'en-tête Content-Range pour indiquer la plage des résultats retournés
     res.set(
       "Content-Range",
       `Designations ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
     res.json(recordsWithSeparator); // Envoi des données des designations au format JSON avec les modifications effectuées
-    console.log(recordsWithSeparator); // Affichage des designations modifiées pour débogage
   } catch (error) {
     // Gestion des erreurs : envoi du statut d'erreur 500 et du message d'erreur
     res.status(500);

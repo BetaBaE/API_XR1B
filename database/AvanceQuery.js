@@ -140,7 +140,8 @@ exports.avance = {
 
   // Met à jour les informations de restitution de facture dans la table Daf_factureSaisie
   updateFactureRestituition: `
-    UPDATE Daf_factureSaisie
+  select 1 /*
+   UPDATE Daf_factureSaisie
     SET AcompteReg = CASE 
                       WHEN @etat = 'Reglee' THEN AcompteReg
                       WHEN @etat = 'En cours' THEN AcompteReg + @MontantRestantARestituer
@@ -148,8 +149,10 @@ exports.avance = {
       AcompteVal = CASE 
                     WHEN @etat = 'En cours' THEN AcompteVal
                     WHEN @etat = 'Reglee' THEN AcompteVal + @MontantRestantARestituer
-                   END
+                   END,
+      idAvance = @idAvance 
     WHERE id = @idfacture  -- Filtre par identifiant de la facture
+    */
   `,
 
   // Récupère les factures par fournisseur pour la restitution
