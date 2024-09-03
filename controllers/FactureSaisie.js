@@ -1,5 +1,36 @@
+const { url } = require("inspector");
 const { getConnection, getSql } = require("../database/connection");
 const { factureSaisie } = require("../database/FactureSaisieQuery");
+const https = require("https");
+
+// Function to fetch data from the API using a URL and an ID
+const fetchData = async (url) => {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (response) => {
+        let data = "";
+
+        // A chunk of data has been received
+        response.on("data", (chunk) => {
+          data += chunk;
+        });
+
+        // The whole response has been received
+        response.on("end", () => {
+          try {
+            // Parse the JSON data
+            const jsonData = JSON.parse(data);
+            resolve(jsonData); // Resolve the promise with the parsed data
+          } catch (error) {
+            reject("Error parsing JSON: " + error); // Reject the promise on error
+          }
+        });
+      })
+      .on("error", (error) => {
+        reject("Error with the request: " + error); // Reject the promise on request error
+      });
+  });
+};
 
 // Middleware pour obtenir le nombre de factures
 exports.getfactureSaisieCount = async (req, res, next) => {
@@ -7,7 +38,6 @@ exports.getfactureSaisieCount = async (req, res, next) => {
     const pool = await getConnection();
     let filter = req.query.filter || "{}";
     filter = JSON.parse(filter);
-    console.log(filter);
     let queryFilter = "";
 
     if (filter.BonCommande) {
@@ -34,7 +64,7 @@ exports.getfactureSaisie = async (req, res) => {
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
-    console.log(filter);
+
     let queryFilter = "";
 
     if (filter.BonCommande) {
@@ -68,7 +98,6 @@ exports.getfactureSaisie = async (req, res) => {
       queryFilter += ` AND upper(ch.LIBELLE) LIKE (upper('%${filter.LIBELLE}%'))`;
     }
 
-    console.log(queryFilter);
     const pool = await getConnection();
     const result = await pool.request().query(
       `${factureSaisie.getfactureSaisie} ${queryFilter} ORDER BY ${sort[0]} ${
@@ -155,17 +184,68 @@ exports.createfacture = async (req, res) => {
 
 // Mettre à jour une facture
 exports.updatefactureSaisie = async (req, res) => {
-  const { numeroFacture } = req.body;
+  const {
+    numeroFacture,
+    BonCommande,
+    TTC,
+    DateFacture,
+    HT,
+    MontantTVA,
+    verifiyMidelt,
+    codeChantier,
+    dateecheance,
+    CatFn,
+    fullNameupdating,
+    designation,
+    codechantier,
+    etat,
+  } = req.body;
+
   try {
     const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("id", getSql().VarChar, designation) // Utilisation du paramètre d'URL :id comme valeur pour le code de designation
+      .query(`SELECT * FROM [dbo].[FactureDesignation] WHERE id = @id`);
+
+    designationDetail = result.recordset[0];
+    console.log(designationDetail);
+
     await pool
       .request()
+      .input("numeroFacture", getSql().VarChar, numeroFacture)
+      .input("BonCommande", getSql().VarChar, BonCommande)
+      .input("TTC", getSql().Decimal, TTC)
+      .input("HT", getSql().Numeric, TTC / designationDetail.PourcentageTVA)
+      .input(
+        "MontantTVA",
+        getSql().Numeric,
+        TTC - TTC / designationDetail.PourcentageTVA
+      )
+      .input("DateFacture", getSql().DateTime, DateFacture)
+      .input("verifiyMidelt", getSql().VarChar, verifiyMidelt)
+      .input("fullNameupdating", getSql().VarChar, fullNameupdating)
+      .input("iddesignation", getSql().Int, designation)
+      .input("codechantier", getSql().VarChar, codeChantier)
+      .input("dateecheance", getSql().Date, dateecheance)
+      .input("CatFn", getSql().VarChar, CatFn)
+      .input("etat", getSql().VarChar, etat)
       .input("id", getSql().Int, req.params.id)
       .query(factureSaisie.delete);
 
     res.json({
       id: req.params.id,
       numeroFacture,
+      BonCommande,
+      TTC,
+      DateFacture,
+      verifiyMidelt,
+      codeChantier,
+      dateecheance,
+      CatFn,
+      fullNameupdating,
+      designation,
     });
   } catch (error) {
     res.status(500).send(error.message);
@@ -197,7 +277,7 @@ exports.getfacturehistorique = async (req, res) => {
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
-    console.log(filter);
+
     let queryFilter = "";
 
     if (filter.BonCommande) {
@@ -228,7 +308,6 @@ exports.getfacturehistorique = async (req, res) => {
       queryFilter += ` AND DateFacture < '${filter.Datefin}'`;
     }
 
-    console.log(queryFilter);
     const pool = await getConnection();
     const result = await pool.request().query(
       `${factureSaisie.gethistoriquefacture} ${queryFilter} ORDER BY ${
@@ -300,7 +379,7 @@ exports.getfacturevalider = async (req, res) => {
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
-    console.log(filter);
+
     let queryFilter = "";
 
     if (filter.BonCommande) {
@@ -331,7 +410,6 @@ exports.getfacturevalider = async (req, res) => {
       queryFilter += ` AND DateFacture < '${filter.Datefin}'`;
     }
 
-    console.log(queryFilter);
     const pool = await getConnection();
     const result = await pool.request().query(
       `${factureSaisie.getfacturevalider} ${queryFilter} ORDER BY ${sort[0]} ${

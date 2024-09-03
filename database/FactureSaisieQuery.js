@@ -3,31 +3,40 @@ exports.factureSaisie = {
   getTTc: `SELECT TTC FROM DAF_FactureSaisie WHERE id = @idFacture`,
 
   // Récupère les informations détaillées sur les factures saisies
-  getfactureSaisie: `SELECT
+  getfactureSaisie: `
+  SELECT 
     f.id,
-    f.fullName,
-    f.numeroFacture,
-    f.BonCommande,
-    f.TTC AS TTC,
-    f.createdDate,
-    f.DateFacture,
-    f.HT,
-    f.MontantTVA,
-    d.designation as "designation",
-    fou.nom as "nom",
-    fou.CodeFournisseur,
-    f.verifiyMidelt,
-    f.updatedBy,
-    ch.LIBELLE as LIBELLE,
-    f.dateecheance,
-    f.CatFn,
-    f.AcompteReg,
-    f.AcompteVal
-  FROM [dbo].[DAF_FactureSaisie] f
-  INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
-  INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
-  LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
-  WHERE deletedAt is null`,
+		f.fullName,
+		f.numeroFacture,
+		f.BonCommande,
+		f.TTC AS TTC,
+		f.createdDate,
+		f.DateFacture,
+		f.HT,
+		f.MontantTVA,
+		d.designation as designation,
+		fou.nom as nom,
+		fou.CodeFournisseur,
+		f.verifiyMidelt,
+		f.updatedBy,
+		ch.LIBELLE as LIBELLE,
+		f.dateecheance,
+		f.CatFn,
+		f.AcompteReg,
+		f.AcompteVal
+  FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
+    INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
+    INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+    LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
+  where NOT Exists (
+		select 1 
+		from DAF_LOG_FACTURE lf 
+		where lf.idDocPaye = concat('fr',f.id) 
+			and lf.etat <> 'Annuler'
+	  )
+  and deletedAt is null
+  and (etat in('Saisie' ) OR etat is null)
+  `,
 
   // Compte le nombre de factures saisies non supprimées
   getfactureSaisiecount: `
@@ -64,34 +73,72 @@ exports.factureSaisie = {
   )`,
 
   // Récupère une facture saisie par son ID
-  getOne: `SELECT
-    f.id,
-    f.fullName,
-    f.numeroFacture,
-    f.BonCommande,
-    f.TTC,
-    f.DateFacture,
-    f.HT,
-    f.MontantTVA,
-    d.designation as "designation",
-    fou.nom as "nom",
-    fou.CodeFournisseur,
-    f.verifiyMidelt,
-    f.CatFn
-  FROM [dbo].[DAF_FactureSaisie] f
-  INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
+  getOne: `
+    SELECT f.id,
+		f.fullName,
+		f.numeroFacture,
+		f.BonCommande,
+		f.TTC AS TTC,
+		f.createdDate,
+		f.DateFacture,
+		f.HT,
+		f.MontantTVA,
+		f.iddesignation as designation,
+		fou.nom as nom,
+		fou.CodeFournisseur,
+		f.verifiyMidelt,
+		f.updatedBy,
+		f.codeChantier,
+		f.dateecheance,
+		f.CatFn,
+		f.AcompteReg,
+		f.AcompteVal,
+    f.etat
+  FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
   INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
-  WHERE deletedAt is null AND f.id=@id`,
+  where NOT Exists (
+		select 1 
+		from DAF_LOG_FACTURE lf 
+		where lf.idDocPaye = concat('fr',f.id) 
+			and lf.etat <> 'Annuler'
+	)
+  and deletedAt is null
+  and (etat in('Saisie' ) OR etat is null)
+  --and AcompteReg =0 and AcompteVal= 0
+  and f.id=@id
+  `,
 
   // Vérifie si une facture existe déjà par numéro de facture et bon de commande
   alreadyexist:
     "SELECT COUNT(*) FROM [dbo].[DAF_FactureSaisie] WHERE numeroFacture = @numeroFacture AND BonCommande = @BonCommande",
 
   // Marque une facture comme supprimée
-  delete: `UPDATE [dbo].[DAF_FactureSaisie]
+  delete: `
+  /*
+    UPDATE [dbo].[DAF_FactureSaisie]
     SET deletedAt = GETDATE(),
         numeroFacture = '----' + CAST(id AS VARCHAR(20)) + '----'
-    WHERE id = @id`,
+    WHERE id = @id
+  */
+
+  UPDATE [dbo].[DAF_FactureSaisie]
+    SET [numeroFacture] = @numeroFacture
+        ,[BonCommande] = @BonCommande
+        ,[TTC] = @TTC
+        ,[DateFacture] = @DateFacture
+        ,[MontantTVA] = @MontantTVA
+        ,[verifiyMidelt] = @verifiyMidelt
+        ,[updatedBy] = @fullNameupdating
+        ,[HT] = @HT
+        ,[iddesignation] = @iddesignation
+        ,[codechantier] = @codechantier
+        ,[dateecheance] = @dateecheance
+        ,[CatFn] = @CatFn
+        ,[etat] = @etat
+  WHERE id = @id
+    
+    
+    `,
 
   // Met à jour une facture en la marquant comme supprimée
   edit: `UPDATE [dbo].[DAF_FactureSaisie]

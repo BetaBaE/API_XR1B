@@ -405,6 +405,7 @@ exports.RestitutionAvance = async (req, res) => {
       etat,
       ModePaiement,
       Redacteur,
+      idAvance,
       nom,
     } = req.body;
     const pool = await getConnection();
@@ -436,6 +437,7 @@ exports.RestitutionAvance = async (req, res) => {
             MontantRestantARestituer
           )
           .input("idfacture", getSql().Int, idfacture)
+          .input("idAvance", getSql().Int, req.params.id)
           .query(avance.updateFactureRestituition);
       } else if (Montant > MontantRestantARestituer) {
         console.log("Montant", Montant);
@@ -455,13 +457,9 @@ exports.RestitutionAvance = async (req, res) => {
             MontantRestantARestituer
           )
           .input("idfacture", getSql().Int, idfacture)
+          .input("idAvance", getSql().Int, req.params.id)
           .query(avance.updateFactureRestituition);
 
-        console.log(
-          `${avance.updateFactureRestituition}`,
-          MontantRestantARestituer,
-          idfacture
-        );
         console.log(MontantRestantARestituer, "MontantRestantARestituer");
         await pool
           .request()
