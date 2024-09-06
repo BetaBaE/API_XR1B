@@ -178,16 +178,11 @@ exports.updatefactureSaisie = async (req, res) => {
       .query(`SELECT * FROM [dbo].[FactureDesignation] WHERE id = @id`);
 
     designationDetail = result.recordset[0];
-    console.log(designationDetail);
+
     let TTCcalc =
       TTC / designationDetail.PourcentageTVA +
       (TTC - TTC / designationDetail.PourcentageTVA);
-    console.log({
-      TTCcalc: TTCcalc,
-      TTC: TTC,
-      HT: (TTC / designationDetail.PourcentageTVA).toFixed(2),
-      TVA: (TTC - TTC / designationDetail.PourcentageTVA).toFixed(2),
-    });
+  
 
     const TTCValue = parseFloat(TTC);
 
