@@ -1,36 +1,5 @@
-const { url } = require("inspector");
 const { getConnection, getSql } = require("../database/connection");
 const { factureSaisie } = require("../database/FactureSaisieQuery");
-const https = require("https");
-
-// Function to fetch data from the API using a URL and an ID
-const fetchData = async (url) => {
-  return new Promise((resolve, reject) => {
-    https
-      .get(url, (response) => {
-        let data = "";
-
-        // A chunk of data has been received
-        response.on("data", (chunk) => {
-          data += chunk;
-        });
-
-        // The whole response has been received
-        response.on("end", () => {
-          try {
-            // Parse the JSON data
-            const jsonData = JSON.parse(data);
-            resolve(jsonData); // Resolve the promise with the parsed data
-          } catch (error) {
-            reject("Error parsing JSON: " + error); // Reject the promise on error
-          }
-        });
-      })
-      .on("error", (error) => {
-        reject("Error with the request: " + error); // Reject the promise on request error
-      });
-  });
-};
 
 // Middleware pour obtenir le nombre de factures
 exports.getfactureSaisieCount = async (req, res, next) => {
@@ -189,17 +158,16 @@ exports.updatefactureSaisie = async (req, res) => {
     BonCommande,
     TTC,
     DateFacture,
-    HT,
-    MontantTVA,
     verifiyMidelt,
     codeChantier,
     dateecheance,
     CatFn,
     fullNameupdating,
     designation,
-    codechantier,
     etat,
   } = req.body;
+
+  console.log(req.body);
 
   try {
     const pool = await getConnection();
@@ -211,18 +179,33 @@ exports.updatefactureSaisie = async (req, res) => {
 
     designationDetail = result.recordset[0];
     console.log(designationDetail);
+    let TTCcalc =
+      TTC / designationDetail.PourcentageTVA +
+      (TTC - TTC / designationDetail.PourcentageTVA);
+    console.log({
+      TTCcalc: TTCcalc,
+      TTC: TTC,
+      HT: (TTC / designationDetail.PourcentageTVA).toFixed(2),
+      TVA: (TTC - TTC / designationDetail.PourcentageTVA).toFixed(2),
+    });
+
+    const TTCValue = parseFloat(TTC);
 
     await pool
       .request()
       .input("numeroFacture", getSql().VarChar, numeroFacture)
       .input("BonCommande", getSql().VarChar, BonCommande)
-      .input("TTC", getSql().Decimal, TTC)
-      .input("HT", getSql().Numeric, TTC / designationDetail.PourcentageTVA)
+      .input("TTC", getSql().Decimal(10, 2), TTCValue) // Ensure this is a number
+      .input(
+        "HT",
+        getSql().Decimal(10, 2),
+        TTCValue / designationDetail.PourcentageTVA
+      ) // Keep as number
       .input(
         "MontantTVA",
-        getSql().Numeric,
-        TTC - TTC / designationDetail.PourcentageTVA
-      )
+        getSql().Decimal(10, 2),
+        TTCValue - TTCValue / designationDetail.PourcentageTVA
+      ) // Keep as number
       .input("DateFacture", getSql().DateTime, DateFacture)
       .input("verifiyMidelt", getSql().VarChar, verifiyMidelt)
       .input("fullNameupdating", getSql().VarChar, fullNameupdating)
@@ -233,6 +216,20 @@ exports.updatefactureSaisie = async (req, res) => {
       .input("etat", getSql().VarChar, etat)
       .input("id", getSql().Int, req.params.id)
       .query(factureSaisie.delete);
+
+    console.log("after", {
+      id: req.params.id,
+      numeroFacture,
+      BonCommande,
+      TTC,
+      DateFacture,
+      verifiyMidelt,
+      codeChantier,
+      dateecheance,
+      CatFn,
+      fullNameupdating,
+      designation,
+    });
 
     res.json({
       id: req.params.id,
