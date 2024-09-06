@@ -67,3 +67,67 @@ exports.getAlertAttestationRegFiscCount = async (req, res, next) => {
     res.send(error.message);
   }
 };
+exports.getRasTva = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["id" , "ASC"]';
+    let filter = req.query.filter || "{}";
+
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+    if (filter.DateOperation2) {
+      queryFilter += ` and format(lf.DateOperation,'yyyy-MMMM') = '${filter.DateOperation2}' `;
+    }
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(`${Alerts.rasTva} ${queryFilter} Order by ${sort[0]} ${sort[1]}`);
+
+    res.set("Content-Range", `rastva ${req.count}`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+exports.getRasTvaFilter = async (req, res) => {
+  try {
+    let sort = req.query.sort || '["id" , "ASC"]';
+
+    sort = JSON.parse(sort);
+
+    const pool = await getConnection();
+    console.log(`${Alerts.FilterRASTva} Order by ${sort[0]} ${sort[1]}`);
+
+    const result = await pool
+      .request()
+      .query(`${Alerts.FilterRASTva} Order by ${sort[0]} ${sort[1]}`);
+
+    res.set("Content-Range", `rastvafilter 1000`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+exports.getRasTvaCount = async (req, res, next) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(Alerts.countRasTVA);
+
+    req.count = result.recordset[0].count;
+    console.log(req.count);
+    // res.json({ count: res.conut });
+    next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};

@@ -2,7 +2,9 @@ const express = require("express");
 const {
   getAlertAttestationRegFiscCount,
   getAlertAttestationRegFisc,
-} = require("../controllers/Alerts");
+  getRasTva,
+  getRasTvaFilter,
+} = require("../controllers/alerts");
 
 const router = express.Router();
 
@@ -11,5 +13,7 @@ router.get(
   getAlertAttestationRegFiscCount,
   getAlertAttestationRegFisc
 );
+router.get("/rastva", getRasTva);
+router.get("/rastvafilter", getRasTvaFilter);
 
 module.exports = router;
