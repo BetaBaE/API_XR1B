@@ -1,5 +1,10 @@
 const express = require("express"); // Importation du module Express pour créer des routes
-const { GetChantierCount, GetChantier, GetChantierbyFactureId, GetChantierByBoncommande } = require("../controllers/Chantier"); // Importation des fonctions de contrôleur depuis ../controllers/Chantier
+const {
+  GetChantierCount,
+  GetChantier,
+  GetChantierbyFactureId,
+  GetChantierByBoncommande,
+} = require("../controllers/Chantier"); // Importation des fonctions de contrôleur depuis ../controllers/Chantier
 
 const router = express.Router(); // Création d'un routeur Express
 
