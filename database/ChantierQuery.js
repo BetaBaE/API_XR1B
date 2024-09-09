@@ -25,9 +25,8 @@ exports.chantiers = {
 
   // Récupère les informations de chantier et le rédacteur associé à un bon de commande spécifique
   getChantierbyBc: `
-    SELECT ch.LIBELLE AS libelleChantier, REDACTEUR 
-    FROM DAf_BonCommande_facture bc
-    INNER JOIN chantier ch ON ch.CODEAFFAIRE = bc.CODEAFFAIRE -- Jointure pour obtenir le nom du chantier
-    WHERE bc.CODEDOCUTIL = @Boncommande --  Filtre par identifiant du bon de commande
+   SELECT c.LIBELLE,cde.* 
+  FROM [ENTETECDEFOURNISSEUR] cde inner join chantier c on (cde.codecht = c.id) -- Jointure pour obtenir le nom du chantier
+    WHERE cde.CODEDOCUTIL = @Boncommande --  Filtre par identifiant du bon de commande
   `,
 };
