@@ -409,6 +409,7 @@ exports.RestitutionAvance = async (req, res) => {
       nom,
     } = req.body;
     const pool = await getConnection();
+    console.log(req.body);
 
     if (req.body && Montant !== undefined) {
       console.log("Montant NON RESTITUER:", Montant);
@@ -476,11 +477,11 @@ exports.RestitutionAvance = async (req, res) => {
 
         const Deference = Montant - MontantRestantARestituer;
 
-        console.log("Deference", Deference);
+        console.log("Deference", Deference, typeof Deference);
         await pool
           .request()
           .input("id", getSql().Int, req.params.id)
-          .input("Deference", getSql().Numeric, Deference)
+          .input("Deference", getSql().Numeric(30, 3), Deference)
           .input("ModePaiement", getSql().VarChar, ModePaiement)
           .input("etat", getSql().VarChar, etat)
           .input("Redacteur", getSql().VarChar, Redacteur)
