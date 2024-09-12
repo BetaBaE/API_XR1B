@@ -52,6 +52,7 @@ const charts = require("./routers/charts"); // Typo: Corrected 'AttestaionRoute'
 /**    Alerts V2 */
 
 const Alert1Route = require("./routers/alerts");
+const getfatcturelog = require("./routers/newlogFacture");
 
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
@@ -79,6 +80,7 @@ app.use("/", EcheanceLoiRoute);
 /**  Alert V2 */
 app.use("/", Alert1Route);
 app.use("/", charts);
+app.use("/", getfatcturelog);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;

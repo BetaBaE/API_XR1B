@@ -33,8 +33,8 @@ exports.avance = {
           ,ra.[DateCreation]
           ,ra.[Redacteur]
           ,ra.[Attributeur]
-          ,ra.	[nom]
-          ,[ModePaiement],
+          ,ra.[nom]
+          ,ra.[ModePaiement],
           a.MontantAvanceTTC,
           a.MontantAvanceHT,
           a.MontantAvanceTVA,

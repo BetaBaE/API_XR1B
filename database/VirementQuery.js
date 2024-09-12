@@ -94,18 +94,19 @@ exports.virements = {
   // Cette requête met à jour l'état et la date d'opération d'un virement existant dans la table DAF_VIREMENTS.
   update: `Update [dbo].[DAF_VIREMENTS]
               set Etat=@Etat,             -- Mise à jour de l'état
-              dateOperation=@dateOperation --  Mise à jour de la date d'opération
+              DateOperation=@DateOperation --  Mise à jour de la date d'opération
               where id=@id                 -- Condition de mise à jour : ID du virement
   `,
 
   // Cette requête récupère un virement spécifique par son ID avec les informations du fournisseur et du RIB.
   getOne: `
     SELECT v.[id]
-        ,[orderVirementId]      -- ID de l'ordre de virement
+        ,[orderVirementId]     -- ID de l'ordre de virement
         ,f.nom                 -- Nom du fournisseur
-        ,rf.rib               -- RIB du fournisseur
+        ,rf.rib                -- RIB du fournisseur
         ,[montantVirement],    -- Montant du virement
-        v.Etat                 -- État du virement
+        v.Etat,                -- État du virement
+        v.DateOperation
     FROM  [dbo].[DAF_VIREMENTS] v
         ,[dbo].[DAF_RIB_Fournisseurs] rf
         ,[dbo].[DAF_FOURNISSEURS] f
