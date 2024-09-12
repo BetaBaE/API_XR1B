@@ -101,6 +101,7 @@ exports.cheque = {
   rf.nom ,v.numerocheque,v.datecheque,v.dateecheance
   ,f.nom as "fournisseur"
   ,CodeFournisseur
+  ,v.DateOperation
   FROM  [dbo].[DAF_cheque] v ,
     [dbo].[DAF_RIB_ATNER] rf,
     [dbo].[DAF_FOURNISSEURS] f

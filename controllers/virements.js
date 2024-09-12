@@ -595,7 +595,7 @@ exports.getVirements = async (req, res) => {
 
 exports.updateVirmeents = async (req, res) => {
   console.log(req.body);
-  const { montantVirement, Etat, orderVirementId, nom, dateOperation } =
+  const { montantVirement, Etat, orderVirementId, nom, DateOperation } =
     req.body;
   if (montantVirement == null || orderVirementId == null || nom == null) {
     return res.status(400).json({ error: "all fields are required!" });
@@ -606,7 +606,7 @@ exports.updateVirmeents = async (req, res) => {
     await pool
       .request()
       .input("etat", getSql().VarChar, Etat)
-      .input("dateOperation", getSql().Date, dateOperation)
+      .input("DateOperation", getSql().Date, DateOperation)
       .input("id", getSql().Int, req.params.id)
       .query(virements.update);
     if (Etat === "Annuler") {
@@ -620,7 +620,7 @@ exports.updateVirmeents = async (req, res) => {
       // updateRasWhenReglerVirement(orderVirementId, nom, dateOperation);
       updateOrderVirementwhenVRegler(orderVirementId);
       // updateRestiWhenReglerVirement(orderVirementId, nom);
-      updateLogFactureWhenRegleevirement(orderVirementId, nom, dateOperation);
+      updateLogFactureWhenRegleevirement(orderVirementId, nom, DateOperation);
       // ChangeEtatReglerAvanceFacture(orderVirementId, nom);
     }
 

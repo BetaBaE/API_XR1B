@@ -646,7 +646,7 @@ exports.PrintOrderVirement = async (req, res) => {
           </b>
         </div>
         <div class="footer">
-          <p>S.A.R.L. au capital social 70.000.000,00 DH
+          <p>S.A.R.L. au capital social 100.000.000,00 DH
           <br/>Siége social : 24, route du sud, MIDELT
           <br/> R.C. Midelt n°479-Patente n°18906900-I.F n° : 04150014-C.N.S.S n° 1280510
           </p>
