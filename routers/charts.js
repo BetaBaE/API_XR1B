@@ -6,6 +6,8 @@ const {
 const {
   getSumFournisseur,
   getSumChantier,
+  getSumMensuel,
+  getSumForMonth,
 } = require("../controllers/charts/sumFournisseur");
 
 const router = express.Router();
@@ -13,5 +15,7 @@ const router = express.Router();
 router.get("/overdueInvoices", getOverdueInvoicesr);
 router.get("/sumfournisseur", getSumFournisseur);
 router.get("/sumchantier", getSumChantier);
+router.get("/summensuel", getSumMensuel);
+router.get("/sumformonth/:id", getSumForMonth);
 
 module.exports = router;
