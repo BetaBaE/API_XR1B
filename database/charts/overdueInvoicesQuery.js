@@ -2,24 +2,27 @@ exports.overdueInvoicesQuery = {
   query: `
 with antecedant as (
 	select sum(TTC - AcompteVal) as montant from DAF_FactureSaisie
-	where TTC - AcompteVal > 0
-	and Etat in ('Saisie')
+	where
+	--TTC - AcompteVal > 0 and 
+	Etat in ('Saisie')
 	and DATEADD(day,60, DateFacture) <= getdate()  -- 60 jrs echance 
 ),
 -- 84 458 257.740
 
 unMois as (
 	select sum(TTC - AcompteVal) as montant  from DAF_FactureSaisie
-	where TTC - AcompteVal > 0
-	and Etat in ('Saisie')
+		where
+	--TTC - AcompteVal > 0 and 
+	 Etat in ('Saisie')
 	and DATEADD(day,60, DateFacture) >  getdate()                   -- 60 jrs echance facture > today date
 	and DATEADD(day,60, DateFacture) <=  dateadd(day,30,getdate())  -- 60 jrs echance facture <=  today date + 30 jrs
 ),
 -- 22 923 145.190
 deuxMois as (
 	select sum(TTC - AcompteVal) as montant from DAF_FactureSaisie
-	where TTC - AcompteVal > 0
-	and Etat in ('Saisie')
+		where
+	--TTC - AcompteVal > 0 and 
+	 Etat in ('Saisie')
 	and DATEADD(day,60, DateFacture) >  dateadd(day,30,getdate())
 	and DATEADD(day,60, DateFacture) <=  dateadd(day,60,getdate())
 )

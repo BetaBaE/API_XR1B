@@ -29,4 +29,23 @@ exports.chantiers = {
   FROM [ENTETECDEFOURNISSEUR] cde inner join chantier c on (cde.codecht = c.id) -- Jointure pour obtenir le nom du chantier
     WHERE cde.CODEDOCUTIL = @Boncommande --  Filtre par identifiant du bon de commande
   `,
+
+  getChantierbyFA: `
+   with BCBRFA  AS
+(
+select CODEDOCDESTINATION as d from TRACABILITEDOC where CODEDOCORIGINE=@Boncommande -- METTRE LE NUM BC
+union all
+select CODEDOCDESTINATION FROM BCBRFA, TRACABILITEDOC
+where BCBRFA.d= TRACABILITEDOC.CODEDOCORIGINE)
+SELECT f.nom,
+f.RTCFIELD1 as NumeroFacture,
+f.DATEDOC as DateFacture,
+f.TOTALTTC,
+f.RTCFIELD2 as FN,
+concat(c.[cheminDA],'\\05 - Interface Achats\\02 - Demandes d''achat\\',f.RTCFIELD3) AS DA 
+from BCBRFA , ENTETEFACTUREFOURNISSEUR f
+inner join chantier c on(c.id =  f.CODECHT) 
+where (BCBRFA.d=f.CODEDOCUTIL) and f.CLEETATDOC='54'
+
+  `,
 };

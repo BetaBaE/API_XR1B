@@ -88,14 +88,19 @@ exports.GetChantierByBoncommande = async (req, res) => {
   try {
     const pool = await getConnection(); // Obtention d'une connexion pool à la base de données
 
-    const result = await pool
+    const resultBc = await pool
       .request()
       .input("Boncommande", getSql().VarChar, req.params.Boncommande) // Utilisation du paramètre d'URL :Boncommande comme valeur pour le bon de commande
       .query(chantiers.getChantierbyBc); // Exécution de la requête SQL pour récupérer les chantiers
 
+    const resultFA = await pool
+      .request()
+      .input("Boncommande", getSql().VarChar, req.params.Boncommande) // Utilisation du paramètre d'URL :Boncommande comme valeur pour le bon de commande
+      .query(chantiers.getChantierbyFA); // Exécution de la requête SQL pour récupérer les chantiers
+
     res.set("Content-Range", `cahntier 0-1/1`); // Définition de l'en-tête Content-Range (peut être ajusté selon le besoin)
 
-    res.json(result.recordset); // Envoi des données des chantiers associés au bon de commande au format JSON
+    res.json({ BC: resultBc.recordset, FA: resultFA.recordset }); // Envoi des données des chantiers associés au bon de commande au format JSON
   } catch (error) {
     // Gestion des erreurs : envoi du statut d'erreur 500 et du message d'erreur
     res.send(error.message);
