@@ -159,10 +159,11 @@ exports.virements = {
    
    
    `,
-  updateLogFactureWhenRegleeV: `update DAF_LOG_FACTURE
-            set etat='Reglee' , dateOperation=@dateOperation
-       where  modePaiementId =@orderVirementId  and nom =@nom
-   
-
+  updateLogFactureWhenRegleeV: `
+      update DAF_LOG_FACTURE
+      set etat='Reglee' , dateOperation=@dateOperation
+      where  modePaiementId =@orderVirementId  
+      and nom =@nom 
+      and etat <> 'Annuler'
    `,
 };

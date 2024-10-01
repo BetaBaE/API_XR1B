@@ -516,16 +516,9 @@ exports.getVirementCount = async (req, res, next) => {
 exports.createVirements = async (req, res) => {
   let { facturelist } = req.body;
   let { Totale } = await calculSumFactures(facturelist);
-  //let num = MontantFixed(Totale);
+
   let ArrayOfFacture = await getFactureFromView(facturelist);
-  insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
-  insertDocInRas(ArrayOfFacture, req.body.orderVirementId);
-  insertAvanceInRestit(
-    ArrayOfFacture,
-    req.body.orderVirementId,
-    req.body.Redacteur
-  );
-  // ChangeEtatEnCoursAvance(ArrayOfFacture);
+
   console.log(req.body, Totale);
   console.log("ArrayOfFacture", ArrayOfFacture);
   console.log("virement", virements.create);
@@ -540,7 +533,16 @@ exports.createVirements = async (req, res) => {
       .input("montantVirement", getSql().Float, Totale)
       .query(virements.create);
     console.log(Totale);
+
     await AddToTotalOv(Totale, req.body.orderVirementId);
+
+    insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
+    insertDocInRas(ArrayOfFacture, req.body.orderVirementId);
+    insertAvanceInRestit(
+      ArrayOfFacture,
+      req.body.orderVirementId,
+      req.body.Redacteur
+    );
     res.json({ id: "", Totale });
   } catch (error) {
     res.status(500);

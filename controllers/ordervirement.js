@@ -405,27 +405,6 @@ exports.PrintOrderVirement = async (req, res) => {
       currentDate.getMonth() + 1
     )}/${addZero(currentDate.getFullYear())}`;
 
-    // let date = `${currentDate.getFullYear()}${
-    //   currentDate.getMonth.length > 1
-    //     ? currentDate.getMonth + 1
-    //     : "0" + (currentDate.getMonth + 1).toString()
-    // }${
-    //   currentDate.getDay.length > 1
-    //     ? currentDate.getDay
-    //     : "0" + currentDate.getDay.toString()
-    // }${
-    //   currentDate.getHours.length > 1
-    //     ? currentDate.getHours
-    //     : "0" + currentDate.getHours.toString()
-    // }${
-    //   currentDate.getMinutes.length > 1
-    //     ? currentDate.getMinutes
-    //     : "0" + currentDate.getMinutes.toString()
-    // }${
-    //   currentDate.getSeconds.length > 1
-    //     ? currentDate.getSeconds
-    //     : "0" + currentDate.getSeconds.toString()
-    // }`;
     result = await pool
       .request()
       .input("ovId", getSql().VarChar, filter.id)
@@ -440,52 +419,52 @@ exports.PrintOrderVirement = async (req, res) => {
     printData.resulsumvirement = resultsumov.recordset[0].SumVirement;
 
     let trdata = "";
-    const wordToNumber = (x) => {
-      let res = "";
-      let to_words = toWords.convert(x).toLocaleUpperCase();
-      console.log("to_words", to_words);
-      if (to_words.includes("VIRGULE")) {
-        let [integerPart, decimalPart] = to_words.split("VIRGULE");
+    // const wordToNumber = (x) => {
+    //   let res = "";
+    //   let to_words = toWords.convert(x).toLocaleUpperCase();
+    //   console.log("to_words", to_words);
+    //   if (to_words.includes("VIRGULE")) {
+    //     let [integerPart, decimalPart] = to_words.split("VIRGULE");
 
-        // Vérifie si decimalPart est null et le remplace par une chaîne vide
-        decimalPart = decimalPart || "";
+    //     // Vérifie si decimalPart est null et le remplace par une chaîne vide
+    //     decimalPart = decimalPart || "";
 
-        // res = integerPart + " DIRHAMS";
-        res = integerPart;
-        // Traitement de la partie décimale
-        if (decimalPart) {
-          let decimalInWords = "";
-          if (decimalPart.trim() === "UN") {
-            decimalInWords = "DIX CENTIMES";
-          } else if (decimalPart.trim() === "DEUX") {
-            decimalInWords = "VINGT CENTIMES";
-          } else if (decimalPart.trim() === "TROIS") {
-            decimalInWords = "TRENTE CENTIMES";
-          } else if (decimalPart.trim() === "QUATRE") {
-            decimalInWords = "QUARANTE CENTIMES";
-          } else if (decimalPart.trim() === "CINQ") {
-            decimalInWords = "CINQUANTE CENTIMES";
-          } else if (decimalPart.trim() === "SIX") {
-            decimalInWords = "SOIXANTE CENTIMES";
-          } else if (decimalPart.trim() === "SEPT") {
-            decimalInWords = "SOIXANTE-DIX CENTIMES";
-          } else if (decimalPart.trim() === "HUIT") {
-            decimalInWords = "QUATRE-VINGTS CENTIMES";
-          } else if (decimalPart.trim() === "NEUF") {
-            decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
-          } else {
-            // decimalInWords =decimalPart + " CENTIMES";
-            decimalInWords = decimalPart;
-          }
+    //     // res = integerPart + " DIRHAMS";
+    //     res = integerPart;
+    //     // Traitement de la partie décimale
+    //     if (decimalPart) {
+    //       let decimalInWords = "";
+    //       if (decimalPart.trim() === "UN") {
+    //         decimalInWords = "DIX CENTIMES";
+    //       } else if (decimalPart.trim() === "DEUX") {
+    //         decimalInWords = "VINGT CENTIMES";
+    //       } else if (decimalPart.trim() === "TROIS") {
+    //         decimalInWords = "TRENTE CENTIMES";
+    //       } else if (decimalPart.trim() === "QUATRE") {
+    //         decimalInWords = "QUARANTE CENTIMES";
+    //       } else if (decimalPart.trim() === "CINQ") {
+    //         decimalInWords = "CINQUANTE CENTIMES";
+    //       } else if (decimalPart.trim() === "SIX") {
+    //         decimalInWords = "SOIXANTE CENTIMES";
+    //       } else if (decimalPart.trim() === "SEPT") {
+    //         decimalInWords = "SOIXANTE-DIX CENTIMES";
+    //       } else if (decimalPart.trim() === "HUIT") {
+    //         decimalInWords = "QUATRE-VINGTS CENTIMES";
+    //       } else if (decimalPart.trim() === "NEUF") {
+    //         decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
+    //       } else {
+    //         // decimalInWords =decimalPart + " CENTIMES";
+    //         decimalInWords = decimalPart;
+    //       }
 
-          // res += " ET " + decimalInWords;
-        }
-      } else {
-        res = to_words;
-      }
+    //       // res += " ET " + decimalInWords;
+    //     }
+    //   } else {
+    //     res = to_words;
+    //   }
 
-      return res;
-    };
+    //   return res;
+    // };
 
     console.log("printData:", printData);
 
@@ -664,8 +643,6 @@ exports.PrintOrderVirement = async (req, res) => {
       let pdfPath =
         "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\OV\\" +
         printData.header[0].id +
-        " " +
-        concat +
         ".pdf";
       fs.writeFileSync(pdfPath, pdfBuffer);
       printData.path = pdfPath;
