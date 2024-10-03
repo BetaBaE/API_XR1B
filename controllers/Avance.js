@@ -35,6 +35,9 @@ exports.getAvance = async (req, res) => {
     if (filter.fournisseur) {
       queryFilter += ` and upper(ra.nom) like (upper('%${filter.fournisseur}%'))`;
     }
+    if (filter.Etat) {
+      queryFilter += ` and ra.Etat = '${filter.Etat}'`;
+    }
     console.log(queryFilter);
     const pool = await getConnection();
 
