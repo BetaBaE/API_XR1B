@@ -14,16 +14,12 @@ exports.faNotPayed = {
     `,
 
   tableSum: `
-    select 
-    1 as id,
-    sum(fs.ttc- fs.AcompteVal) as totTTC ,
-    min(fs.datefacture) as minDate, 
-    max(fs.datefacture) as MaxDate, 
-    count(*) as nmbreFacture 
-    from DAF_FactureSaisie fs inner join DAF_FOURNISSEURS fr on fr.id=fs.idfournisseur
+    select fs.codechantier as id ,fs.codechantier , sum(fs.ttc- fs.AcompteVal) as TotTTC ,min(fs.datefacture) as MinDate, max(fs.datefacture) as MaxDate, count(*) as NombreFacture from DAF_FactureSaisie fs inner join DAF_FOURNISSEURS fr on fr.id=fs.idfournisseur
     where not exists( select 1 from DAF_factureNavette where fs.id= idFacture)
     and fs.Etat ='Saisie' and fs.deletedAt is null and fs.DateFacture <getdate()-20
-
+    group by fs.codechantier 
+    having  abs(sum(fs.ttc- fs.AcompteVal))  >2
+    order by sum(fs.ttc)desc , count(*) desc
     `,
 
   situationFournisseur: `
