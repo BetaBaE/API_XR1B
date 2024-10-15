@@ -101,8 +101,8 @@ select
 	ef.nom , 
 	DateFacture, 
 	CODEAFFAIRE, 
-	ef.TOTALTTC as 'TTC Sage', 
-	fa.TTC as 'TTC App', 
+	ef.TOTALTTC as 'TTCSage', 
+	fa.TTC as 'TTCApp', 
 	RTCFIELD2 as FN  
 from 
 	ENTETEFACTUREFOURNISSEUR ef 
