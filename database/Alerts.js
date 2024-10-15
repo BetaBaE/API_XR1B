@@ -1,14 +1,19 @@
 exports.Alerts = {
   expirationAttestationFisc: `
-	select f.id,
+		with maxDate as (
+	select idFournisseur, max(dateExpiration) as maxDateExpiration from DAF_AttestationFiscal
+	group by idFournisseur
+)
+
+select  f.id,
         f.nom,
-        af.dateDebut,
-        af.dateExpiration,
-        Datediff(dd,GETDATE(),af.dateExpiration) as ExpiréDans,
+        md.maxDateExpiration as dateExpiration,
+        Datediff(dd,GETDATE(),md.maxDateExpiration) as ExpiréDans,
         f.exonorer,
         f.catFournisseur
-	from DAF_AttestationFiscal af
-	    right join DAF_FOURNISSEURS f on af.idFournisseur = f.id
+	from maxDate md 
+	    right join DAF_FOURNISSEURS f on md.idFournisseur = f.id
+		--left join maxDate md on (md.idFournisseur = f.id)
 	where f.id in (
 		select idfournisseur from DAF_FactureSaisie
 		where etat = 'Saisie'
@@ -16,7 +21,8 @@ exports.Alerts = {
 		select idFournisseur  from DAF_Avance
 		where etat = 'Saisie'
 	)
-	and (af.dateExpiration < GETDATE() +30 or af.dateExpiration is null  )
+--and md.idFournisseur = 616
+	and (md.maxDateExpiration < GETDATE() +30 or md.maxDateExpiration is null  )
 	and f.exonorer = 'non'
     `,
 
@@ -81,5 +87,47 @@ exports.Alerts = {
 									)
 	inner join DAF_FOURNISSEURS f on (rt.nom = f.nom)
 	where rt.etat= 'Reglee'  
+`,
+
+  FactureAyantFN: `
+with FANANFN as (
+	select fs.* , f.nom from DAF_FactureSaisie fs inner join DAF_FOURNISSEURS f on (fs.idfournisseur = f.id)
+	where fs.id not in (select idFacture from DAF_factureNavette)
+	and Etat <> 'Annuler' and deletedAt is null
+)
+select 
+	ef.CODEDOCUTIL as id,
+	fa.numeroFacture,
+	ef.nom , 
+	DateFacture, 
+	CODEAFFAIRE, 
+	ef.TOTALTTC as 'TTC Sage', 
+	fa.TTC as 'TTC App', 
+	RTCFIELD2 as FN  
+from 
+	ENTETEFACTUREFOURNISSEUR ef 
+inner join  FANANFN fa 
+on (ef.RTCFIELD1 = fa.numeroFacture  and ef.nom = fa.nom and ef.DATEDOC = fa.DateFacture)
+where 
+DATEDOC >= '2022-01-01'
+and ef.CLEETATDOC <> 52
+`,
+
+  FactureAyantFNCount: `
+with FANANFN as (
+	select fs.* , f.nom from DAF_FactureSaisie fs inner join DAF_FOURNISSEURS f on (fs.idfournisseur = f.id)
+	where fs.id not in (select idFacture from DAF_factureNavette)
+	and Etat <> 'Annuler' and deletedAt is null
+)
+select 
+	count(*) as   count 
+from	ENTETEFACTUREFOURNISSEUR ef 
+inner join  FANANFN fa 
+on (ef.RTCFIELD1 = fa.numeroFacture  
+and ef.nom = fa.nom 
+and ef.DATEDOC = fa.DateFacture)
+where 
+DATEDOC >= '2022-01-01'
+and ef.CLEETATDOC <> 52
 `,
 };
