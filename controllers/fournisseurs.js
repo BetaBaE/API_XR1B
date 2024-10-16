@@ -96,7 +96,7 @@ exports.createFournisseurs = async (req, res) => {
     await pool
       .request()
       .input("CodeFournisseur", getSql().VarChar, CodeFournisseur)
-      .input("nom", getSql().VarChar, nom)
+      .input("nom", getSql().VarChar, nom.trim())
       .input("catFournisseur", getSql().VarChar, catFournisseur)
       .input("ICE", getSql().VarChar, ICE)
       .input("IF", getSql().VarChar, IF)
