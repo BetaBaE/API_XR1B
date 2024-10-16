@@ -48,6 +48,7 @@ exports.avance = {
                         inner join DAF_FOURNISSEURS f on f.nom = ra.nom
           where  
           ra.idFacture is null
+          and ra.etat <> 'Annuler' 
     `,
 
   // Récupère les avances par fournisseur, filtrées par ceux qui ont une commande et dont les avances ne sont pas encore facturées
