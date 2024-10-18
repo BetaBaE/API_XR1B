@@ -183,10 +183,7 @@ exports.GetAvanceDetails = async (req, res) => {
     FETCH NEXT ${range[1] - range[0]} ROWS ONLY
 
     `);
-    /**
- *     
-    
- */
+
     console.log(req.count);
     res.set(
       "Content-Range",
@@ -252,6 +249,32 @@ exports.GetAvanceDetailsCount = async (req, res, next) => {
   } catch (error) {
     res.status(500);
     console.log(error.message);
+    res.send(error.message);
+  }
+};
+
+exports.GetOneAvanceDetails = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["id" , "ASC"]';
+    let filter = req.query.filter || "{}";
+
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+
+    const pool = await getConnection();
+    // console.log(logfacture.GetOneAvanceDetails);
+    if (req.params.id != null) {
+      const result = await pool
+        .request()
+        .input("id", getSql().VarChar, req.params.id).query(`
+    ${logfacture.GetOneAvanceDetails} `);
+      res.set("Content-Range", `newlogfacture 0-1/1`);
+      res.json(result.recordset[0]);
+    }
+  } catch (error) {
+    res.status(500);
     res.send(error.message);
   }
 };

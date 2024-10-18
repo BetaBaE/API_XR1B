@@ -12,7 +12,7 @@ const {
   getfournisseurwithecheance,
   getNomfournisseur,
   getAllFournissuersClean,
-} = require("../controllers/Fournisseurs");
+} = require("../controllers/fournisseurs");
 const router = express.Router();
 router.get("/fournisseurs", getFournisseursCount, getFournissuers);
 router.get("/allfournisseurs", getFournisseursCount, getAllFournissuers);
