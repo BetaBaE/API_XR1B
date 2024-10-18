@@ -142,9 +142,18 @@ exports.getFactureAyantFNSage = async (req, res) => {
     filter = JSON.parse(filter);
 
     let queryFilter = "";
-
+    //{"nom":" ffff","numeroFacture":"ddd","FN":"sss","CODEAFFAIRE":"dd"}
     if (filter.nom) {
-      queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
+      queryFilter += ` and upper(ef.nom) like(upper('%${filter.nom}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` and upper(fa.numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
+    }
+    if (filter.FN) {
+      queryFilter += ` and upper(ef.RTCFIELD2) like(upper('%${filter.FN}%'))`;
+    }
+    if (filter.CODEAFFAIRE) {
+      queryFilter += ` and upper(ef.CODEAFFAIRE) like(upper('%${filter.CODEAFFAIRE}%'))`;
     }
 
     const pool = await getConnection();
@@ -170,9 +179,28 @@ exports.getFactureAyantFNSage = async (req, res) => {
 };
 
 exports.getFactureAyantFNSageCount = async (req, res, next) => {
+  let filter = req.query.filter || "{}";
+  filter = JSON.parse(filter);
   try {
+    let queryFilter = "";
+    //{"nom":" ffff","numeroFacture":"ddd","FN":"sss","CODEAFFAIRE":"dd"}
+    if (filter.nom) {
+      queryFilter += ` and upper(ef.nom) like(upper('%${filter.nom}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` and upper(fa.numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
+    }
+    if (filter.FN) {
+      queryFilter += ` and upper(ef.RTCFIELD2) like(upper('%${filter.FN}%'))`;
+    }
+    if (filter.CODEAFFAIRE) {
+      queryFilter += ` and upper(ef.CODEAFFAIRE) like(upper('%${filter.CODEAFFAIRE}%'))`;
+    }
+
     const pool = await getConnection();
-    const result = await pool.request().query(Alerts.FactureAyantFNCount);
+    const result = await pool
+      .request()
+      .query(`${Alerts.FactureAyantFNCount} ${queryFilter}`);
 
     req.count = result.recordset[0].count;
     console.log(req.count);

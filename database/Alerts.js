@@ -128,6 +128,6 @@ and ef.nom = fa.nom
 and ef.DATEDOC = fa.DateFacture)
 where 
 DATEDOC >= '2022-01-01'
-and ef.CLEETATDOC <> 52
+and ef.CLEETATDOC <> 52 
 `,
 };
