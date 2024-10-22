@@ -158,13 +158,15 @@ exports.avance = {
 
   // Récupère les factures par fournisseur pour la restitution
   getfacturebyfournisseurRestit: `
- SELECT fs.id AS idfacture, fs.numeroFacture, fs.DateFacture, fs.TTC
+ SELECT fs.id AS idfacture, fs.numeroFacture, fs.DateFacture, 
+ fs.TTC - iif(fs.AcompteReg > fs.AcompteVal ,fs.AcompteReg , fs.AcompteVal) as TTC
     FROM [dbo].[DAF_FactureSaisie] fs
     INNER JOIN DAF_FOURNISSEURS four ON four.id = fs.idfournisseur
     WHERE deletedAt IS NULL -- Filtre pour les factures non supprimées
       AND idfournisseur IN (SELECT id FROM [dbo].[DAF_FOURNISSEURS] WHERE id = @idfournisseur)
     -- AND fs.id NOT IN (SELECT idfacture FROM DAF_factureNavette)
-      AND AcompteReg = 0 AND AcompteVal = 0    --Filtre pour les factures sans acomptes
+    --  AND AcompteReg = 0 AND AcompteVal = 0    --Filtre pour les factures sans acomptes
+	    AND fs.TTC - iif(fs.AcompteReg > fs.AcompteVal ,fs.AcompteReg , fs.AcompteVal) > 5
       AND NOT EXISTS (
         SELECT 1
         FROM DAF_LOG_FACTURE
