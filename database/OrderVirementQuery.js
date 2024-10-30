@@ -62,11 +62,11 @@ exports.ordervirements = {
   orderVirementsEnCours: `
 
 	WITH experation10 as (
-		select af.dateExpiration, v.orderVirementId ,iif( af.dateExpiration <= GETDATE() + 10,'Expiration dans les 10 jours','') as alert  
+		select af.dateExpiration, v.orderVirementId ,iif( af.dateExpiration <= GETDATE() + 10,'Expiration ARF d''un fournisseur','') as alert  
 		from DAF_AttestationFiscal af 
 			inner join DAF_FOURNISSEURS f on f.id = af.idFournisseur
 			inner join DAF_VIREMENTS v on f.id = v.fournisseurId
-		where v.etat <> 'Annuler' and iif( af.dateExpiration <= GETDATE() + 10,'Expiration dans les 10 jours','') = 'Expiration dans les 10 jours'
+		where v.etat <> 'Annuler' and iif( af.dateExpiration <= GETDATE() + 10,'Expiration ARF d''un fournisseur','') = 'Expiration ARF d''un fournisseur'
 	)
 
 	SELECT o.*,e.dateExpiration,e.alert FROM [dbo].[DAF_Order_virements] o
