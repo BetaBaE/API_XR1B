@@ -114,13 +114,6 @@ exports.factureSaisie = {
 
   // Marque une facture comme supprimée
   delete: `
-  /*
-    UPDATE [dbo].[DAF_FactureSaisie]
-    SET deletedAt = GETDATE(),
-        numeroFacture = '----' + CAST(id AS VARCHAR(20)) + '----'
-    WHERE id = @id
-  */
-
   UPDATE [dbo].[DAF_FactureSaisie]
     SET [numeroFacture] = @numeroFacture
         ,[BonCommande] = @BonCommande
@@ -137,20 +130,22 @@ exports.factureSaisie = {
         ,[etat] = @etat
   WHERE id = @id
     
-    
     `,
 
   // Met à jour une facture en la marquant comme supprimée
   edit: `UPDATE [dbo].[DAF_FactureSaisie]
     SET deletedAt = GETDATE(),
-        numeroFacture = '----' + CAST(id AS VARCHAR(20)) + '----'
+        numeroFacture = '----' + CAST(id AS VARCHAR(20)) + '----',
+        etat = 'Annuler'
     WHERE id = @id`,
 
   // Récupère les factures d'un fournisseur par nom à modifier
   getfacturebyfournisseurnom: `SELECT * FROM [dbo].[DAF_FactureSaisie] 
     WHERE deletedAt IS NULL AND idfournisseur 
     IN (SELECT id FROM [dbo].[DAF_FOURNISSEURS] WHERE id = @nom)
-    AND id NOT IN (SELECT idfacture FROM DAF_factureNavette)`,
+    AND id NOT IN (SELECT idfacture FROM DAF_factureNavette)
+    order by DateFacture 
+    `,
 
   // Récupère l'historique des factures supprimées
   gethistoriquefacture: `SELECT f.id,
