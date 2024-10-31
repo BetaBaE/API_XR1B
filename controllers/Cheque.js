@@ -184,7 +184,7 @@ async function insertDocInRas(ArrayOfFacture, numerocheque) {
     id,
   } of ArrayOfFacture) {
     console.log("RAS", RAS);
-    if (RAS != 0) {
+    if (RAS > 10) {
       const escapedNom = nom?.replace(/'/g, "''");
       const formattedDate = DateFacture
         ? new Date(DateFacture).toISOString().slice(0, 10)
