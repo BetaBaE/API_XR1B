@@ -81,7 +81,7 @@ group by idAvance
 	DAF_factureNavette fn on ( fn.idfacturenavette = av.id)
  left join 
 	resumeRestint rs on (rs.idAvance = av.id)
-where etat not in ( 'Annuler','TMP') and ([dateoperation] > '2024-01-01' or [dateoperation] is null )
+where etat not in ( 'Annuler','TMP') and ([dateoperation] > @dateExercices or [dateoperation] is null )
 `,
 
   GetOneAvanceDetails: `
