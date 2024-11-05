@@ -144,4 +144,55 @@ SELECT count(*) as count from DAF_Avance av
  left join 
 	resumeRestint rs on (rs.idAvance = av.id)
 where etat not in ( 'Annuler','TMP') and ([dateoperation] > '2024-01-01' or [dateoperation] is null )`,
+
+  logTva: `
+select
+ fs.id,
+ fs.CODECHT,
+ fs.nom,
+ fs.CODEDOCUTIL,
+ fs.DateDouc,
+ fs.TOTHTNET,
+ fs.TOTTVANET,
+ fs.TOTALTTC,
+ fs.Etat,
+ fs.modepaiement, 
+ case 
+	when  fs.modepaiement = 'paiement virement'
+		then fs.modepaiementID 
+	when fs.modepaiement = 'paiement cheque'
+		then fs.numerocheque
+	else 'paiement espece'
+ end as RefPay,
+ fs.DateOperation ,
+ fs.Ras,
+ fs.NETAPAYER,
+ case 
+	when  fs.idDocPaye like 'fr%'
+		then 'Facture'
+	when fs.idDocPaye like 'Av%'
+		then 'Avance'
+ end as typeDoc
+ from DAF_LOG_FACTURE fs
+where etat='Reglee'  
+and DateOperation is not null
+and DateOperation >= '2024-09-01'
+`,
+
+  LogTvaCount: `
+ select
+count(*) as count 
+ from DAF_LOG_FACTURE fs
+where etat='Reglee' and DateOperation is not null
+and DateOperation >= '2024-09-01'
+
+`,
+  LogTvaFilter: `
+ select 
+ distinct	FORMAT(DateOperation, 'yyyy-MMMM' ) as date
+ from DAF_LOG_FACTURE fs
+where etat='Reglee'  and DateOperation is not null 
+and DateOperation >= '2024-09-01'
+  ORDER BY date DESC
+`,
 };

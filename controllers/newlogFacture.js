@@ -196,11 +196,6 @@ exports.GetAvanceDetails = async (req, res) => {
   }
 };
 
-/* 
-   lister le nombre des attestations 
-   cette fonction  nous aide dans la pagination
-   */
-
 exports.GetAvanceDetailsCount = async (req, res, next) => {
   try {
     let filter = req.query.filter || "{}";
@@ -246,6 +241,147 @@ exports.GetAvanceDetailsCount = async (req, res, next) => {
 
     req.count = result.recordset[0].count;
     next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};
+
+exports.GetTVALog = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["id" , "ASC"]';
+    let filter = req.query.filter || "{}";
+
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+    console.log(filter);
+    let queryFilter = "";
+
+    if (filter.nom) {
+      queryFilter += ` and upper(fs.nom) like(upper('%${filter.nom}%'))`;
+    }
+    if (filter.CODECHT) {
+      queryFilter += ` and  fs.CODECHT like(upper('%${filter.CODECHT}%'))`;
+    }
+    if (filter.CODEDOCUTIL) {
+      queryFilter += ` and  upper(fs.CODEDOCUTIL) like(upper('%${filter.CODEDOCUTIL}%'))`;
+    }
+    if (filter.Fn) {
+      queryFilter += ` and  upper(fn.ficheNavette) like(upper('%${filter.Fn}%'))`;
+    }
+    if (filter.modepaiement) {
+      queryFilter += ` and  upper(fs.modepaiement) like(upper('%${filter.modepaiement}%'))`;
+    }
+    if (filter.Etat) {
+      queryFilter += ` and  upper(fs.Etat) like(upper('%${filter.Etat}%'))`;
+    }
+    if (filter.RefPay) {
+      queryFilter += `     and (upper(fs.modepaiementID) like(upper('%${filter.RefPay}%')) or upper(fs.numerocheque) like(upper('%${filter.RefPay}%')))`;
+    }
+    if (filter.typeDoc) {
+      queryFilter += `     and upper(fs.idDocpaye) like(upper('${filter.typeDoc}%'))`;
+    }
+    if (filter.DateDouc) {
+      queryFilter += ` and  FORMAT( DateOperation, 'yyyy-MMMM') like(upper('%${filter.DateDouc}%'))`;
+    }
+    const pool = await getConnection();
+    console.log(`
+    ${logfacture.logTva} 
+    ${queryFilter} 
+    ORDER BY ${sort[0]} ${sort[1]} 
+    OFFSET ${range[0]} ROWS 
+    FETCH NEXT ${range[1] - range[0]} ROWS ONLY
+
+    `);
+
+    const result =
+      await // .input("dateExercices", getSql().VarChar, filter.dateExercices)
+      pool.request().query(`
+    ${logfacture.logTva} 
+    ${queryFilter} 
+    ORDER BY ${sort[0]} ${sort[1]} 
+    OFFSET ${range[0]} ROWS 
+    FETCH NEXT ${range[1] - range[0]} ROWS ONLY
+
+    `);
+
+    console.log(req.count);
+    res.set(
+      "Content-Range",
+      `newlogfacture ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
+
+exports.GetLogTvaCount = async (req, res, next) => {
+  try {
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+
+    if (filter.nom) {
+      queryFilter += ` and upper(fs.nom) like(upper('%${filter.nom}%'))`;
+    }
+    if (filter.CODECHT) {
+      queryFilter += ` and  fs.CODECHT like(upper('%${filter.CODECHT}%'))`;
+    }
+    if (filter.CODEDOCUTIL) {
+      queryFilter += ` and  upper(fs.CODEDOCUTIL) like(upper('%${filter.CODEDOCUTIL}%'))`;
+    }
+    if (filter.Fn) {
+      queryFilter += ` and  upper(fn.ficheNavette) like(upper('%${filter.Fn}%'))`;
+    }
+    if (filter.modepaiement) {
+      queryFilter += ` and  upper(fs.modepaiement) like(upper('%${filter.modepaiement}%'))`;
+    }
+    if (filter.Etat) {
+      queryFilter += ` and  upper(fs.Etat) like(upper('%${filter.Etat}%'))`;
+    }
+    if (filter.RefPay) {
+      queryFilter += `     and (upper(fs.modepaiementID) like(upper('%${filter.RefPay}%')) or upper(fs.numerocheque) like(upper('%${filter.RefPay}%')))`;
+    }
+    if (filter.typeDoc) {
+      queryFilter += `     and upper(fs.idDocpaye) like(upper('${filter.typeDoc}%'))`;
+    }
+    if (filter.DateDouc) {
+      queryFilter += ` and  FORMAT( DateOperation, 'yyyy-MMMM') like(upper('%${filter.DateDouc}%'))`;
+    }
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      //.input("dateExercices", getSql().VarChar, filter.dateExercices)
+      .query(`${logfacture.LogTvaCount} ${queryFilter} `);
+
+    req.count = result.recordset[0].count;
+    next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};
+
+exports.GetLogTvaFilter = async (req, res) => {
+  try {
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      //.input("dateExercices", getSql().VarChar, filter.dateExercices)
+      .query(`${logfacture.LogTvaFilter}`);
+
+    res.json(result.recordset);
   } catch (error) {
     res.status(500);
     console.log(error.message);
