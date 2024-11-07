@@ -147,10 +147,11 @@ async function insertAvanceInRestit(
     if (id.startsWith("Av")) {
       const Montantglobal = MontantAPaye + RAS;
       const idInt = id.substring(2, id.length);
+      const escapedNom = nom?.replaceAll(/'/g, "''");
 
       i != ArrayOfFacture.length - 1
-        ? (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${nom}','${orderVirementId}'),`)
-        : (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${nom}','${orderVirementId}')`);
+        ? (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${escapedNom}','${orderVirementId}'),`)
+        : (query += `('${idInt}','${Montantglobal}','${Redacteur}','En Cours','${escapedNom}','${orderVirementId}')`);
     }
   });
 
