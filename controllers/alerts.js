@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { Alerts } = require("../database/alerts");
+const { Alerts } = require("../database/Alerts");
 
 exports.getAlertAttestationRegFisc = async (req, res) => {
   try {
@@ -210,5 +210,25 @@ exports.getFactureAyantFNSageCount = async (req, res, next) => {
     res.status(500);
     console.log(error.message);
     res.send(error.message);
+  }
+};
+
+exports.getFournisseurFA_AV = async (req, res) => {
+  try {
+    let sort = req.query.sort || '["id" , "ASC"]';
+
+    sort = JSON.parse(sort);
+
+    const pool = await getConnection();
+    // console.log(`${Alerts.getFourisseurFA_AV}`);
+
+    const result = await pool.request().query(`${Alerts.getFourisseurFA_AV}`);
+
+    res.set("Content-Range", `FAAV 1000`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
   }
 };
