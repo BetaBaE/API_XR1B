@@ -130,4 +130,13 @@ where
 DATEDOC >= '2022-01-01'
 and ef.CLEETATDOC <> 52 
 `,
+
+  getFourisseurFA_AV: `
+SELECT id, 
+       REPLACE(nom, '''', '''''') AS nom
+FROM DAF_FOURNISSEURS
+WHERE (id IN (SELECT DISTINCT idfournisseur FROM DAF_FactureSaisie where etat <> 'Annuler' or deletedAt is null)
+   OR id IN (SELECT DISTINCT idfournisseur FROM DAF_Avance where Etat <> 'Annuler'))
+ORDER BY nom
+`,
 };

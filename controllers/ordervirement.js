@@ -380,7 +380,7 @@ exports.PrintOrderVirement = async (req, res) => {
 
   try {
     const pool = await getConnection();
-
+    let html = ``;
     let result = await pool
       .request()
       .input("ovId", getSql().VarChar, filter.id)
@@ -467,9 +467,10 @@ exports.PrintOrderVirement = async (req, res) => {
     // };
 
     console.log("printData:", printData);
-
-    printData.body.forEach((virement, index) => {
-      trdata += `
+    let nom = printData.header[0].nom;
+    if (nom != "BMCE") {
+      printData.body.forEach((virement, index) => {
+        trdata += `
               <tr>
                 <td class="tdorder">${index + 1}</td>
                 <td class="tdorder">${virement.nom}</td>
@@ -479,9 +480,9 @@ exports.PrintOrderVirement = async (req, res) => {
                 )}</td>
               </tr>
         `;
-    });
+      });
 
-    let html = `
+      html = `
     <!doctype html>
     <html>
       <head>
@@ -634,6 +635,135 @@ exports.PrintOrderVirement = async (req, res) => {
       </body>
       </html>
     `;
+    } else {
+      printData.body.forEach((virement, index) => {
+        trdata += `
+              <tr>
+                <td>${virement.nom}</td>
+                <td class="buttom-table-center-left">${virement.rib.replaceAll(
+                  " ",
+                  ""
+                )}</td>
+                <td class="amount buttom-table-center-left">${numberWithSpaces(
+                  virement.montantVirementModifier
+                )}</td>
+            </tr>   
+        `;
+      });
+
+      html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATNER Document - BMCE Format</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin:5px 25px 0px 25px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 2px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        .header, .footer {
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .footer{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .left-top-table{
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .buttom-table-center-left {
+            text-align: center;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .amount {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="./logo.png" alt="atner logo" width="15%" alt="" srcset="">
+    </div>
+
+    <p>Date Ordre: <b>${today}</b></p>
+
+    <table>
+        <tr>
+            <td>RAISON SOCIAL</td>
+            <td class="left-top-table">ATNER</td>
+        </tr>
+        <tr>
+            <td>RIB ORDONNATEUR</td>
+            <td class="left-top-table">${printData.header[0].rib.replaceAll(
+              " ",
+              ""
+            )}</td>
+        </tr>
+        <tr>
+            <td>NOMBRE TOTAL D'OPERATIONS</td>
+            <td class="left-top-table">${printData.body.length}</td>
+        </tr>
+        <tr>
+            <td>MONTANT TOTAL D'OPERATIONS</td>
+            <td class="left-top-table">${numberWithSpaces(
+              printData.header[0].totalformater
+            )}<br>${
+        // wordToNumber(parseFloat(printData.resulsumvirement))
+        toUpper(
+          toWords.convert(
+            parseFloat(printData.resulsumvirement.replace(",", "."))
+          )
+        )
+      } </td>
+        </tr>
+        <tr>
+            <td>LIBELE OPERATIONS</td>
+            <td class="left-top-table">${printData.header[0].id}</td>
+        </tr >
+    </table>
+
+    <p>Veuillez Par le débit de notre compte, effectuer les virements en faveur des bénéficiaires</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nom Bénéficiaire</th>
+                <th>RIB Bénéficiaire</th>
+                <th class="amount">Montant Virement</th>
+            </tr>
+        </thead>
+        <tbody>
+           ${trdata} 
+        </tbody>
+      </table>
+      <div class="footer">
+          <p>Signatures autorisées :</p>
+          <p>Authentification Signatures "Cachet Agence":</p>
+      </div>
+
+</body>
+</html>
+
+      `;
+    }
 
     fs.writeFileSync(`${__dirname}\\assets\\ordervirment.html`, html);
 

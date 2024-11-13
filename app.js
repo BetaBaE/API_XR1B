@@ -54,6 +54,7 @@ const charts = require("./routers/charts"); // Typo: Corrected 'AttestaionRoute'
 const Alert1Route = require("./routers/alerts");
 const getfatcturelog = require("./routers/newlogFacture");
 const sumFA = require("./routers/SumFA");
+const StFournisseur = require("./routers/StFournisseur");
 
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
@@ -83,6 +84,7 @@ app.use("/", Alert1Route);
 app.use("/", charts);
 app.use("/", getfatcturelog);
 app.use("/", sumFA);
+app.use("/", StFournisseur);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;
