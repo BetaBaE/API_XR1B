@@ -158,7 +158,7 @@ and etat = 'Saisie'
 FADispoAvecFN as(
 select 
 2 as id ,
-'FADispoAvecFN' as name,
+'FA Disponible Avec FN' as name,
 COALESCE((sum(TTC - AcompteVal)),0)  NetApaye 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
@@ -171,7 +171,7 @@ and YEAR(fa.DateFacture) <= YEAR(GETDATE())
 FAProgPourPaie as (
 select 
 3 as id ,
-'FAProgPourPaie' as name,
+'FA programmé pour la paie' as name,
 COALESCE((sum(TTC - AcompteVal)),0) as  NetApaye 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
