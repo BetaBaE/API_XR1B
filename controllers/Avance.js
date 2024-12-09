@@ -73,6 +73,7 @@ exports.CreateAvance = async (req, res) => {
     HT,
     MontantTVA,
     iddesignation,
+    EtatIR,
   } = req.body;
 
   try {
@@ -107,6 +108,7 @@ exports.CreateAvance = async (req, res) => {
       },
       { name: "Bcommande", type: getSql().VarChar, value: Bcommande },
       { name: "fullName", type: getSql().VarChar, value: fullName },
+      { name: "EtatIR", type: getSql().VarChar, value: EtatIR },
       { name: "CatFn", type: getSql().VarChar, value: CatFn },
       { name: "TTC", type: getSql().Numeric(10, 2), value: TTC },
 

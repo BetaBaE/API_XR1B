@@ -1,41 +1,62 @@
 exports.overdueInvoicesQuery = {
   query: `
-with antecedant as (
-	select sum(TTC - AcompteVal) as montant from DAF_FactureSaisie
-	where
-	--TTC - AcompteVal > 0 and 
-	Etat in ('Saisie')
-	and DATEADD(day,60, DateFacture) <= getdate()  -- 60 jrs echance 
+WITH antecedent AS (
+    SELECT 
+        SUM(CASE WHEN Etat = 'Saisie' THEN TTC - AcompteVal ELSE 0 END) AS montantSaisie,
+        SUM(CASE WHEN Etat = 'En cours' THEN TTC - AcompteVal ELSE 0 END) AS montantEnCours
+    FROM DAF_FactureSaisie
+    WHERE 
+        DATEADD(day, 60, DateFacture) <= GETDATE()  -- 60 days overdue
 ),
--- 84 458 257.740
-
-unMois as (
-	select sum(TTC - AcompteVal) as montant  from DAF_FactureSaisie
-		where
-	--TTC - AcompteVal > 0 and 
-	 Etat in ('Saisie')
-	and DATEADD(day,60, DateFacture) >  getdate()                   -- 60 jrs echance facture > today date
-	and DATEADD(day,60, DateFacture) <=  dateadd(day,30,getdate())  -- 60 jrs echance facture <=  today date + 30 jrs
+unMois AS (
+    SELECT 
+        SUM(CASE WHEN Etat = 'Saisie' THEN TTC - AcompteVal ELSE 0 END) AS montantSaisie,
+        SUM(CASE WHEN Etat = 'En cours' THEN TTC - AcompteVal ELSE 0 END) AS montantEnCours
+    FROM DAF_FactureSaisie
+    WHERE 
+        DATEADD(day, 60, DateFacture) > GETDATE() AND  -- 60 days due date > today
+        DATEADD(day, 60, DateFacture) <= DATEADD(day, 30, GETDATE())  -- 60 days due date <= today + 30 days
 ),
--- 22 923 145.190
-deuxMois as (
-	select sum(TTC - AcompteVal) as montant from DAF_FactureSaisie
-		where
-	--TTC - AcompteVal > 0 and 
-	 Etat in ('Saisie')
-	and DATEADD(day,60, DateFacture) >  dateadd(day,30,getdate())
-	and DATEADD(day,60, DateFacture) <=  dateadd(day,60,getdate())
+deuxMois AS (
+    SELECT 
+        SUM(CASE WHEN Etat = 'Saisie' THEN TTC - AcompteVal ELSE 0 END) AS montantSaisie,
+        SUM(CASE WHEN Etat = 'En cours' THEN TTC - AcompteVal ELSE 0 END) AS montantEnCours
+    FROM DAF_FactureSaisie
+    WHERE 
+        DATEADD(day, 60, DateFacture) > DATEADD(day, 30, GETDATE()) AND
+        DATEADD(day, 60, DateFacture) <= DATEADD(day, 60, GETDATE())
 )
 
--- 2 177 815.610
-select* from (
-select 'Antecedant' as id,'Echu' as name,   a.montant from antecedant a
-union
-select 'Un mois' as id,'Un mois' as name,  u.montant from unMois u
-union  
-select 'Deux mois' as id,'Deux mois' as name,  d.montant from deuxMois d
-union  
-select 'Total' as id,'Total' as name,  a.montant+ u.montant + d.montant from antecedant a, unMois u,deuxMois d)t
-order by montant desc
+SELECT * FROM (
+    SELECT 
+        'Antecedent' AS id,
+        'Echu' AS name,
+        a.montantSaisie,
+        a.montantEnCours
+    FROM antecedent a
+    UNION ALL
+    SELECT 
+        'UnMois' AS id,
+        'Un mois' AS name,
+        u.montantSaisie,
+        u.montantEnCours
+    FROM unMois u
+    UNION ALL  
+    SELECT 
+        'DeuxMois' AS id,
+        'Deux mois' AS name,
+        d.montantSaisie,
+        d.montantEnCours
+    FROM deuxMois d
+    UNION ALL  
+    SELECT 
+        'Total' AS id,
+        'Total' AS name,
+        a.montantSaisie + u.montantSaisie + d.montantSaisie AS montantSaisie,
+        a.montantEnCours + u.montantEnCours + d.montantEnCours AS montantEnCours
+    FROM antecedent a, unMois u, deuxMois d
+) t
+ORDER BY montantSaisie DESC, montantEnCours DESC;
+
 `,
 };

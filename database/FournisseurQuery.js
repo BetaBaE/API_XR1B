@@ -53,8 +53,8 @@ exports.Fournisseurs = {
 
   // Crée un nouveau fournisseur
   createFournisseur: `
-    INSERT INTO DAF_FOURNISSEURS(CodeFournisseur, nom, ICE, Identifiantfiscal, mail, addresse, Redacteur, catFournisseur)
-    VALUES(@CodeFournisseur, @nom, @ICE, @IF, @mail, @addresse, @Redacteur, @catFournisseur)
+    INSERT INTO DAF_FOURNISSEURS(CodeFournisseur, nom, ICE, Identifiantfiscal, mail, addresse, Redacteur, catFournisseur, RasIr)
+    VALUES(@CodeFournisseur, @nom, @ICE, @IF, @mail, @addresse, @Redacteur, @catFournisseur,@RasIr)
   `,
 
   // Récupère les RIBs des fournisseurs validés
@@ -85,7 +85,8 @@ exports.Fournisseurs = {
         Identifiantfiscal = @Identifiantfiscal,
         mail = @mail,
         addresse = @addresse,
-        exonorer = @exonorer
+        exonorer = @exonorer,
+        RasIr = @RasIr
     WHERE id = @id
   `,
 };

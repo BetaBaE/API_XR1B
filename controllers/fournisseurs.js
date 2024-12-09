@@ -88,6 +88,7 @@ exports.createFournisseurs = async (req, res) => {
     Redacteur,
     catFournisseur,
     exonorer,
+    RasIr,
   } = req.body;
 
   try {
@@ -104,6 +105,7 @@ exports.createFournisseurs = async (req, res) => {
       .input("mail", getSql().VarChar, mail)
       .input("Redacteur", getSql().VarChar, Redacteur)
       .input("exonorer", getSql().VarChar, exonorer)
+      .input("RasIr", getSql().VarChar, RasIr)
       .query(Fournisseurs.createFournisseur);
 
     console.log("success");
@@ -186,8 +188,15 @@ exports.getfournisseurById = async (req, res) => {
 
 // Mettre à jour un fournisseur existant
 exports.updatefournisseur = async (req, res) => {
-  const { ICE, Identifiantfiscal, addresse, mail, catFournisseur, exonorer } =
-    req.body;
+  const {
+    ICE,
+    Identifiantfiscal,
+    addresse,
+    mail,
+    catFournisseur,
+    exonorer,
+    RasIr,
+  } = req.body;
 
   try {
     const pool = await getConnection();
@@ -201,6 +210,7 @@ exports.updatefournisseur = async (req, res) => {
       .input("mail", getSql().VarChar, mail)
       .input("catFournisseur", getSql().VarChar, catFournisseur)
       .input("exonorer", getSql().VarChar, exonorer)
+      .input("RasIr", getSql().VarChar, RasIr)
       .query(Fournisseurs.update);
 
     res.json({

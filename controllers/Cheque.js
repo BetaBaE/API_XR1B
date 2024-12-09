@@ -70,6 +70,7 @@ async function insertFactureInLog(
         MontantAPaye,
         id,
         RAS,
+        MontantRasIR,
       },
       i
     ) => {
@@ -83,12 +84,12 @@ async function insertFactureInLog(
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${ModePaiementID}','paiement cheque','${
             DateFacture === null ? id : 0
-          }','${numerocheque}','${RAS}','${id}'),`)
+          }','${numerocheque}','${RAS}','${id}','${MontantRasIR}'),`)
         : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${LIBREGLEMENT}',${
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${ModePaiementID}','paiement cheque','${
             DateFacture === null ? id : 0
-          }','${numerocheque}','${RAS}','${id}')`);
+          }','${numerocheque}','${RAS}','${id}','${MontantRasIR}')`);
     }
   );
   console.log(`${cheque.createLogFacture} '${query}'`);
@@ -102,6 +103,7 @@ async function insertFactureInLog(
     console.error(error.message);
   }
 }
+
 async function insertAvanceInRestit(
   ArrayOfFacture,
   orderVirementId,
@@ -109,10 +111,10 @@ async function insertAvanceInRestit(
 ) {
   let query = ``;
   console.log(ArrayOfFacture);
-  ArrayOfFacture.forEach(({ MontantAPaye, id, RAS, nom }, i) => {
+  ArrayOfFacture.forEach(({ MontantAPaye, id, RAS, nom, MontantRasIR }, i) => {
     // Vérifier si l'ID commence par 'Av'
     if (id.startsWith("Av")) {
-      const Montantglobal = MontantAPaye + RAS;
+      const Montantglobal = MontantAPaye + RAS + MontantRasIR;
       const idInt = id.substring(2, id.length);
       const escapedNom = nom?.replaceAll(/'/g, "''");
 
@@ -168,6 +170,7 @@ async function ChangeEtatEnCoursAvance(ArrayOfFacture) {
     throw error;
   }
 }
+
 async function insertDocInRas(ArrayOfFacture, numerocheque) {
   let query = "";
   let autorise = false;
@@ -202,10 +205,56 @@ async function insertDocInRas(ArrayOfFacture, numerocheque) {
       autorise = true;
     }
   }
-
   if (autorise) {
     try {
       const fullQuery = `${cheque.CreateRasFactue} ${query}`;
+      console.log("fullQuery", fullQuery);
+
+      // Assuming you have a pool object available to get the connection
+      const pool = await getConnection();
+      const result = await pool.request().query(fullQuery);
+
+      console.log("Insert successful", result);
+    } catch (error) {
+      console.error("Error executing query:", error);
+    }
+  }
+}
+
+async function insertDocInRasIR(ArrayOfFacture, orderVirementId) {
+  let query = "";
+  let autorise = false;
+
+  for (const {
+    idFournisseur,
+    CODEDOCUTIL,
+    CatFn,
+    nom,
+    DateFacture,
+    HT,
+    id,
+    MontantRasIR,
+  } of ArrayOfFacture) {
+    console.log("RASIR", MontantRasIR);
+    if (MontantRasIR != 0) {
+      const escapedNom = nom?.replace(/'/g, "''");
+      const formattedDate = DateFacture
+        ? new Date(DateFacture).toISOString().slice(0, 10)
+        : null;
+
+      const formattedDateFacture =
+        formattedDate === null ? "NULL" : `'${formattedDate}'`;
+      const formattedCatFn = CatFn === null ? "NULL" : `'${CatFn}'`;
+
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantRasIR}', '${orderVirementId}', '${escapedNom}', '${id}')`;
+
+      query += (query ? "," : "") + queryPart;
+      autorise = true;
+    }
+  }
+  if (autorise) {
+    try {
+      const fullQuery = `${cheque.CreateRasIRFacture} ${query}`;
       console.log("fullQuery", fullQuery);
 
       // Assuming you have a pool object available to get the connection
@@ -360,6 +409,7 @@ async function updateLogFactureWhenAnnuleCheque(numerocheque) {
     console.error(error.message);
   }
 }
+
 async function updateRestitWhenAnnuleCheque(numerocheque) {
   try {
     const pool = await getConnection();
@@ -374,6 +424,7 @@ async function updateRestitWhenAnnuleCheque(numerocheque) {
     console.error(error.message);
   }
 }
+
 async function updateLogFactureWhenRegleecheque(numerocheque, dateOperation) {
   try {
     const pool = await getConnection();
@@ -458,6 +509,7 @@ WHERE rs.ModePaiement = @numerocheque
     throw error;
   }
 }
+
 async function updateRasWhenRegleecheque(numerocheque, dateOperation) {
   try {
     const pool = await getConnection();
@@ -495,6 +547,8 @@ exports.createcheque = async (req, res) => {
   let ArrayOfFacture = await getFactureFromView(facturelist);
   insertFactureInLog(ArrayOfFacture, req.body.RibAtner, req.body.numerocheque);
   insertDocInRas(ArrayOfFacture, req.body.numerocheque);
+  insertDocInRasIR(ArrayOfFacture, req.body.numerocheque);
+
   insertAvanceInRestit(
     ArrayOfFacture,
     req.body.numerocheque,

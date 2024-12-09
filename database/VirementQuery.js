@@ -68,6 +68,7 @@ exports.virements = {
              ,[idAvance]          -- ID de l'avance
              ,[Ras]               -- RAS (retenue à la source)
              ,[idDocPaye]         -- Ref doc a paye
+             ,[RASIR]             -- RAS IR
              )             
        VALUES
   `,
@@ -89,6 +90,20 @@ exports.virements = {
        ,[idDocPaye]            -- Ref doc a paye
        )
   VALUES
+  `,
+
+  CreateRasIRFacture: `
+  INSERT INTO [dbo].[DAF_RAS_IR]
+           ([idFournisseur]
+           ,[RefernceDOC]
+           ,[CategorieFn]
+           ,[dateFactue]
+           ,[HT]
+           ,[RaS]
+           ,[modePaiement]
+           ,[Nom]
+           ,[idDocPaye])
+            VALUES
   `,
 
   // Cette requête met à jour l'état et la date d'opération d'un virement existant dans la table DAF_VIREMENTS.

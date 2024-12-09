@@ -87,4 +87,18 @@ exports.espece = {
      where id=@idAvance
     
     `,
+
+  CreateRasIRFacture: `
+    INSERT INTO [dbo].[DAF_RAS_IR]
+             ([idFournisseur]
+             ,[RefernceDOC]
+             ,[CategorieFn]
+             ,[dateFactue]
+             ,[etat]
+             ,[HT]
+             ,[RaS]
+             ,[modePaiement]
+             ,[Nom]
+             ,[idDocPaye])
+              VALUES`,
 };
