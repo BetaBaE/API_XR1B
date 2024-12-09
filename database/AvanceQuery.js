@@ -71,7 +71,7 @@ exports.avance = {
         SELECT CODEDOCUTIL, nom
         FROM [dbo].[DAF_LOG_FACTURE] lf
         WHERE fa.CODEDOCUTIL = lf.CODEDOCUTIL
-          AND lf.etat <> 'Annuler'  // Exclut les avances qui ne sont pas Annuler
+          AND lf.etat <> 'Annuler'  --// Exclut les avances qui ne sont pas Annuler
           AND fa.nom = lf.NOM
       )
       AND fa.nom = f.nom
@@ -199,7 +199,9 @@ exports.avance = {
       [idFournisseur],
       [DateCreation],
       [Redacteur],
-      [CatFn])
+      [CatFn],
+      [EtatIR]
+      )
     VALUES
       ((SELECT MAX(idfacturenavette)+1 FROM daf_facturenavette  ),
       @Bcommande,
@@ -210,7 +212,9 @@ exports.avance = {
       @idfournisseur,
       GETDATE(),  -- Date actuelle
       @fullName,
-      @CatFn)
+      @CatFn,
+      @EtatIR
+      )
   `,
 
   // Récupère les détails de restitution d'avance par ID qui ne sont pas encore facturées
@@ -332,6 +336,7 @@ INNER JOIN
   TTC=@MontantAvanceTTC,
   HT=@MontantAvanceHT,
   MontantTVA=@MontantAvanceTVA
+  EtatIR=@EtatIR
   where  idfacturenavette = @id ;
 `,
 

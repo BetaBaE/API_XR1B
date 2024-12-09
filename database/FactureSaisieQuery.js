@@ -57,7 +57,8 @@ exports.factureSaisie = {
     [fullName],
     [codechantier],
     [dateecheance],
-    [CatFn]
+    [CatFn],
+    [EtatIR]
   )
   VALUES (
     @numeroFacture,
@@ -69,7 +70,8 @@ exports.factureSaisie = {
     @fullName,
     @codechantier,
     @dateEcheance,
-    @CatFn
+    @CatFn,
+    @EtatIR
   )`,
 
   // Récupère une facture saisie par son ID
@@ -93,7 +95,8 @@ exports.factureSaisie = {
 		f.CatFn,
 		f.AcompteReg,
 		f.AcompteVal,
-    f.etat
+    f.etat,
+    f.EtatIR
   FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
   INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
   where NOT Exists (
@@ -128,6 +131,7 @@ exports.factureSaisie = {
         ,[dateecheance] = @dateecheance
         ,[CatFn] = @CatFn
         ,[etat] = @etat
+        ,[EtatIR] = @EtatIR
   WHERE id = @id
     
     `,

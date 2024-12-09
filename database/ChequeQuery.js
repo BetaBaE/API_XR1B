@@ -64,7 +64,9 @@ exports.cheque = {
             [idAvance],
             [numerocheque],
             [Ras],
-            [idDocPaye]
+            [idDocPaye],
+            [RASIR]
+
           )
       VALUES`,
 
@@ -85,6 +87,19 @@ exports.cheque = {
             )
       VALUES`,
 
+  CreateRasIRFacture: `
+      INSERT INTO [dbo].[DAF_RAS_IR]
+               ([idFournisseur]
+               ,[RefernceDOC]
+               ,[CategorieFn]
+               ,[dateFactue]
+               ,[HT]
+               ,[RaS]
+               ,[modePaiement]
+               ,[Nom]
+               ,[idDocPaye])
+                VALUES
+      `,
   // Met à jour un enregistrement de chèque existant
   update: `Update [dbo].[DAF_cheque]
               set 

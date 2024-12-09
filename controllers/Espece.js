@@ -1,6 +1,7 @@
 const { trim } = require("lodash");
 const { getConnection, getSql } = require("../database/connection");
 const { espece } = require("../database/EspeceQuery");
+const { cheque } = require("../database/ChequeQuery");
 
 const MontantFixed = (num) => {
   return parseFloat(num.toFixed(2));
@@ -108,10 +109,10 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
 async function insertAvanceInRestit(ArrayOfFacture, Redacteur) {
   let query = ``;
 
-  ArrayOfFacture.forEach(({ MontantAPaye, id, RAS, nom }, i) => {
+  ArrayOfFacture.forEach(({ MontantAPaye, id, RAS, nom, MontantRasIR }, i) => {
     // Vérifier si l'ID commence par 'Av'
     if (id.startsWith("Av")) {
-      const Montantglobal = MontantAPaye + RAS;
+      const Montantglobal = MontantAPaye + RAS + MontantRasIR;
       const idInt = id.substring(2, id.length);
       const escapedNom = nom?.replaceAll(/'/g, "''");
 
@@ -298,6 +299,53 @@ exports.getEspece = async (req, res) => {
   }
 };
 
+async function insertDocInRasIR(ArrayOfFacture) {
+  let query = "";
+  let autorise = false;
+
+  for (const {
+    idFournisseur,
+    CODEDOCUTIL,
+    CatFn,
+    nom,
+    DateFacture,
+    HT,
+    id,
+    MontantRasIR,
+  } of ArrayOfFacture) {
+    console.log("RASIR", MontantRasIR);
+    if (MontantRasIR != 0) {
+      const escapedNom = nom?.replace(/'/g, "''");
+      const formattedDate = DateFacture
+        ? new Date(DateFacture).toISOString().slice(0, 10)
+        : null;
+
+      const formattedDateFacture =
+        formattedDate === null ? "NULL" : `'${formattedDate}'`;
+      const formattedCatFn = CatFn === null ? "NULL" : `'${CatFn}'`;
+
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture},'Reglee', '${HT}', '${MontantRasIR}', 'paiement espece', '${escapedNom}', '${id}')`;
+
+      query += (query ? "," : "") + queryPart;
+      autorise = true;
+    }
+  }
+  if (autorise) {
+    try {
+      const fullQuery = `${espece.CreateRasIRFacture} ${query}`;
+      console.log("fullQuery", fullQuery);
+
+      // Assuming you have a pool object available to get the connection
+      const pool = await getConnection();
+      const result = await pool.request().query(fullQuery);
+
+      console.log("Insert successful", result);
+    } catch (error) {
+      console.error("Error executing query:", error);
+    }
+  }
+}
+
 exports.createEspece = async (req, res) => {
   let { facturelist } = req.body;
   let { Totale } = await calculSumFactures(facturelist);
@@ -317,6 +365,8 @@ exports.createEspece = async (req, res) => {
     insertAvanceInRestit(ArrayOfFacture, req.body.redacteur);
     insertFactureInLog(ArrayOfFacture);
     insertDocInRas(ArrayOfFacture);
+    insertDocInRasIR(ArrayOfFacture);
+
     // ChangeEtatReglerAvanceFacture(ArrayOfFacture); // trigger FactureSaisie Replace this function
     res.json({ id: "" });
   } catch (error) {

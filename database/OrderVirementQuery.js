@@ -60,18 +60,36 @@ exports.ordervirements = {
 
   // Récupère les virements en cours
   orderVirementsEnCours: `
-
-	WITH experation10 as (
-		select af.dateExpiration, v.orderVirementId ,iif( af.dateExpiration <= GETDATE() + 10,'Expiration ARF d''un fournisseur','') as alert  
-		from DAF_AttestationFiscal af 
-			inner join DAF_FOURNISSEURS f on f.id = af.idFournisseur
-			inner join DAF_VIREMENTS v on f.id = v.fournisseurId
-		where v.etat <> 'Annuler' and iif( af.dateExpiration <= GETDATE() + 10,'Expiration ARF d''un fournisseur','') = 'Expiration ARF d''un fournisseur'
-	)
-
-	SELECT o.*,e.dateExpiration,e.alert FROM [dbo].[DAF_Order_virements] o
-	left join experation10 e on e.orderVirementId = o.id
-  WHERE o.etat = 'En cours' AND o.dateExecution IS NULL
+    
+  WITH experation10 AS (
+    SELECT 
+        MAX(af.dateExpiration) AS dateExpiration, 
+        v.orderVirementId,
+        'Expiration ARF d''un fournisseur' AS alert
+    FROM 
+        DAF_AttestationFiscal af
+    INNER JOIN 
+        DAF_FOURNISSEURS f ON f.id = af.idFournisseur
+    INNER JOIN 
+        DAF_VIREMENTS v ON f.id = v.fournisseurId
+    WHERE 
+        v.etat <> 'Annuler'
+    GROUP BY 
+        v.orderVirementId
+    HAVING 
+        MAX(af.dateExpiration) <= GETDATE() + 10
+)
+SELECT 
+    o.*, 
+    e.dateExpiration, 
+    e.alert 
+FROM 
+    [dbo].[DAF_Order_virements] o
+LEFT JOIN 
+    experation10 e ON e.orderVirementId = o.id
+WHERE 
+    o.etat = 'En cours' 
+    AND o.dateExecution IS NULL;
   `,
 
   // Récupère les virements d'état spécifique

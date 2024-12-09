@@ -29,6 +29,7 @@ async function calculSumFactures(facturelist) {
     // res.status(500);
   }
 }
+
 async function getFactureFromView(facturelist) {
   let facturelistString = facturelist.join("','");
 
@@ -102,6 +103,7 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
         MontantAPaye,
         id,
         RAS,
+        MontantRasIR,
       },
       i
     ) => {
@@ -115,12 +117,12 @@ async function insertFactureInLog(ArrayOfFacture, orderVirementId) {
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','paiement virement','${
             DateFacture === null ? id : 0
-          }','${RAS}','${id}'),`)
+          }','${RAS}','${id}','${MontantRasIR}'),`)
         : (query += `('${CODEDOCUTIL}','${chantier}','${escapedNom}','${null}',${
             DateFacture === null ? "null" : "'" + formattedDate + "'"
           },'${TTC}','${HT}','${MontantTVA}','${MontantAPaye}','${orderVirementId}','paiement virement','${
             DateFacture === null ? id : 0
-          }','${RAS}','${id}')`);
+          }','${RAS}','${id}','${MontantRasIR}')`);
     }
   );
   console.log(`${virements.createLogFacture} '${query}'`);
@@ -142,10 +144,10 @@ async function insertAvanceInRestit(
 ) {
   let query = ``;
   console.log(ArrayOfFacture);
-  ArrayOfFacture.forEach(({ MontantAPaye, id, RAS, nom }, i) => {
+  ArrayOfFacture.forEach(({ MontantAPaye, id, RAS, nom, MontantRasIR }, i) => {
     // Vérifier si l'ID commence par 'Av'
     if (id.startsWith("Av")) {
-      const Montantglobal = MontantAPaye + RAS;
+      const Montantglobal = MontantAPaye + RAS + MontantRasIR;
       const idInt = id.substring(2, id.length);
       const escapedNom = nom?.replaceAll(/'/g, "''");
 
@@ -179,8 +181,8 @@ async function insertDocInRas(ArrayOfFacture, orderVirementId) {
     idFournisseur,
     CODEDOCUTIL,
     CatFn,
-    nom,
     DateFacture,
+    nom,
     HT,
     MontantTVA,
     RAS,
@@ -205,10 +207,56 @@ async function insertDocInRas(ArrayOfFacture, orderVirementId) {
       autorise = true;
     }
   }
-
   if (autorise) {
     try {
       const fullQuery = `${virements.CreateRasFactue} ${query}`;
+      console.log("fullQuery", fullQuery);
+
+      // Assuming you have a pool object available to get the connection
+      const pool = await getConnection();
+      const result = await pool.request().query(fullQuery);
+
+      console.log("Insert successful", result);
+    } catch (error) {
+      console.error("Error executing query:", error);
+    }
+  }
+}
+
+async function insertDocInRasIR(ArrayOfFacture, orderVirementId) {
+  let query = "";
+  let autorise = false;
+
+  for (const {
+    idFournisseur,
+    CODEDOCUTIL,
+    CatFn,
+    nom,
+    DateFacture,
+    HT,
+    id,
+    MontantRasIR,
+  } of ArrayOfFacture) {
+    console.log("RASIR", MontantRasIR);
+    if (MontantRasIR != 0) {
+      const escapedNom = nom?.replace(/'/g, "''");
+      const formattedDate = DateFacture
+        ? new Date(DateFacture).toISOString().slice(0, 10)
+        : null;
+
+      const formattedDateFacture =
+        formattedDate === null ? "NULL" : `'${formattedDate}'`;
+      const formattedCatFn = CatFn === null ? "NULL" : `'${CatFn}'`;
+
+      const queryPart = `('${idFournisseur}', '${CODEDOCUTIL}', ${formattedCatFn}, ${formattedDateFacture}, '${HT}', '${MontantRasIR}', '${orderVirementId}', '${escapedNom}', '${id}')`;
+
+      query += (query ? "," : "") + queryPart;
+      autorise = true;
+    }
+  }
+  if (autorise) {
+    try {
+      const fullQuery = `${virements.CreateRasIRFacture} ${query}`;
       console.log("fullQuery", fullQuery);
 
       // Assuming you have a pool object available to get the connection
@@ -242,6 +290,7 @@ async function AddToTotalOv(number, id) {
     console.error(error.message);
   }
 }
+
 async function MiunsFromTotalOv(number, id) {
   try {
     // let num = MontantFixed(number);
@@ -312,6 +361,7 @@ async function updateRestitWhenAnnuleVirement(orderVirementId, nom) {
     console.error(error.message);
   }
 }
+
 async function updateOrderVirementwhenVRegler(orderVirementId) {
   try {
     const pool = await getConnection();
@@ -365,6 +415,7 @@ async function updateRasWhenReglerVirement(
     console.error(error.message);
   }
 }
+
 async function updateRestiWhenReglerVirement(orderVirementId, nom) {
   try {
     const pool = await getConnection();
@@ -426,14 +477,14 @@ WHERE rs.ModePaiement = @orderVirementId
     // Exécution des requêtes
     console.log("Requête SQL exécutée 1:", query1);
     // const result1 = await request1.query(query1);
-    console.log("Résultat de la requête 1:", result1);
+    console.log("Résultat de la requête 1:", result2);
 
     console.log("Requête SQL exécutée 2:", query2);
     const result2 = await request2.query(query2);
     console.log("Résultat de la requête 2:", result2);
 
     return {
-      result1: result1.recordset,
+      result1: result2.recordset,
       result2: result2.recordset,
     };
   } catch (error) {
@@ -539,6 +590,7 @@ exports.createVirements = async (req, res) => {
 
     insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
     insertDocInRas(ArrayOfFacture, req.body.orderVirementId);
+    insertDocInRasIR(ArrayOfFacture, req.body.orderVirementId);
     insertAvanceInRestit(
       ArrayOfFacture,
       req.body.orderVirementId,

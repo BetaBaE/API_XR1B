@@ -114,6 +114,7 @@ exports.createfacture = async (req, res) => {
     iddesignation,
     dateecheance,
     CatFn,
+    EtatIR,
   } = req.body;
 
   try {
@@ -130,6 +131,7 @@ exports.createfacture = async (req, res) => {
       .input("codechantier", getSql().VarChar, req.body.codechantier)
       .input("dateecheance", getSql().VarChar, req.body.dateecheance)
       .input("CatFn", getSql().VarChar, req.body.CatFn)
+      .input("EtatIR", getSql().VarChar, req.body.EtatIR)
       .query(factureSaisie.createfacture);
 
     res.json({
@@ -165,6 +167,7 @@ exports.updatefactureSaisie = async (req, res) => {
     fullNameupdating,
     designation,
     etat,
+    EtatIR,
   } = req.body;
 
   console.log(req.body);
@@ -182,7 +185,6 @@ exports.updatefactureSaisie = async (req, res) => {
     let TTCcalc =
       TTC / designationDetail.PourcentageTVA +
       (TTC - TTC / designationDetail.PourcentageTVA);
-  
 
     const TTCValue = parseFloat(TTC);
 
@@ -209,6 +211,7 @@ exports.updatefactureSaisie = async (req, res) => {
       .input("dateecheance", getSql().Date, dateecheance)
       .input("CatFn", getSql().VarChar, CatFn)
       .input("etat", getSql().VarChar, etat)
+      .input("EtatIR", getSql().VarChar, EtatIR)
       .input("id", getSql().Int, req.params.id)
       .query(factureSaisie.delete);
 
