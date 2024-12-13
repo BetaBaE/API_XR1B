@@ -26,7 +26,7 @@ exports.GetFactureDetails = async (req, res) => {
       queryFilter += ` and  fs.DateFacture ='${filter.DateFacture}' `;
     }
     if (filter.Etat) {
-      queryFilter += ` and  upper(fs.Etat) like(upper('%${filter.Etat}%'))`;
+      queryFilter += ` and  upper(fs.Etat) = upper('${filter.Etat}')`;
     }
     if (filter.modepaiement) {
       queryFilter += ` and  upper(fs.modepaiement) like(upper('%${filter.modepaiement}%'))`;

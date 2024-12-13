@@ -737,3 +737,19 @@ exports.UpdateorAnnulerAvance = async (req, res) => {
     console.log(error.message);
   }
 };
+
+exports.getAvanceNonRestitByFournisseur = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .query(avance.getAvanceNonRestitByFournisseur);
+    res.set("Content-Range", `Count 0-1/1`);
+    res.json(result.recordset[0]);
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};

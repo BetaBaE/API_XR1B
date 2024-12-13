@@ -20,6 +20,7 @@ const {
   getAvanceForUpdate,
   getAvanceForUpdateByid,
   UpdateorAnnulerAvance,
+  getAvanceNonRestitByFournisseur,
 } = require("../controllers/Avance");
 
 const { GetPourcentageTVA } = require("../controllers/DesignationFacture");
@@ -48,5 +49,6 @@ router.get("/AvanceForupdate/:id", getAvanceForUpdateByid);
 router.put("/AvanceForupdate/:id", UpdateorAnnulerAvance);
 
 router.get("/getPourcentageTva", GetPourcentageTVA);
+router.get("/getAvanceNonRestit/:id", getAvanceNonRestitByFournisseur);
 
 module.exports = router;
