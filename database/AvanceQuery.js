@@ -349,4 +349,12 @@ INNER JOIN
       SET   ficheNavette = 'Annuler'
       WHERE idfacturenavette = @id
     `,
+
+  getAvanceNonRestitByFournisseur: `
+    select COUNT(*) as number
+    from DAF_RestitAvance ra left join DAF_FOURNISSEURS f on (f.nom = ra.nom)
+    where f.id = @id
+    and idFacture is null
+    and ra.etat <> 'Annuler'
+    `,
 };

@@ -13,18 +13,41 @@ exports.getchefferDAffaireByFou = async (req, res) => {
 
     const pool = await getConnection();
     console.log("req", filter);
-
+    // @nom
     // Query for paginated data
     const paginatedQuery = `
-      SELECT FORMAT(DateFacture, 'yyyy-MM') AS id,
-             FORMAT(DateFacture, 'yyyy-MM') AS name,
-             SUM(TTC) AS TTC
+      DECLARE @MaxDate DATE;
+      SELECT @MaxDate = MIN(DateFacture)
       FROM DAF_FactureSaisie fa
       INNER JOIN DAF_FOURNISSEURS f ON fa.idfournisseur = f.id
-      WHERE nom = @nom
+      WHERE f.nom = @nom
         AND fa.Etat <> 'Annuler'
-        AND fa.deletedAt IS NULL
-      GROUP BY FORMAT(DateFacture, 'yyyy-MM')
+        AND fa.deletedAt IS NULL;
+
+      WITH Months AS (
+          SELECT 
+              DATEADD(MONTH, number, @MaxDate) AS MonthStart
+          FROM 
+              master..spt_values
+          WHERE 
+              type = 'P' 
+              AND DATEADD(MONTH, number, @MaxDate) <= GETDATE()
+      ),
+      --select * from Months
+      DAF_Facture_SaisieW as (
+      select SUM(TTC) as TTC, FORMAT (fa.DateFacture, 'yyyy-MM') as FormatedDate FROM DAF_FactureSaisie fa 
+      INNER JOIN DAF_FOURNISSEURS f ON fa.idfournisseur = f.id
+      where f.nom = @nom
+      group by fa.DateFacture
+      )
+
+
+      SELECT FORMAT(m.MonthStart, 'yyyy-MM') AS id,
+            FORMAT(m.MonthStart, 'yyyy-MM') AS name,
+            iif(Sum(fa.TTC) is null,0, Sum(fa.TTC) )AS TTC 
+            FROM DAF_Facture_SaisieW fa 
+	  right join Months m on fa.FormatedDate= FORMAT(m.MonthStart, 'yyyy-MM')
+      GROUP BY FORMAT(m.MonthStart, 'yyyy-MM')
       ORDER BY name
       OFFSET @offset ROWS
       FETCH NEXT @limit ROWS ONLY;
