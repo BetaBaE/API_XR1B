@@ -29,7 +29,7 @@ exports.GetChantier = async (req, res) => {
     const countResult = await pool
       .request()
       .query(`${chantiers.getChantiers} ${queryFilter}`);
-    const count = countResult.recordset[0].totalCount;
+    // const count = countResult.recordset[0].totalCount;
 
     // Récupération des chantiers paginés, triés et filtrés
     const result = await pool.request().query(
@@ -39,7 +39,7 @@ exports.GetChantier = async (req, res) => {
     );
 
     // Définition de l'en-tête Content-Range pour indiquer la plage des résultats retournés
-    res.set("Content-Range", `Chantier ${range[0]}-${range[1] + 1}/${count}`);
+    res.set("Content-Range", `Chantier ${range[0]}-${range[1] + 1}/$1000`);
     res.json(result.recordset); // Envoi des données des chantiers au format JSON
   } catch (error) {
     // Gestion des erreurs : envoi du statut d'erreur 500 et du message d'erreur
