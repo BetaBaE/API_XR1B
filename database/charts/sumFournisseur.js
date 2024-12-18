@@ -24,30 +24,51 @@ exports.sumChantier = {
 
 exports.sumMensuel = {
   query: `
+with SumFAAyantFN as(select 
+cast(format(fa.DateFacture,'yyyy-MM-01') as date) id,
+sum(fa.TTC - fa.AcompteVal) TTCMois
+from DAF_factureNavette fn inner join DAF_FactureSaisie fa on (fn.idFacture = fa.id)
+where fa.etat='Saisie'
+group by  cast(format(fa.DateFacture,'yyyy-MM-01') as date)
+)
+
 select 
 cast(format(fs.DateFacture,'yyyy-MM-01') as date) id,
 sum(fs.TTC - fs.AcompteVal) TTCMois,
 datediff(month,cast(format(fs.DateFacture,'yyyy-MM-01') as date),getdate()) as anc,
-sum(sum(fs.TTC - fs.AcompteVal)) over () TOTAL,
+COALESCE ( sf.TTCMois,0.00) 'SumFN',
 round(100*(sum(fs.TTC - fs.AcompteVal)/sum(sum(fs.TTC - fs.AcompteVal)) over ()),2) as prcnt
-from DAF_FactureSaisie fs 
+from DAF_FactureSaisie fs  left join SumFAAyantFN sf on (cast(format(fs.DateFacture,'yyyy-MM-01') as date) = sf.id)
 where fs.etat='Saisie'
---and year(fs.datefacture)>2022
-group by  cast(format(fs.DateFacture,'yyyy-MM-01') as date)
+group by  cast(format(fs.DateFacture,'yyyy-MM-01') as date),sf.TTCMois
 order by id desc
 `,
 };
 
 exports.SumForMonth = {
   query: `
-  select fr.nom as id, 
+  with SumFAAyantFNGroupeByFour as (
+select 
+fr.id as id, 
+sum(fs.TTC - fs.AcompteVal) SumFaByFour
+from DAF_factureNavette fn 
+	inner join DAF_FactureSaisie fs on (fn.idFacture = fs.id) 
+	left join DAF_FOURNISSEURS fr on fs.idfournisseur = fr.id
+where cast(format(fs.DateFacture,'yyyy-MM-01') as date) =@date  --'2019-10-01T00:00:00.000'
+and fs.Etat  = 'Saisie' 
+group by fr.id
+)
+
+
+select fr.nom as id, 
 sum(fs.TTC - fs.AcompteVal) TotalFournisseur,
-sum(sum(fs.TTC - fs.AcompteVal)) over() as TotalMois
+COALESCE (sff.SumFaByFour,0) SumFaByFour 
 from DAF_FactureSaisie fs
 left join DAF_FOURNISSEURS fr on fs.idfournisseur = fr.id
-where cast(format(fs.DateFacture,'yyyy-MM-01') as date) = @date --2019-10-01T00:00:00.000
+left join SumFAAyantFNGroupeByFour sff on sff.id = fr.id
+where cast(format(fs.DateFacture,'yyyy-MM-01') as date) =@date --'2019-10-01T00:00:00.000'  
 and fs.Etat = 'Saisie'
-group by fr.nom
+group by fr.nom,sff.SumFaByFour
 order by sum(fs.TTC - fs.AcompteVal) desc
   `,
 };
