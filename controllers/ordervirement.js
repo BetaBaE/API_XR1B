@@ -644,9 +644,9 @@ exports.PrintOrderVirement = async (req, res) => {
                   " ",
                   ""
                 )}</td>
-                <td class="amount buttom-table-center-left">${numberWithSpaces(
+                <td class="amount buttom-table-center-left">${
                   virement.montantVirementModifier
-                )}</td>
+                }</td>
             </tr>   
         `;
       });
@@ -723,9 +723,9 @@ exports.PrintOrderVirement = async (req, res) => {
         </tr>
         <tr>
             <td>MONTANT TOTAL D'OPERATIONS</td>
-            <td class="left-top-table">${numberWithSpaces(
+            <td class="left-top-table">${
               printData.header[0].totalformater
-            )}<br>${
+            }<br>${
         // wordToNumber(parseFloat(printData.resulsumvirement))
         toUpper(
           toWords.convert(
