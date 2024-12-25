@@ -134,9 +134,8 @@ exports.avance = {
     SET idFacture = @idfacture,
         --  Met à jour l'identifiant de la facture
       montant = @MontantRestantARestituer --  Met à jour le montant restant à restituer
-    WHERE idavance = @id AND idFacture IS NULL  ; --  Filtre par identifiant de l'avance et vérifie que l'avance n'est pas encore facturée
- 
-  
+    WHERE idavance = @id AND idFacture IS NULL   --  Filtre par identifiant de l'avance et vérifie que l'avance n'est pas encore facturée
+    and etat not in ('Annuler')
     `,
 
   // Met à jour les informations de restitution de facture dans la table Daf_factureSaisie
