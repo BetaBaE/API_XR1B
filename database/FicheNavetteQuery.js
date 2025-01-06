@@ -126,11 +126,14 @@ exports.FicheNavette = {
              and  fich.id=@id
      --   AND fich.numeroFacture IS NOT NULL`,
 
-  AnnulationFnAvance: `update daf_facturenavette  set
+  AnnulationFnAvance: `
+  select 1
+  /*
+        update daf_facturenavette  set
         ficheNavette='Annuler', idfacture=0
         where idfacturenavette=@id ; 
         update daf_avance 
         set etat ='Annuler'
-        where id=@id
+        where id=@id*/
      `,
 };
