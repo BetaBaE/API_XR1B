@@ -71,4 +71,48 @@ and fs.Etat = 'Saisie'
 group by fr.nom,sff.SumFaByFour
 order by sum(fs.TTC - fs.AcompteVal) desc
   `,
+
+  effetEcheance: `
+    WITH CTE_LogFacture AS (
+      SELECT 
+          ModePaiementID, 
+          numerocheque ,
+      NOM,
+          etat,
+          SUM(TOTALTTC) AS TotalTTC
+      FROM 
+          DAF_LOG_FACTURE
+    WHERE 
+      etat = 'En cours' 
+      AND ModePaiement = 'paiement cheque'
+      GROUP BY 
+          ModePaiementID, 
+          numerocheque,
+      NOM,
+          etat
+    )
+
+    SELECT 
+      DATEDIFF(DAY, CAST(GETDATE() AS DATE), COALESCE(c.dateecheance, DATEADD(DAY, -120, GETDATE()))) AS jrRestant,
+      c.dateecheance,
+      l.numerocheque as 'effet',
+      r.nom as BANK,
+      c.montantVirement as Montant,
+      l.NOM
+      /* ,l.TotalTTC 
+      ,c.montantVirement,
+      l.TotalTTC-
+      c.montantVirement*/
+    FROM 
+      DAF_cheque c
+    LEFT JOIN  
+      CTE_LogFacture l ON l.numerocheque = c.numerocheque AND l.ModePaiementID = c.RibAtnerId
+    LEFT JOIN 
+      DAF_RIB_ATNER r ON r.id = l.ModePaiementID
+    WHERE 
+      l.etat = 'En cours' 
+    and c.dateecheance is not null
+    ORDER BY 
+      jrRestant;
+  `,
 };
