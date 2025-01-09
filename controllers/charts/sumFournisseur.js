@@ -66,3 +66,18 @@ exports.getSumForMonth = async (req, res) => {
     res.status(500);
   }
 };
+
+exports.getEffetEcheance = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`${SumForMonth.effetEcheance}`);
+
+    res.set("Content-Range", `effetEcheance 0-50/50`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
