@@ -232,7 +232,7 @@ exports.cheque = {
 
   getChequePrintLinesById: `
   select l.CODEDOCUTIL,
-  FORMAT(l.DateDouc,0.00') AS DateDouc,
+  FORMAT(l.DateDouc,'0.00') AS DateDouc,
   l.NOM,l.NETAPAYER from 
 	DAF_cheque c inner join DAF_LOG_FACTURE l
 			on c.numerocheque = l.numerocheque and c.RibAtnerId = l.ModePaiementID
