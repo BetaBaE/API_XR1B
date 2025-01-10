@@ -3,7 +3,6 @@ const { ordervirements } = require("../database/OrderVirementQuery");
 const html_to_pdf = require("html-pdf-node");
 const fs = require("fs");
 const { ToWords } = require("to-words");
-const { DateTime } = require("mssql");
 const { toUpper } = require("lodash");
 // Ajoute des zéros aux nombres pour le formatage
 const addZerotonumbers = (num) => {

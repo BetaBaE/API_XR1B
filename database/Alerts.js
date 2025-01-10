@@ -93,7 +93,7 @@ select  f.id,
 with FANANFN as (
 	select fs.* , f.nom from DAF_FactureSaisie fs inner join DAF_FOURNISSEURS f on (fs.idfournisseur = f.id)
 	where fs.id not in (select idFacture from DAF_factureNavette)
-	and Etat <> 'Annuler' and deletedAt is null
+	and Etat = 'Saisie' and deletedAt is null
 )
 select 
 	ef.CODEDOCUTIL as id,

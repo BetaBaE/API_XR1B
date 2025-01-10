@@ -1,3 +1,5 @@
+const { getCheque } = require("../controllers/Cheque");
+
 exports.cheque = {
   // Crée un nouvel enregistrement de chèque
   create: `
@@ -192,4 +194,60 @@ exports.cheque = {
             ,[ModePaiement]
             )
       VALUES`,
+
+  getHeaderPrintCheque: `
+  	SELECT ov.*, FORMAT(ov.montantVirement, '0.00') AS totalformater,
+           ra.nom, ra.rib
+    FROM [dbo].DAF_cheque ov
+    JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.RibAtnerId = ra.id
+    WHERE ov.numerocheque = 'CH730285'
+	  and nom = 'AWB'
+  `,
+
+  getChequeEncours: `
+    SELECT 
+      c.id,
+      CONCAT (iif(dateecheance is not null,'Effet : ','Cheque : '),c.numerocheque,' - ',ra.nom) value
+    FROM [dbo].DAF_cheque c
+    JOIN [dbo].[DAF_RIB_ATNER] ra ON c.RibAtnerId = ra.id
+    where etat = 'En cours'
+    order by c.id desc
+  `,
+
+  getChequeHeaderById: `
+    SELECT 
+      iif(ov.dateecheance is not null,'Effet','Chèque') as type,
+      FORMAT(ov.montantVirement, '0.00') AS totalformater,
+      Format(ov.datecheque,'dd/MM/yyyy') as datecheque,
+      ov.numerocheque,
+      f.nom as fournisseur,
+      ra.nom as bank,
+      coalesce(Format(ov.dateecheance,'dd/MM/yyyy'),'----------') as dateecheance
+      FROM [dbo].DAF_cheque ov
+      JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.RibAtnerId = ra.id
+    Left join DAF_FOURNISSEURS f On f.id = ov.fournisseurId
+    where etat = 'En cours'
+    and ov.id = @id
+  `,
+
+  getChequePrintLinesById: `
+  select l.CODEDOCUTIL,l.DateDouc,l.NOM,l.NETAPAYER from 
+	DAF_cheque c inner join DAF_LOG_FACTURE l
+			on c.numerocheque = l.numerocheque and c.RibAtnerId = l.ModePaiementID
+	where c.id =  @id
+	and c.ETAT <> 'Annuler'
+	and c.ETAT = l.etat
+  `,
+
+  getSumCheque: ` 
+  SELECT 
+    FORMAT(SUM(NETAPAYER), '0.00') AS SumCheque
+  from DAF_cheque c 
+    inner join DAF_LOG_FACTURE l
+		on c.numerocheque = l.numerocheque and c.RibAtnerId = l.ModePaiementID
+	where 
+    c.id =  @id
+    and c.ETAT = l.etat
+    and c.ETAT <> 'Annuler'
+  `,
 };
