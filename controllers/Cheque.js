@@ -1,5 +1,9 @@
 const { getConnection, getSql } = require("../database/connection");
 const { cheque } = require("../database/ChequeQuery");
+const html_to_pdf = require("html-pdf-node");
+const fs = require("fs");
+const { ToWords } = require("to-words");
+const { toUpper } = require("lodash");
 
 const MontantFixed = (num) => {
   return parseFloat(num.toFixed(2));
@@ -682,6 +686,370 @@ exports.getOneChequeById = async (req, res) => {
     res.set("Content-Range", `Cheque 0-1/1`);
 
     res.json(result.recordset[0]);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+exports.getChequeEncours = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(cheque.getChequeEncours);
+
+    res.set("Content-Range", `Cheque 0-99/100`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+const addZero = (num) => {
+  let str = num.toString();
+  if (str.length === 1) {
+    //console.log("inside if:" + str.length);
+    return "0" + "" + str;
+  }
+  return str;
+};
+
+exports.PrintCheque = async (req, res) => {
+  const toWords = new ToWords({
+    localeCode: "fr-FR",
+    converterOptions: {
+      currency: true,
+      ignoreDecimal: false,
+      ignoreZeroCurrency: false,
+      currencyOptions: {
+        // can be used to override defaults for the selected locale
+        // name: 'DIRHAMS',
+        plural: "DIRHAMS",
+        fractionalUnit: {
+          // name: 'CENTIMES',
+          plural: "CENTIMES",
+          symbol: "",
+        },
+      },
+    },
+  });
+
+  function numberWithSpaces(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+
+  let options = { format: "A4" };
+
+  let printData = {
+    header: {},
+    body: [],
+    edit: false,
+    path: "",
+    resulsumvirement: function (data) {
+      // Fonction pour formater les données avec des virgules
+      return data.toLocaleString();
+    },
+  };
+
+  let filter = req.query.idcheque || "{}";
+  filter = JSON.parse(filter);
+  console.log("id cheque :", filter.id);
+
+  try {
+    const pool = await getConnection();
+    let html = ``;
+    let result = await pool
+      .request()
+      .input("id", getSql().VarChar, filter.id)
+      .query(cheque.getChequeHeaderById);
+    printData.header = result.recordset;
+
+    let date = new Date();
+
+    //console.log(addZero(1));
+
+    let year = date.getFullYear();
+    let month = addZero(date.getMonth() + 1);
+    let day = addZero(date.getDate());
+    let hour = addZero(date.getHours());
+    let min = addZero(date.getMinutes());
+    let sec = addZero(date.getSeconds());
+
+    let concat = year + "" + month + "" + day + "" + hour + "" + min + "" + sec;
+
+    let currentDate = new Date();
+    let today = `${addZero(currentDate.getDate())}/${addZero(
+      currentDate.getMonth() + 1
+    )}/${addZero(currentDate.getFullYear())}`;
+
+    result = await pool
+      .request()
+      .input("id", getSql().VarChar, filter.id)
+      .query(cheque.getChequePrintLinesById);
+    printData.body = result.recordset;
+
+    let resultsumchq = await pool
+      .request()
+      .input("id", getSql().VarChar, filter.id)
+      .query(cheque.getSumCheque);
+
+    printData.resulsumvirement = resultsumchq.recordset[0].SumCheque;
+
+    let trdata = "";
+    //   let res = "";
+    //   let to_words = toWords.convert(x).toLocaleUpperCase();
+    //   console.log("to_words", to_words);
+    //   if (to_words.includes("VIRGULE")) {
+    //     let [integerPart, decimalPart] = to_words.split("VIRGULE");
+
+    //     // Vérifie si decimalPart est null et le remplace par une chaîne vide
+    //     decimalPart = decimalPart || "";
+
+    //     // res = integerPart + " DIRHAMS";
+    //     res = integerPart;
+    //     // Traitement de la partie décimale
+    //     if (decimalPart) {
+    //       let decimalInWords = "";
+    //       if (decimalPart.trim() === "UN") {
+    //         decimalInWords = "DIX CENTIMES";
+    //       } else if (decimalPart.trim() === "DEUX") {
+    //         decimalInWords = "VINGT CENTIMES";
+    //       } else if (decimalPart.trim() === "TROIS") {
+    //         decimalInWords = "TRENTE CENTIMES";
+    //       } else if (decimalPart.trim() === "QUATRE") {
+    //         decimalInWords = "QUARANTE CENTIMES";
+    //       } else if (decimalPart.trim() === "CINQ") {
+    //         decimalInWords = "CINQUANTE CENTIMES";
+    //       } else if (decimalPart.trim() === "SIX") {
+    //         decimalInWords = "SOIXANTE CENTIMES";
+    //       } else if (decimalPart.trim() === "SEPT") {
+    //         decimalInWords = "SOIXANTE-DIX CENTIMES";
+    //       } else if (decimalPart.trim() === "HUIT") {
+    //         decimalInWords = "QUATRE-VINGTS CENTIMES";
+    //       } else if (decimalPart.trim() === "NEUF") {
+    //         decimalInWords = "QUATRE-VINGT-DIX CENTIMES";
+    //       } else {
+    //         // decimalInWords =decimalPart + " CENTIMES";
+    //         decimalInWords = decimalPart;
+    //       }
+
+    //       // res += " ET " + decimalInWords;
+    //     }
+    //   } else {
+    //     res = to_words;
+    //   }
+
+    //   return res;
+    // };
+
+    console.log("printData:", printData);
+    let nom = printData.header[0].nom;
+
+    printData.body.forEach((line, index) => {
+      trdata += `
+              <tr>
+                <td class="tdorder">${index + 1}</td>
+                <td class="tdorder">${line.CODEDOCUTIL}</td>
+                <td class="tdorder">${line.DateDouc ? line.DateDouc : ""}</td>
+                <td class="tdorder montant">${numberWithSpaces(
+                  line.NETAPAYER
+                )}</td>
+              </tr>
+        `;
+    });
+
+    html = `
+    <!doctype html>
+    <html>
+      <head>
+          <style>
+              .container {
+                height : 29,4cm;
+                width : 21cm;
+                padding: 2.1cm 2.1cm 0.7cm 2.1cm;
+                display: flex;
+                flex-direction: column;
+                font-family: Calibri, sans-serif;
+                font-size :16px;
+              }
+              .logo {
+                width: 10%;
+                margin-bottom : 10px;
+              }
+              .date {
+                font-size: 16px;
+                font-weight: 900;
+              }
+              .discription {
+                font-size: 16px;
+              }
+
+              .table {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+              }
+              table {
+                width: 90%;
+                align-self: center;
+              }
+              .torder,
+              .thorder,
+              .tdorder {
+                border: 1px solid black;
+                border-collapse: collapse;
+                text-align: center;
+                padding: 0px 32px;
+
+              }
+              .tdorder{
+                padding : 10px 0px;
+                font-size :4 px
+              }
+              th  {
+                font-size : 16px;
+                background : #878787;
+              }
+              td {
+                text-align: center;
+                padding: 2px 0;
+              }
+              .footer {
+                width: 21cm;
+                position: fixed;
+                bottom:0;
+                text-align : center;
+                font-size : 18px;
+              }
+              .montant {
+                padding :0px 10px;
+                text-align: right;
+              }
+              .datalist {
+                border: 0;
+                background-color: #fafafb;
+                font-size: 12px;
+                text-align: center;
+              }
+          </style>
+          <meta charset="UTF-8">
+      </head>
+      <body>
+        <div class="container">
+          <div>
+            <img class="logo" src="./logo.png" alt="atner logo" />
+          </div>
+          <hr />
+          <div class="date">
+            <p dir="rtl">
+              Rabat le &emsp;
+              ${today}
+            </p>
+            <p dir="rtl">
+              Attestation  ${printData.header[0].type} N° ${
+      printData.header[0].numerocheque
+    }
+              <br/>Bank : ${printData.header[0].bank}
+            </p>
+            <p>Objet: Autorisation d'élaboration de : ${
+              printData.header[0].type
+            } </p>
+          </div>
+        <p>&emsp;&emsp;N° <b>${printData.header[0].numerocheque}</b> :
+        </p>
+        <div class="table">
+          <table class="torder">
+            <thead>
+              <tr>
+                <th class="thorder">Type</th>
+                <th class="thorder">Bank</th>
+                <th class="thorder">N° ${printData.header[0].type}</th>
+                <th class="thorder">Date ${printData.header[0].type}</th>
+                <th class="thorder">Date Echeance</th>
+                <th class="thorder">Bénéficiaire</th>
+              </tr>
+            </thead>
+              <tbody>
+                <tr>
+                  <td class="tdorder">${printData.header[0].type}</td>
+                  <td class="tdorder">${printData.header[0].bank}</td>
+                  <td class="tdorder">${printData.header[0].numerocheque}</td>
+                  <td class="tdorder">${printData.header[0].datecheque}</td>
+                  <td class="tdorder">${printData.header[0].dateecheance}</td>
+                  <td class="tdorder">${printData.header[0].fournisseur}</td>
+                </tr>
+              </tbody>
+          </table>
+        </div>
+        <br/>
+        <br/>
+        <div class="table">
+          <table class="torder">
+            <thead>
+              <tr>
+                <th class="thorder">N° ligne</th>
+                <th class="thorder">N° Document</th>
+                <th class="thorder">Date Document</th>
+                <th class="thorder">Net A payer</th>
+              </tr>
+            </thead>
+            <tbody>
+            ${trdata}
+            </tbody>
+            <tfoot>
+              <th class="thorder">Total</th>
+              <th colspan="2" class="thorder ">
+                ${
+                  // wordToNumber(parseFloat(printData.resulsumvirement))
+                  toUpper(
+                    toWords.convert(
+                      parseFloat(printData.resulsumvirement.replace(",", "."))
+                    )
+                  )
+                } 
+              </th>
+              <th class="thorder montant">${numberWithSpaces(
+                printData.header[0].totalformater
+              )}</th>
+            </tfoot>
+          </table>
+        </div>
+        <div class="discription">
+          <p>Salutations distinguées</p>
+          <b>
+            <p>Le Directeur Général <br/>
+              Youness ZAMANI
+            </p>
+          </b>
+        </div>
+        <div class="footer">
+          <p>S.A.R.L. au capital social 100.000.000,00 DH
+          <br/>Siége social : 24, route du sud, MIDELT
+          <br/> R.C. Midelt n°479-Patente n°18906900-I.F n° : 04150014-C.N.S.S n° 1280510
+          </p>
+        </div>
+      </div>
+      </body>
+      </html>
+    `;
+
+    fs.writeFileSync(`${__dirname}\\assets\\ordervirment.html`, html);
+
+    let file = { url: `${__dirname}\\assets\\ordervirment.html` };
+    html_to_pdf.generatePdf(file, options).then((pdfBuffer) => {
+      console.log("PDF Buffer:-", pdfBuffer);
+      let pdfPath =
+        "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\Cheque\\" +
+        `${printData.header[0].type} - ${printData.header[0].numerocheque} - ${printData.header[0].bank}` +
+        ".pdf";
+      fs.writeFileSync(pdfPath, pdfBuffer);
+      printData.path = pdfPath;
+      printData.edit = true;
+      console.log(printData);
+      console.log("fin", __dirname);
+      res.set("Content-Range", `ordervirement 0 - 1/1`);
+      res.json(printData);
+    });
   } catch (error) {
     res.send(error.message);
     res.status(500);
