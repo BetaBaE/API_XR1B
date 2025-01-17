@@ -768,7 +768,10 @@ exports.PrintOrderVirement = async (req, res) => {
 
     let file = { url: `${__dirname}\\assets\\ordervirment.html` };
     html_to_pdf.generatePdf(file, options).then((pdfBuffer) => {
-      console.log("PDF Buffer:-", pdfBuffer);
+      // console.log("PDF Buffer:-", pdfBuffer);
+      // printData.PDFBuffer = pdfBuffer;
+      printData.base64 = pdfBuffer.toString("base64");
+
       let pdfPath =
         "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\OV\\" +
         printData.header[0].id +
@@ -776,7 +779,7 @@ exports.PrintOrderVirement = async (req, res) => {
       fs.writeFileSync(pdfPath, pdfBuffer);
       printData.path = pdfPath;
       printData.edit = true;
-      console.log(printData);
+      // console.log(printData);
       console.log("fin", __dirname);
       res.set("Content-Range", `ordervirement 0 - 1/1`);
       res.json(printData);
