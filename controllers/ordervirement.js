@@ -555,7 +555,6 @@ exports.PrintOrderVirement = async (req, res) => {
                 text-align: center;
               }
           </style>
-          <meta charset="UTF-8">
       </head>
       <body>
         <div class="container">
@@ -654,7 +653,6 @@ exports.PrintOrderVirement = async (req, res) => {
     <!DOCTYPE html>
     <html lang="en">
     <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ATNER Document - BMCE Format</title>
     <style>

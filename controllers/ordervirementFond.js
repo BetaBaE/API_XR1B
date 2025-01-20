@@ -500,7 +500,7 @@ exports.PrintOrderVirementFond = async (req, res) => {
                 text-align: center;
               }
           </style>
-          <meta charset="UTF-8">
+    
       </head>
       <body>
         <div class="container">
