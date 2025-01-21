@@ -48,4 +48,45 @@ exports.AtnerPaiement = {
 	group by  f.nom
 	order by TTC desc
   `,
+
+  chequeDetail: `
+   WITH CTE_LogFacture AS (
+    SELECT 
+		ModePaiementID, 
+		numerocheque ,
+		NOM,
+		etat,
+		SUM(TOTALTTC) AS TotalTTC
+    FROM 
+      DAF_LOG_FACTURE
+    WHERE 
+      etat = 'En cours' 
+      AND ModePaiement = 'paiement cheque'
+      GROUP BY 
+		ModePaiementID, 
+		numerocheque,
+		NOM,
+		etat
+    )
+
+    SELECT 
+		abs(DATEDIFF(DAY, CAST(GETDATE() AS DATE), datecheque)) AS jrpasse,
+		c.datecheque,
+		l.numerocheque as 'cheque',
+		r.nom as BANK,
+		c.montantVirement as Montant,
+		l.NOM
+    --,c.montantVirement-l.TotalTTC
+    FROM 
+		DAF_cheque c
+    LEFT JOIN  
+		CTE_LogFacture l ON l.numerocheque = c.numerocheque AND l.ModePaiementID = c.RibAtnerId
+    LEFT JOIN 
+		DAF_RIB_ATNER r ON r.id = l.ModePaiementID
+    WHERE 
+		l.etat = 'En cours' 
+		and c.dateecheance is null
+    ORDER BY 
+      jrpasse desc;
+  `,
 };
