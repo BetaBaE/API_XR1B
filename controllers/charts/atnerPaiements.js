@@ -52,3 +52,18 @@ exports.getPaiementByMonthDetailBank = async (req, res) => {
     res.status(500);
   }
 };
+
+exports.getChequeDetail = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`${AtnerPaiement.chequeDetail}`);
+
+    res.set("Content-Range", `chequeDetail 0-50/50`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
