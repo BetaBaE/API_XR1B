@@ -35,7 +35,7 @@ exports.factureSaisie = {
 			and lf.etat <> 'Annuler'
 	  )
   and deletedAt is null
-  and (etat in('Saisie' ) OR etat is null)
+  and (f.etat in('Saisie' ) OR f.etat is null)
   `,
 
   // Compte le nombre de factures saisies non supprimées
