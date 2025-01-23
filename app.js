@@ -32,7 +32,7 @@ const allowIPs = (req, res, next) => {
 };
 
 // Use the allowIPs middleware
-app.use(allowIPs);
+// app.use(allowIPs);
 // Middleware de logging des requêtes HTTP en mode 'dev'
 app.use(morgan("dev"));
 
@@ -111,7 +111,7 @@ app.use("/", Designations);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;
-app.listen(port, "0.0.0.0", () => {
+app.listen(port, () => {
   console.log(`Node API listening to port : ${port}`);
 });
 
