@@ -16,6 +16,23 @@ app.use(
   })
 );
 
+const allowedIPs = ["10.111.3.113", "10.111.1.68", "127.0.0.1"]; // List of allowed IPs
+
+// Middleware to allow only specific IPs
+const allowIPs = (req, res, next) => {
+  // Get the client's IP address
+  const clientIP = req.headers["x-forwarded-for"] || req.ip;
+
+  // Check if the client's IP is in the allowed IPs
+  if (allowedIPs.includes(clientIP)) {
+    return next(); // Allow access
+  } else {
+    return res.status(403).send("Access denied: Your IP is not allowed."); // Block access
+  }
+};
+
+// Use the allowIPs middleware
+app.use(allowIPs);
 // Middleware de logging des requêtes HTTP en mode 'dev'
 app.use(morgan("dev"));
 
@@ -57,6 +74,7 @@ const sumFA = require("./routers/SumFA");
 const StFournisseur = require("./routers/StFournisseur");
 const StChantier = require("./routers/StChantier");
 const AtnerPaiements = require("./routers/atnerPaiements");
+const Designations = require("./routers/Designations");
 
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
@@ -89,10 +107,11 @@ app.use("/", sumFA);
 app.use("/", StFournisseur);
 app.use("/", StChantier);
 app.use("/", AtnerPaiements);
+app.use("/", Designations);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Node API listening to port : ${port}`);
 });
 
