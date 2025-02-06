@@ -41,8 +41,8 @@ select  f.id,
 	and f.exonorer = 'non'`,
 
   rasTva: `
-	                       select distinct
-                                rt.RefernceDOC as id,
+		select distinct
+			rt.RefernceDOC as id,
                 f.catFournisseur ,
                 concat(' ',f.Identifiantfiscal) as 'Identifiant fiscal',
                 concat(' ',f.ICE) as ICE,
@@ -107,28 +107,34 @@ select
 from 
 	ENTETEFACTUREFOURNISSEUR ef 
 inner join  FANANFN fa 
-on (ef.RTCFIELD1 = fa.numeroFacture  and ef.nom = fa.nom and ef.DATEDOC = fa.DateFacture)
+on (
+replace(replace(ef.RTCFIELD1,'-','_'),'/','_') = replace(replace(fa.numeroFacture,'-','_'),'/','_')  
+and ef.nom = fa.nom 
+and Format(CAST(ef.DATEDOC as date),'yyyy-MM-dd') = Format(fa.DateFacture,'yyyy-MM-dd'))
 where 
 DATEDOC >= '2022-01-01'
 and ef.CLEETATDOC <> 52
+
 `,
 
   FactureAyantFNCount: `
-with FANANFN as (
+  with FANANFN as (
 	select fs.* , f.nom from DAF_FactureSaisie fs inner join DAF_FOURNISSEURS f on (fs.idfournisseur = f.id)
 	where fs.id not in (select idFacture from DAF_factureNavette)
-	and Etat <> 'Annuler' and deletedAt is null
+	and Etat = 'Saisie'  and deletedAt is null
 )
 select 
 	count(*) as   count 
-from	ENTETEFACTUREFOURNISSEUR ef 
+from 
+	ENTETEFACTUREFOURNISSEUR ef 
 inner join  FANANFN fa 
-on (ef.RTCFIELD1 = fa.numeroFacture  
+on (
+replace(replace(ef.RTCFIELD1,'-','_'),'/','_') = replace(replace(fa.numeroFacture,'-','_'),'/','_')  
 and ef.nom = fa.nom 
-and ef.DATEDOC = fa.DateFacture)
+and Format(CAST(ef.DATEDOC as date),'yyyy-MM-dd') = Format(fa.DateFacture,'yyyy-MM-dd'))
 where 
 DATEDOC >= '2022-01-01'
-and ef.CLEETATDOC <> 52 
+and ef.CLEETATDOC <> 52
 `,
 
   getFourisseurFA_AV: `

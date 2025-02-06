@@ -190,6 +190,9 @@ exports.avance = {
   CreateAvance: `
     INSERT INTO [dbo].[DAF_Avance]
       ([id],
+      [NdocAchat],
+      [DateDocAchat],
+      [idDesignation],
       [BonCommande],
       [MontantAvanceTTC],
       [MontantAvanceHT],
@@ -203,6 +206,9 @@ exports.avance = {
       )
     VALUES
       ((SELECT MAX(idfacturenavette)+1 FROM daf_facturenavette  ),
+      @NdocAchat,
+      @DateDocAchat,
+      @idDesignation,
       @Bcommande,
       @TTC,
       @HT,
@@ -327,15 +333,21 @@ INNER JOIN
   CatFn = @CatFn,
   MontantAvanceTTC=@MontantAvanceTTC,
   MontantAvanceHT=@MontantAvanceHT,
-  MontantAvanceTVA=@MontantAvanceTVA
+  MontantAvanceTVA=@MontantAvanceTVA,
+  EtatIR=@EtatIR,
+  NdocAchat = @NdocAchat,
+  DateDocAchat = @DateDocAchat,
+  idDesignation = @idDesignation
   WHERE id = @id ;
+
+
   update Daf_facturenavette
   set   BCommande = @BonCommande,  
   CatFn = @CatFn,
   TTC=@MontantAvanceTTC,
   HT=@MontantAvanceHT,
   MontantTVA=@MontantAvanceTVA
-  EtatIR=@EtatIR
+
   where  idfacturenavette = @id ;
 `,
 
