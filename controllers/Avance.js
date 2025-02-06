@@ -1,5 +1,6 @@
 const { avance } = require("../database/AvanceQuery");
 const { getConnection, getSql } = require("../database/connection");
+const { designations } = require("../database/Designations");
 
 exports.getAvanceCount = async (req, res, next) => {
   try {
@@ -61,6 +62,9 @@ exports.getAvance = async (req, res) => {
 exports.CreateAvance = async (req, res) => {
   const {
     codechantier,
+    NdocAchat,
+    DateDocAchat,
+    iddesignation,
     idFacture,
     ficheNavette,
     idfournisseur,
@@ -72,14 +76,27 @@ exports.CreateAvance = async (req, res) => {
     TTC,
     HT,
     MontantTVA,
-    iddesignation,
     EtatIR,
   } = req.body;
-
+  console.log(req.body);
+  let prcTVA = 1;
   try {
     // Vérifier que les paramètres requis ne sont pas undefined
     if (!codechantier || !ficheNavette || !Bcommande || !idfournisseur) {
       return res.status(400).json({ message: "Paramètres requis manquants" });
+    }
+
+    try {
+      const pool = await getConnection();
+      const result = await pool
+        .request()
+        .input("id", getSql().Int, iddesignation)
+        .query(designations.getOneById);
+      prcTVA = result.recordset[0].PourcentageTVA;
+      console.log("PourcentageTVA", result.recordset[0].PourcentageTVA);
+    } catch (error) {
+      res.send(error.message);
+      res.status(500);
     }
 
     const pool = await getConnection();
@@ -93,6 +110,9 @@ exports.CreateAvance = async (req, res) => {
 
     // Préparer les paramètres pour la création de l'avance
     const createParams = [
+      { name: "NdocAchat", type: getSql().VarChar, value: NdocAchat },
+      { name: "DateDocAchat", type: getSql().Date, value: DateDocAchat },
+      { name: "idDesignation", type: getSql().Int, value: iddesignation },
       { name: "codechantier", type: getSql().VarChar, value: codechantier },
       {
         name: "montantAvance",
@@ -112,11 +132,11 @@ exports.CreateAvance = async (req, res) => {
       { name: "CatFn", type: getSql().VarChar, value: CatFn },
       { name: "TTC", type: getSql().Numeric(10, 2), value: TTC },
 
-      { name: "HT", type: getSql().Numeric(10, 2), value: TTC / iddesignation },
+      { name: "HT", type: getSql().Numeric(10, 2), value: TTC / prcTVA },
       {
         name: "MontantTVA",
         type: getSql().Numeric(10, 2),
-        value: TTC - TTC / iddesignation,
+        value: TTC - TTC / prcTVA,
       },
     ];
 
@@ -190,6 +210,7 @@ exports.getfactureresById = async (req, res) => {
     res.status(500);
   }
 };
+
 exports.getficheNavetteByfournisseur = async (req, res) => {
   try {
     const pool = await getConnection();
@@ -256,6 +277,7 @@ exports.correction = async (req, res) => {
     Validateur,
     CatFn,
   } = req.body;
+  console.log(req.body);
   try {
     const pool = await getConnection();
     await pool
@@ -270,6 +292,7 @@ exports.correction = async (req, res) => {
       .input("annulation", getSql().VarChar, annulation)
       .input("Validateur", getSql().VarChar, Validateur)
       .input("CatFn", getSql().VarChar, CatFn)
+      .input("EtatIR", getSql().VarChar, EtatIR)
       .query(avance.update);
     if (annulation === "Annuler") {
       updateFNWhenAnnuleVirement(req.params.id);
@@ -695,34 +718,147 @@ exports.getAvanceForUpdateByid = async (req, res) => {
   }
 };
 
+// exports.UpdateorAnnulerAvance = async (req, res) => {
+//   const {
+//     MontantAvanceTTC,
+//     BonCommande,
+//     annulation,
+//     CatFn,
+//     NdocAchat,
+//     DateDocAchat,
+//     idDesignation,
+//     EtatIR,
+//   } = req.body;
+//   console.log(req.body);
+//   let prcTVA = 1;
+//   try {
+//     const pool = await getConnection();
+//     try {
+//       const pool = await getConnection();
+//       const result = await pool
+//         .request()
+//         .input("id", getSql().Int, iddesignation)
+//         .query(designations.getOneById);
+//       prcTVA = result.recordset[0].PourcentageTVA;
+//       console.log("PourcentageTVA", result.recordset[0].PourcentageTVA);
+//     } catch (error) {
+//       res.send(error.message);
+//       res.status(500);
+//     }
+//     const request = pool
+//       .request()
+//       .input("id", getSql().Int, req.params.id)
+
+//       .input("MontantAvanceTTC", getSql().Numeric, MontantAvanceTTC)
+//       .input("MontantAvanceHT", getSql().Numeric, MontantAvanceTTC / prcTVA)
+//       .input(
+//         "MontantAvanceTVA",
+//         getSql().VarChar,
+//         MontantAvanceTTC - MontantAvanceTTC / prcTVA
+//       )
+//       .input("BonCommande", getSql().VarChar, BonCommande)
+//       .input("annulation", getSql().VarChar, annulation)
+//       .input("NdocAchat", getSql().VarChar, NdocAchat)
+//       .input("DateDocAchat", getSql().Date, DateDocAchat)
+//       .input("idDesignation", getSql().VarChar, idDesignation)
+//       .input("EtatIR", getSql().VarChar, EtatIR)
+//       .input("CatFn", getSql().VarChar, CatFn);
+
+//     if (annulation === "Annuler") {
+//       await request.query(avance.AnnulerAvance);
+//     } else {
+//       await request.query(avance.updateAvance);
+//     }
+
+//     res.json({
+//       id: req.params.id,
+//       MontantAvanceTTC,
+//       MontantAvanceHT,
+//       MontantAvanceTVA,
+//       BonCommande,
+//       annulation,
+//       CatFn,
+//     });
+//   } catch (error) {
+//     res.status(500).send(error.message);
+//     console.log(error.message);
+//   }
+// };
+
 exports.UpdateorAnnulerAvance = async (req, res) => {
+  // Destructure and log the request body
   const {
     MontantAvanceTTC,
-    MontantAvanceHT,
-    MontantAvanceTVA,
     BonCommande,
     annulation,
     CatFn,
+    NdocAchat,
+    DateDocAchat,
+    idDesignation, // corrected variable name
+    EtatIR,
   } = req.body;
+  console.log("Request Body:", req.body);
+
+  let prcTVA = 1;
+  let pool;
+
   try {
-    const pool = await getConnection();
-    const request = pool
+    // Get the connection once and reuse it
+    pool = await getConnection();
+
+    // Validate idDesignation presence
+    if (!idDesignation) {
+      return res.status(400).json({ error: "idDesignation is required" });
+    }
+
+    // Retrieve the TVA percentage for the designation.
+    // Adjust the parameter type (getSql().Int) if idDesignation should be a different type.
+    const tvaResult = await pool
       .request()
-      .input("id", getSql().Int, req.params.id)
+      .input("id", getSql().Int, idDesignation)
+      .query(designations.getOneById);
 
-      .input("MontantAvanceTTC", getSql().Numeric, MontantAvanceTTC)
-      .input("MontantAvanceHT", getSql().Numeric, MontantAvanceHT)
-      .input("MontantAvanceTVA", getSql().VarChar, MontantAvanceTVA)
-      .input("BonCommande", getSql().VarChar, BonCommande)
-      .input("annulation", getSql().VarChar, annulation)
-      .input("CatFn", getSql().VarChar, CatFn);
+    if (!tvaResult.recordset || tvaResult.recordset.length === 0) {
+      return res.status(404).json({ error: "Designation not found" });
+    }
 
+    prcTVA = tvaResult.recordset[0].PourcentageTVA;
+    console.log("PourcentageTVA:", prcTVA);
+
+    // Avoid division by zero
+    if (prcTVA === 0) {
+      return res
+        .status(400)
+        .json({ error: "Invalid TVA percentage: cannot be zero" });
+    }
+
+    // Calculate derived fields
+    const MontantAvanceHT = MontantAvanceTTC / prcTVA;
+    const MontantAvanceTVA = MontantAvanceTTC - MontantAvanceHT;
+
+    // Prepare the request with all parameters
+    const request = pool.request();
+    request.input("id", getSql().Int, req.params.id);
+    request.input("MontantAvanceTTC", getSql().Numeric, MontantAvanceTTC);
+    request.input("MontantAvanceHT", getSql().Numeric, MontantAvanceHT);
+    request.input("MontantAvanceTVA", getSql().Numeric, MontantAvanceTVA);
+    request.input("BonCommande", getSql().VarChar, BonCommande);
+    request.input("annulation", getSql().VarChar, annulation);
+    request.input("NdocAchat", getSql().VarChar, NdocAchat);
+    request.input("DateDocAchat", getSql().Date, DateDocAchat);
+    // Assuming idDesignation is a numeric ID; change type if needed.
+    request.input("idDesignation", getSql().Int, idDesignation);
+    request.input("EtatIR", getSql().VarChar, EtatIR);
+    request.input("CatFn", getSql().VarChar, CatFn);
+
+    // Execute the appropriate SQL query based on the 'annulation' flag
     if (annulation === "Annuler") {
       await request.query(avance.AnnulerAvance);
     } else {
       await request.query(avance.updateAvance);
     }
 
+    // Return the updated data as a JSON response
     res.json({
       id: req.params.id,
       MontantAvanceTTC,
@@ -731,10 +867,15 @@ exports.UpdateorAnnulerAvance = async (req, res) => {
       BonCommande,
       annulation,
       CatFn,
+      NdocAchat,
+      DateDocAchat,
+      idDesignation,
+      EtatIR,
     });
   } catch (error) {
-    res.status(500).send(error.message);
-    console.log(error.message);
+    // Log the error and return a 500 status
+    console.error("Error in updateOrAnnulerAvance:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
