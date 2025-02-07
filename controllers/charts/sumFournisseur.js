@@ -81,3 +81,38 @@ exports.getEffetEcheance = async (req, res) => {
     res.status(500);
   }
 };
+
+exports.getCountFaSansFNbyMonth = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .query(`${SumForMonth.CountFaSansFnByMonth}`);
+
+    res.set("Content-Range", `CountFaSansFnByMonth 0-50/50`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+
+exports.DetailFaSansFnByMonth = async (req, res) => {
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("date", getSql().VarChar, req.params.id)
+      .query(`${SumForMonth.DetailFaSansFnByMonth}`);
+
+    res.set("Content-Range", `DetailFaSansFnByMonth 0-50/50`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};

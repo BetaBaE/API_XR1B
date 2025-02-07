@@ -115,4 +115,18 @@ order by sum(fs.TTC - fs.AcompteVal) desc
     ORDER BY 
       jrRestant;
   `,
+
+  CountFaSansFnByMonth: `
+      select format(DateFacture,'yyyy-MM') id,count(*) count , sum(TTC - AcompteVal) as NetAPaye
+      from DAF_FactureSaisie
+      where etat = 'Saisie'
+      group by format(DateFacture,'yyyy-MM')
+  `,
+
+  DetailFaSansFnByMonth: `
+  select f.id,numeroFacture,DateFacture,fo.nom,f.TTC,f.codechantier as cht    
+  from DAF_FactureSaisie f left join DAF_FOURNISSEURS fo on f.idfournisseur = fo.id
+  where format(DateFacture,'yyyy-MM') = @date --'2019-10'
+  and etat = 'Saisie'
+  `,
 };
