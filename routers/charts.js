@@ -9,6 +9,8 @@ const {
   getSumMensuel,
   getSumForMonth,
   getEffetEcheance,
+  getCountFaSansFNbyMonth,
+  DetailFaSansFnByMonth,
 } = require("../controllers/charts/sumFournisseur");
 
 const router = express.Router();
@@ -19,5 +21,8 @@ router.get("/sumchantier", getSumChantier);
 router.get("/summensuel", getSumMensuel);
 router.get("/sumformonth/:id", getSumForMonth);
 router.get("/effetecheance", getEffetEcheance);
+
+router.get("/countfafansfnBymonth", getCountFaSansFNbyMonth);
+router.get("/detailfasansfnbymonth/:id", DetailFaSansFnByMonth);
 
 module.exports = router;
