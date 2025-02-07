@@ -277,7 +277,7 @@ exports.correction = async (req, res) => {
     Validateur,
     CatFn,
   } = req.body;
-  console.log(req.body);
+
   try {
     const pool = await getConnection();
     await pool
@@ -437,8 +437,8 @@ exports.RestitutionAvance = async (req, res) => {
       nom,
     } = req.body;
     const pool = await getConnection();
-    console.log(req.body);
-
+    const { data } = req.body;
+    console.log("VETCAMMMM", data.avanceRestitution.LogDateCreation);
     if (req.body && Montant !== undefined) {
       console.log("Montant NON RESTITUER:", Montant);
       console.log("Montant Restant ARestituer:", MontantRestantARestituer);
@@ -514,6 +514,11 @@ exports.RestitutionAvance = async (req, res) => {
           .input("etat", getSql().VarChar, etat)
           .input("Redacteur", getSql().VarChar, Redacteur)
           .input("nom", getSql().VarChar, nom)
+          .input(
+            "LogDateCreation",
+            getSql().DateTime,
+            data.avanceRestitution.LogDateCreation
+          )
           .query(avance.insertlineRestitAvance);
       }
 
