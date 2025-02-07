@@ -116,7 +116,9 @@ exports.avance = {
       [DateCreation],
       [Redacteur],
       [nom],
-      [ModePaiement])
+      [ModePaiement],
+      [LogDateCreation]
+      )
     VALUES
       (@id,
       @Deference,
@@ -124,7 +126,8 @@ exports.avance = {
       GETDATE(), -- Date actuelle
       @Redacteur,
       @nom,
-      @modePaiement)
+      @modePaiement,
+      @LogDateCreation)
   `,
 
   // Met à jour les informations de restitution dans la table DAF_RestitAvance
@@ -228,7 +231,9 @@ exports.avance = {
            restit.Montant, four.nom AS nom, 
            four.CodeFournisseur AS CodeFournisseur, 
            four.id AS idfournisseur,
-           restit.ModePaiement, av.CodeAffaire
+           restit.ModePaiement, 
+           av.CodeAffaire,
+           restit.LogDateCreation
     FROM DAF_RestitAvance restit 
     INNER JOIN DAF_Avance av ON av.id = restit.idAvance
     INNER JOIN DAF_FOURNISSEURS four ON four.id = av.idFournisseur
