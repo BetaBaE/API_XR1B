@@ -438,11 +438,12 @@ exports.RestitutionAvance = async (req, res) => {
     } = req.body;
     const pool = await getConnection();
     const { data } = req.body;
-    console.log("VETCAMMMM", data.avanceRestitution.LogDateCreation);
+    // console.log("VETCAMMMM", data.avanceRestitution.LogDateCreation);
     if (req.body && Montant !== undefined) {
       console.log("Montant NON RESTITUER:", Montant);
       console.log("Montant Restant ARestituer:", MontantRestantARestituer);
       console.log(Montant == MontantRestantARestituer);
+
       if (Montant == MontantRestantARestituer) {
         console.log("Montant == MontantRestantARestituer");
         console.log(etat, "Etat");
