@@ -24,6 +24,11 @@ const {
 } = require("../controllers/Avance");
 
 const { GetPourcentageTVA } = require("../controllers/DesignationFacture");
+const {
+  RestitFactureMontantExcte,
+  MontantAvanceAndFactureByFournisseur,
+  MontantAvanceNonRestitueByFournisseur,
+} = require("../controllers/charts/aideRestitAvance");
 
 router.post("/AvanceForupdate", CreateAvance);
 router.get("/Avance/:id", getAvanceRestitById);
@@ -50,5 +55,15 @@ router.put("/AvanceForupdate/:id", UpdateorAnnulerAvance);
 
 router.get("/getPourcentageTva", GetPourcentageTVA);
 router.get("/getAvanceNonRestit/:id", getAvanceNonRestitByFournisseur);
+/** Aide Restit */
+router.get("/restitfacturemontantrxcte", RestitFactureMontantExcte);
+router.get(
+  "/montantavanceandfacturebyfournisseur",
+  MontantAvanceAndFactureByFournisseur
+);
+router.get(
+  "/montantavancenonrestituebyfournisseur",
+  MontantAvanceNonRestitueByFournisseur
+);
 
 module.exports = router;
