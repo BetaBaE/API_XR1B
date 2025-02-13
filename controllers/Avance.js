@@ -442,7 +442,8 @@ exports.RestitutionAvance = async (req, res) => {
     if (req.body && Montant !== undefined) {
       console.log("Montant NON RESTITUER:", Montant);
       console.log("Montant Restant ARestituer:", MontantRestantARestituer);
-      console.log(Montant == MontantRestantARestituer);
+      console.log("if", Montant == MontantRestantARestituer);
+      console.log("else if", Montant > MontantRestantARestituer);
 
       if (Montant == MontantRestantARestituer) {
         console.log("Montant == MontantRestantARestituer");
@@ -507,20 +508,29 @@ exports.RestitutionAvance = async (req, res) => {
         const Deference = Montant - MontantRestantARestituer;
 
         console.log("Deference", Deference, typeof Deference);
-        await pool
-          .request()
-          .input("id", getSql().Int, req.params.id)
-          .input("Deference", getSql().Numeric(30, 3), Deference)
-          .input("ModePaiement", getSql().VarChar, ModePaiement)
-          .input("etat", getSql().VarChar, etat)
-          .input("Redacteur", getSql().VarChar, Redacteur)
-          .input("nom", getSql().VarChar, nom)
-          .input(
-            "LogDateCreation",
-            getSql().DateTime,
-            data.avanceRestitution.LogDateCreation
-          )
-          .query(avance.insertlineRestitAvance);
+        /** if (def > 5)
+         * or  Montant > MontantRestantARestituer
+         * or (Montant - MontantRestantARestituer)>5*/
+        if (Montant - MontantRestantARestituer > 2) {
+          await pool
+            .request()
+            .input("id", getSql().Int, req.params.id)
+            .input("Deference", getSql().Numeric(30, 3), Deference)
+            .input("ModePaiement", getSql().VarChar, ModePaiement)
+            .input("etat", getSql().VarChar, etat)
+            .input("Redacteur", getSql().VarChar, Redacteur)
+            .input("nom", getSql().VarChar, nom)
+            .input(
+              "LogDateCreation",
+              getSql().DateTime,
+              data.avanceRestitution.LogDateCreation
+            )
+            .query(avance.insertlineRestitAvance);
+        }
+      } else {
+        res
+          .status(400)
+          .json({ error: "Montant < A Montant Restant A Restituer " });
       }
 
       res.json({ id: req.params.id });
