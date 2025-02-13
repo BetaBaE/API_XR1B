@@ -588,14 +588,15 @@ exports.createVirements = async (req, res) => {
 
     await AddToTotalOv(Totale, req.body.orderVirementId);
 
-    insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
-    insertDocInRas(ArrayOfFacture, req.body.orderVirementId);
-    insertDocInRasIR(ArrayOfFacture, req.body.orderVirementId);
     insertAvanceInRestit(
       ArrayOfFacture,
       req.body.orderVirementId,
       req.body.Redacteur
     );
+    insertFactureInLog(ArrayOfFacture, req.body.orderVirementId);
+    insertDocInRas(ArrayOfFacture, req.body.orderVirementId);
+    insertDocInRasIR(ArrayOfFacture, req.body.orderVirementId);
+
     res.json({ id: "", Totale });
   } catch (error) {
     res.status(500);

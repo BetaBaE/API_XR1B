@@ -548,16 +548,17 @@ exports.createcheque = async (req, res) => {
   let { facturelist } = req.body;
   let { Totale } = await calculSumFactures(facturelist);
   //let num = MontantFixed(Totale);
-  let ArrayOfFacture = await getFactureFromView(facturelist);
-  insertFactureInLog(ArrayOfFacture, req.body.RibAtner, req.body.numerocheque);
-  insertDocInRas(ArrayOfFacture, req.body.numerocheque);
-  insertDocInRasIR(ArrayOfFacture, req.body.numerocheque);
 
+  let ArrayOfFacture = await getFactureFromView(facturelist);
   insertAvanceInRestit(
     ArrayOfFacture,
     req.body.numerocheque,
     req.body.Redacteur
   );
+  insertFactureInLog(ArrayOfFacture, req.body.RibAtner, req.body.numerocheque);
+  insertDocInRas(ArrayOfFacture, req.body.numerocheque);
+  insertDocInRasIR(ArrayOfFacture, req.body.numerocheque);
+
   // ChangeEtatEnCoursAvance(ArrayOfFacture); // trigger log_facture
   console.log(req.body, Totale);
   console.log("cheque", cheque.create);
