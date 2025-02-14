@@ -47,12 +47,14 @@ exports.ordervirementsFond = {
   orderVirementsEnCours: `
     SELECT * FROM [dbo].[DAF_Order_virements_Fond]
     WHERE etat = 'En cours' AND tailleOvPrint < 11
+    order by datecreation desc
   `,
 
   // Récupère les virements d'état spécifique
   orderVirementsEtat: `
     SELECT * FROM [dbo].[DAF_Order_virements_Fond]
     WHERE etat IN ('En cours') AND total <> 0
+    order by datecreation desc
   `,
 
   // Ajoute un montant au total

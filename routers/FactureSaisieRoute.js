@@ -21,6 +21,7 @@ const {
   getsumfacturebyfournisseurwithfn,
   getsumfacturebyfournisseurwithoutfn,
   getAvancesNonPayeesParFournisseurId,
+  checkFAcreation,
 } = require("../controllers/FactureSaisie"); // Importation des fonctions de contrôle des opérations sur les factures
 
 const router = express.Router(); // Création d'un routeur Express
@@ -72,5 +73,7 @@ router.get(
 ); // Route pour récupérer le total des factures d'un fournisseur sans fiche Navette
 
 router.put("/facturevalider/:id", updatefacturevalider); // Route pour mettre à jour le statut de validation d'une facture par ID
+
+router.get("/checkfacturecreation", checkFAcreation); // Route pour mettre à jour le statut de validation d'une facture par ID
 
 module.exports = router; // Exportation du routeur pour être utilisé dans d'autres fichiers

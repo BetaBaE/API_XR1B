@@ -500,3 +500,25 @@ exports.getAvancesNonPayeesParFournisseurId = async (req, res) => {
     res.status(500);
   }
 };
+exports.checkFAcreation = async (req, res) => {
+  let filter = req.query.filter || "{}";
+
+  filter = JSON.parse(filter);
+  try {
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("nfa", getSql().VarChar, filter.nfa)
+      .input("fdate", getSql().Date, filter.fdate)
+      .input("idf", getSql().Int, filter.idf)
+      .query(factureSaisie.checkFAcreation);
+
+    res.set("Content-Range", `factures 0-3/4`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
