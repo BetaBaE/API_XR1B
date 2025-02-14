@@ -294,4 +294,24 @@ exports.factureSaisie = {
     -- Trie les résultats par DateFacture
 
 `,
+
+  checkFAcreation: `
+    SELECT 
+      numeroFacture,
+      DateFacture,
+      TTC 
+    FROM DAF_FactureSaisie 
+    WHERE numeroFacture LIKE( 
+    REPLACE(
+      REPLACE(
+        REPLACE( 
+          REPLACE(
+            REPLACE(@nfa, '_', '%')
+          , '-', '%')
+        , '/', '%')
+      , '\', '%')
+    , ' ', '%'))
+    and YEAR(DateFacture) = Year(@fdate)
+    and idfournisseur = @idf
+`,
 };

@@ -89,7 +89,8 @@ LEFT JOIN
     experation10 e ON e.orderVirementId = o.id
 WHERE 
     o.etat = 'En cours' 
-    AND o.dateExecution IS NULL;
+    AND o.dateExecution IS NULL
+order by o.datecreation desc
   `,
 
   // Récupère les virements d'état spécifique
