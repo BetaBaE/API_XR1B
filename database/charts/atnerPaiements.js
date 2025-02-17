@@ -1,18 +1,45 @@
 exports.AtnerPaiement = {
   paiementByMonth: `
     
-    select TOP 24 FORMAT(t.DateOperation, 'yyyy-MM') id,FORMAT(t.DateOperation, 'yyyy-MM') name, sum(montantPaiement) TTC
-    from (
-        select dateoperation,montantPaiement,Etat from DAF_FactureSaisie
-        where etat = 'Reglee'
-        and deletedAt is null
-        union all
-        select dateoperation,montantPaiement,Etat from DAF_Avance
-        where etat = 'Reglee'
-    ) t
-    where t.DateOperation >= '2024-08-01'
-    group by FORMAT(DateOperation, 'yyyy-MM')
-    order by FORMAT(DateOperation, 'yyyy-MM')
+  WITH FANotAnnuler AS (
+    SELECT TOP 24
+        FORMAT(DateFacture, 'yyyy-MM') AS id,
+        SUM(TTC) AS TTC,
+		avg(sum(TTC ) ) 
+ over (ORDER BY format(DateFacture,'yyyy-MM')  ROWS BETWEEN 3 PRECEDING AND CURRENT ROW) as TTCAvg3 
+    FROM DAF_FactureSaisie
+    WHERE deletedAt IS NULL
+      AND Etat <> 'Annuler'
+    GROUP BY FORMAT(DateFacture, 'yyyy-MM')
+    ORDER BY id DESC
+)
+SELECT TOP 24
+    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) AS id,
+    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) AS name,
+    COALESCE(SUM(t.montantPaiement),0) AS TTCPay,
+    COALESCE(f.TTC,0) AS TTCfa,
+	f.TTCAvg3
+
+FROM FANotAnnuler f
+LEFT JOIN (
+    SELECT DateOperation, montantPaiement, Etat
+    FROM DAF_FactureSaisie
+    WHERE etat = 'Reglee'
+      AND deletedAt IS NULL
+      AND DateOperation >= '2024-08-01'
+    UNION ALL
+    SELECT DateOperation, montantPaiement, Etat
+    FROM DAF_Avance
+    WHERE etat = 'Reglee'
+      AND DateOperation >= '2024-08-01'
+) t
+    ON f.id = FORMAT(t.DateOperation, 'yyyy-MM')
+GROUP BY 
+    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id),
+    f.TTC,
+	f.TTCAvg3
+ORDER BY 
+    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) asc;
   `,
 
   paiementByMonthDetailFournisseur: `
