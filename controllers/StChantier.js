@@ -48,6 +48,7 @@ exports.getClotureDataByChantier = async (req, res) => {
         )
   
         SELECT 
+            FORMAT(m.MonthStart, 'yyyy-MM') AS id,
             FORMAT(m.MonthStart, 'yyyy-MM') AS mois,
             COALESCE(ad.HT_mois, 0) AS HT_mois,
             SUM(SUM(ad.HT_mois)) OVER (ORDER BY FORMAT(m.MonthStart, 'yyyy-MM') ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumul1
@@ -56,7 +57,7 @@ exports.getClotureDataByChantier = async (req, res) => {
         LEFT JOIN 
             AggregatedData ad ON ad.mois = FORMAT(m.MonthStart, 'yyyy-MM')
         GROUP BY FORMAT(m.MonthStart, 'yyyy-MM'), COALESCE(ad.HT_mois, 0), COALESCE(ad.cumul, 0)
-        ORDER BY mois DESC
+        ORDER BY mois ASC
         OFFSET @offset ROWS
         FETCH NEXT @limit ROWS ONLY;
       `;
@@ -102,7 +103,7 @@ exports.getFactureSummaryByChantierAndMonth = async (req, res) => {
     let filter = JSON.parse(req.query.date); // Assuming the parameters are passed in the query
     const { mois, chantier } = filter; // e.g., '2023-10'
 
-    console.log(`Mois: ${mois}, Chantier: ${chantier}`);
+    // console.log(`Mois: ${mois}, Chantier: ${chantier}`);
 
     const pool = await getConnection();
 
@@ -122,6 +123,76 @@ exports.getFactureSummaryByChantierAndMonth = async (req, res) => {
     const result = await pool
       .request()
       .input("mois", getSql().VarChar, mois)
+      .input("chantier", getSql().VarChar, chantier)
+      .query(summaryQuery);
+
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error executing query:", error);
+    res.status(500).send(error.message);
+  }
+};
+
+exports.getChantierDetailFournisser = async (req, res) => {
+  try {
+    let filter = JSON.parse(req.query.date); // Assuming the parameters are passed in the query
+    const { chantier } = filter; // e.g., '2023-10'
+
+    // console.log(`Mois: ${mois}, Chantier: ${chantier}`);
+
+    const pool = await getConnection();
+
+    // SQL query to get the summary
+    const summaryQuery = `
+          SELECT f.nom, SUM(HT) AS SUMHT
+          FROM DAF_FactureSaisie fa 
+          INNER JOIN DAF_FOURNISSEURS f ON f.id = fa.idfournisseur
+          WHERE 1=1
+            AND codechantier = @chantier
+            AND fa.Etat != 'Annuler'
+          GROUP BY f.nom
+          ORDER BY SUM(HT) DESC
+
+        `;
+
+    // Execute the summary query
+    const result = await pool
+      .request()
+      .input("chantier", getSql().VarChar, chantier)
+      .query(summaryQuery);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error executing query:", error);
+    res.status(500).send(error.message);
+  }
+};
+
+exports.getDetailMoisFournisseurForChantier = async (req, res) => {
+  try {
+    let filter = JSON.parse(req.query.date); // Assuming the parameters are passed in the query
+    const { nom, chantier } = filter; // e.g., '2023-10'
+
+    // console.log(`Mois: ${mois}, Chantier: ${chantier}`);
+
+    const pool = await getConnection();
+
+    // SQL query to get the summary
+    const summaryQuery = `
+          SELECT FORMAT(DateFacture, 'yyyy-MM') as mois, SUM(HT) AS SUMHT
+          FROM DAF_FactureSaisie fa 
+          INNER JOIN DAF_FOURNISSEURS f ON f.id = fa.idfournisseur
+          WHERE 1=1
+		    and f.nom = @nom
+            AND codechantier = @chantier
+            AND fa.Etat != 'Annuler'
+          GROUP BY FORMAT(DateFacture, 'yyyy-MM')
+          ORDER BY mois DESC
+        `;
+
+    // Execute the summary query
+    const result = await pool
+      .request()
+      .input("nom", getSql().VarChar, nom)
       .input("chantier", getSql().VarChar, chantier)
       .query(summaryQuery);
 
