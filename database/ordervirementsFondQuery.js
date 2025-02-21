@@ -82,9 +82,9 @@ exports.ordervirementsFond = {
   // Récupère les corps pour l'impression
   getBodyPrint: `
     SELECT v.[id], orderVirementFondId AS orderVirementId,
-           'ATNER' AS nom, RAT.rib,
-           FORMAT(montantVirement, '0.00') AS montantVirementModifier,
-           v.Etat
+          CONCAT('ATNER-',RAT.nom) AS nom, RAT.rib,
+          FORMAT(montantVirement, '0.00') AS montantVirementModifier,
+          v.Etat
     FROM [dbo].[DAF_VIREMENTS_Fond] v
     JOIN [dbo].[DAF_RIB_ATNER] RAT ON v.RibAtnerDestId = RAT.id
     WHERE v.Etat = 'En cours' AND [orderVirementFondId] = @ovId
