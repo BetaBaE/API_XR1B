@@ -412,6 +412,7 @@ exports.PrintOrderVirementFond = async (req, res) => {
 
       return res;
     };
+    console.log(printData);
 
     printData.body.forEach((virement, index) => {
       trdata += `

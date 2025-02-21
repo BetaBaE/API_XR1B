@@ -1,18 +1,19 @@
 exports.AtnerPaiement = {
   paiementByMonth: `
-    
-  WITH FANotAnnuler AS (
+     
+ WITH FANotAnnuler AS (
     SELECT TOP 24
         FORMAT(DateFacture, 'yyyy-MM') AS id,
         SUM(TTC) AS TTC,
 		avg(sum(TTC ) ) 
- over (ORDER BY format(DateFacture,'yyyy-MM')  ROWS BETWEEN 3 PRECEDING AND CURRENT ROW) as TTCAvg3 
+ over (ORDER BY format(DateFacture,'yyyy-MM')  ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as TTCAvg3 
     FROM DAF_FactureSaisie
     WHERE deletedAt IS NULL
       AND Etat <> 'Annuler'
     GROUP BY FORMAT(DateFacture, 'yyyy-MM')
     ORDER BY id DESC
-)
+),
+P1 as (
 SELECT TOP 24
     COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) AS id,
     COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) AS name,
@@ -38,8 +39,30 @@ GROUP BY
     COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id),
     f.TTC,
 	f.TTCAvg3
-ORDER BY 
-    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) asc;
+UNION ALL
+SELECT 
+    FORMAT(DATEADD(MONTH, 1, GETDATE()), 'yyyy-MM') AS id,
+    FORMAT(DATEADD(MONTH, 1, GETDATE()), 'yyyy-MM') AS name,
+    0 AS TTCPay,
+    0 AS TTCfa,
+    (SELECT AVG(TTC) FROM FANotAnnuler) AS TTCAvg3  -- Calculate average from the CTE
+UNION ALL
+SELECT 
+    FORMAT(DATEADD(MONTH, 2, GETDATE()), 'yyyy-MM') AS id,
+    FORMAT(DATEADD(MONTH, 2, GETDATE()), 'yyyy-MM') AS name,
+    0 AS TTCPay,
+    0 AS TTCfa,
+    (SELECT AVG(TTC) FROM FANotAnnuler) AS TTCAvg3
+	)
+
+	select P1.id,
+	P1.name,
+	P1.TTCPay,
+	P1.TTCfa ,
+	Coalesce(p2.TTCAvg3,0) TTCAvg3
+	from P1 left join P1 p2 on P1.id = Format(DATEADD(MONTH,2,Cast(CONCAT(p2.id,'-01') as date)),'yyyy-MM')
+	order by P1.id 
+
   `,
 
   paiementByMonthDetailFournisseur: `
