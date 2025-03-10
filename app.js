@@ -75,6 +75,7 @@ const StFournisseur = require("./routers/StFournisseur");
 const StChantier = require("./routers/StChantier");
 const AtnerPaiements = require("./routers/atnerPaiements");
 const Designations = require("./routers/Designations");
+const Echeance = require("./routers/EcheanceFournisseur");
 
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
@@ -108,6 +109,7 @@ app.use("/", StFournisseur);
 app.use("/", StChantier);
 app.use("/", AtnerPaiements);
 app.use("/", Designations);
+app.use("/", Echeance);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;
