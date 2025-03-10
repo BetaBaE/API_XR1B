@@ -133,7 +133,7 @@ exports.getEcheanceByFouId = async (req, res) => {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .input("i", getSql().Int, req.params.id)
+      .input("idf", getSql().Int, req.params.id)
       .query(EcheanceFourniseur.getOneByFournisseur);
 
     res.set("Content-Range", `Echeance 0-1/1`);
