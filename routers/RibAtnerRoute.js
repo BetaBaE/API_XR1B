@@ -6,7 +6,7 @@ const {
   updateRibsAtner,
   getOneRibAtnerById,
   getRibAtnerValid,
-} = require("../controllers/RibAtner");
+} = require("../controllers/ribAtner");
 const router = express.Router();
 
 router.get("/ribatner", getRibCountAtner, getRibsAtner);
