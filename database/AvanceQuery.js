@@ -148,11 +148,11 @@ exports.avance = {
     SET AcompteReg = CASE 
                       WHEN @etat = 'Reglee' THEN AcompteReg
                       WHEN @etat = 'En cours' THEN AcompteReg + @MontantRestantARestituer
-                     END,
+                      END,
       AcompteVal = CASE 
                     WHEN @etat = 'En cours' THEN AcompteVal
                     WHEN @etat = 'Reglee' THEN AcompteVal + @MontantRestantARestituer
-                   END,
+                    END,
       idAvance = @idAvance 
     WHERE id = @idfacture  -- Filtre par identifiant de la facture
     */
