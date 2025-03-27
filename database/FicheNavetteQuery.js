@@ -73,12 +73,13 @@ exports.FicheNavette = {
       SET ficheNavette = @ficheNavette,  
       CatFn = @CatFn
       WHERE idfacturenavette = @id 
+      and ficheNavette !='-'
     `,
 
   // Annule une fiche navette
   annulationFn: `
       UPDATE DAF_factureNavette
-      SET idfacture = 0, ficheNavette = 'Annuler'
+      SET idfacture = 0, ficheNavette = '-'
       WHERE idfacturenavette = @id
     `,
 
