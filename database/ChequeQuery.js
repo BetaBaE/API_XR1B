@@ -205,10 +205,17 @@ exports.cheque = {
   `,
 
   getChequeEncours: `
-    SELECT 
+    with sumCHQlog as (
+select numerocheque ,sum(NETAPAYER) total from DAF_LOG_FACTURE
+where etat IN ('En cours') and modepaiement = 'paiement cheque'
+group by numerocheque
+ )
+
+ SELECT 
       c.id,
       CONCAT (iif(dateecheance is not null,'Effet : ','Cheque : '),c.numerocheque,' - ',ra.nom) value
     FROM [dbo].DAF_cheque c
+	inner join sumCHQlog sc on sc.numerocheque = c.numerocheque and sc.total = c.montantVirement
     JOIN [dbo].[DAF_RIB_ATNER] ra ON c.RibAtnerId = ra.id
     where etat = 'En cours'
     order by c.id desc
