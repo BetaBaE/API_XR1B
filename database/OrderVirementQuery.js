@@ -95,8 +95,13 @@ order by o.datecreation desc
 
   // Récupère les virements d'état spécifique
   orderVirementsEtat: `
-    SELECT * FROM [dbo].[DAF_Order_virements]
-    WHERE etat IN ('En cours') AND total <> 0
+    with sumOVlog as (
+    select ModePaiementID ,sum(NETAPAYER) total from DAF_LOG_FACTURE
+    where etat IN ('En cours') and modepaiement = 'paiement virement'
+    group by ModePaiementID
+    )
+    SELECT ov.* FROM [dbo].[DAF_Order_virements] ov inner join sumOVlog so on (ov.id = so.ModePaiementID and ov.total = so.total)
+    WHERE etat IN ('En cours') AND ov.total <> 0 
   `,
 
   // Ajoute un montant au total
