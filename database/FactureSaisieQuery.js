@@ -144,8 +144,11 @@ exports.factureSaisie = {
     WHERE id = @id`,
 
   // Récupère les factures d'un fournisseur par nom à modifier
-  getfacturebyfournisseurnom: `SELECT * FROM [dbo].[DAF_FactureSaisie] 
-    WHERE deletedAt IS NULL AND idfournisseur 
+  getfacturebyfournisseurnom: `
+  SELECT * FROM [dbo].[DAF_FactureSaisie] 
+    WHERE deletedAt IS NULL
+	AND ETAT <> 'Annuler'
+	AND idfournisseur 
     IN (SELECT id FROM [dbo].[DAF_FOURNISSEURS] WHERE id = @nom)
     AND id NOT IN (SELECT idfacture FROM DAF_factureNavette where ficheNavette !='-')
     order by DateFacture 
