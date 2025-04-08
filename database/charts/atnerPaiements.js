@@ -67,24 +67,15 @@ SELECT
   --===============================================================================
   --===============================================================================
 */
-WITH FANotAnnuler AS (
-    SELECT 
 
-        FORMAT(DateFacture, 'yyyy-MM') AS id,
-        SUM(TTC) AS TTC
-    FROM DAF_FactureSaisie
-    WHERE deletedAt IS NULL
-      AND Etat <> 'Annuler'
-    GROUP BY FORMAT(DateFacture, 'yyyy-MM')
-
-),
-FaExtand as (
+With FaExtand as (
 	
 	select idFacture , sum(Montant) as rsMontant from DAF_RestitAvance rs
 	where idFacture is not null and etat <> 'Annuler'
 	group by idFacture
  
 ),
+
 FaEachu as (
 select
 
@@ -105,48 +96,55 @@ group by format(DATEADD(day,iif(e.EcheanceJR is null,60,e.EcheanceJR),fs.DateFac
 --order by  mech desc
 ),
 
-P1 as (
-SELECT 
+FaPay as (
 
-    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) AS id,
-    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id) AS name,
-    COALESCE(SUM(t.montantPaiement),0) AS TTCPay,
-    COALESCE(f.TTC,0) AS TTCfa
-
-FROM FANotAnnuler f
-LEFT JOIN (
-    SELECT DateOperation, montantPaiement, Etat
+select id , sum(montantPaiement) as TotalPay from (
+ SELECT Format(DateOperation,'yyyy-MM') id, montantPaiement, Etat
     FROM DAF_FactureSaisie
     WHERE etat = 'Reglee'
       AND deletedAt IS NULL
       AND DateOperation >= '2023-06-01'
     UNION ALL
-    SELECT DateOperation, montantPaiement, Etat
+    SELECT Format(DateOperation,'yyyy-MM') id, montantPaiement, Etat
     FROM DAF_Avance
     WHERE etat = 'Reglee'
-      AND DateOperation >= '2023-06-01'
-) t
-    ON f.id = FORMAT(t.DateOperation, 'yyyy-MM')
-GROUP BY 
-    COALESCE(FORMAT(t.DateOperation, 'yyyy-MM'), f.id),
-    f.TTC
-	),
+      AND DateOperation >= '2023-06-01' 
+	  ) t
+	 group by id
 
-	res as (
-	select TOP 12
+),
+FANotAnnuler AS (
+
+    SELECT 
+        FORMAT(DateFacture, 'yyyy-MM') AS id,
+        SUM(TTC) AS TTC
+    FROM DAF_FactureSaisie
+    WHERE deletedAt IS NULL
+      AND Etat <> 'Annuler'
+    GROUP BY FORMAT(DateFacture, 'yyyy-MM')
 	
-	COALESCE(P1.id,f.mech) id ,
-	COALESCE(P1.name,f.mech) name,
-	COALESCE(P1.TTCPay,0) TTCPay,
-	COALESCE(P1.TTCfa,0) TTCfa,
-	COALESCE(f.montantReglee,0) montantReglee,
-	COALESCE(f.montantEnCours,0) montantEnCours,
-	COALESCE(iif(f.montantSaisie<0,0,f.montantSaisie),0) montantSaisie
-	from P1 p1 right join FaEachu f on p1.id = f.mech
-	order by id desc )
+)
 
+, res  as (
+select TOP 12
+COALESCE(fe.mech,fp.id) id,
+COALESCE(fe.mech,fp.id) name, 
+COALESCE(fp.TotalPay , 0) TTCPay,
+COALESCE(fn.TTC,0) TTCfa,
+	COALESCE(fe.montantReglee,0) montantReglee,
+	COALESCE(fe.montantEnCours,0) montantEnCours,
+	COALESCE(iif(fe.montantSaisie<0,0,fe.montantSaisie),0) montantSaisie
+--* 
+from FaEachu fe 
+left join FaPay fp on fe.mech = fp.id
+left join FANotAnnuler fn on fn.id = fe.mech
 
-	select * from res order by id
+order by id desc
+)
+
+select * from res 
+order by id  
+
 
   `,
 
