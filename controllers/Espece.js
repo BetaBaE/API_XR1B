@@ -186,7 +186,7 @@ async function insertDocInRas(ArrayOfFacture) {
     }
   }
 }
-
+/*
 async function ChangeEtatReglerAvanceFacture(ArrayOfFacture) {
   if (!Array.isArray(ArrayOfFacture) || ArrayOfFacture.length === 0) {
     throw new Error("ArrayOfFacture doit être un tableau non vide");
@@ -244,7 +244,7 @@ async function ChangeEtatReglerAvanceFacture(ArrayOfFacture) {
     console.error("Erreur lors de la modification de l'état :", error.message);
     throw error;
   }
-}
+}*/
 
 exports.getEspeceCount = async (req, res, next) => {
   try {

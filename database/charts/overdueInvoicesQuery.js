@@ -77,7 +77,6 @@ format(getdate(),'yyyy-MM') Mech,
 format(getdate(),'yyyy-MM') name,
 SUM(CASE WHEN Etat = 'Saisie' THEN TTC - COALESCE (fe.rsMontant,0) ELSE 0 END) AS montantSaisie,
 SUM(CASE WHEN Etat = 'En Cours' THEN TTC - COALESCE (fe.rsMontant,0) ELSE 0 END) AS montantEnCours
---sum((fs.ttc - COALESCE (fe.rsMontant,0) )) netapayer/*,sum((fs.ttc - fs.AcompteVal )) netapayer1*/  
 from DAF_FactureSaisie fs
 left join DAF_FOURNISSEURS fr on fs.idfournisseur=fr.id
 left join DAF_EcheanceFournisseur e on fs.idfournisseur=e.idFournisseur
@@ -92,7 +91,6 @@ select format(DATEADD(day,iif(e.EcheanceJR is null,60,e.EcheanceJR),fs.DateFactu
 format(DATEADD(day,iif(e.EcheanceJR is null,60,e.EcheanceJR),fs.DateFacture),'yyyy-MM') name,
 SUM(CASE WHEN Etat = 'Saisie' THEN TTC - COALESCE (fe.rsMontant,0) ELSE 0 END) AS montantSaisie,
 SUM(CASE WHEN Etat = 'En Cours' THEN TTC - COALESCE (fe.rsMontant,0) ELSE 0 END) AS montantEnCours
---sum((fs.ttc - COALESCE (fe.rsMontant,0) )) netapayer/*,sum((fs.ttc - fs.AcompteVal )) netapayer1*/  
 from DAF_FactureSaisie fs
 left join DAF_FOURNISSEURS fr on fs.idfournisseur=fr.id
 left join DAF_EcheanceFournisseur e on fs.idfournisseur=e.idFournisseur
