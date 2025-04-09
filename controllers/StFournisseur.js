@@ -171,7 +171,7 @@ exports.getFAStateForByFournisseur = async (req, res) => {
     // Query for paginated data
     const paginatedQuery = `
       with sumFASaisie as(
-select 1 as id ,'FA Saisie' as name, COALESCE((sum(TTC - AcompteVal)),0)  as  NetApaye 
+select 1 as id ,'FA Saisie' as name, COALESCE((sum(TTC - Acompte)),0)  as  NetApaye 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
 where  f.nom = @nom 
@@ -182,7 +182,7 @@ FADispoAvecFN as(
 select 
 2 as id ,
 'FA Disponible Avec FN' as name,
-COALESCE((sum(TTC - AcompteVal)),0)  NetApaye 
+COALESCE((sum(TTC - Acompte)),0)  NetApaye 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
 where  f.nom = @nom 
@@ -195,7 +195,7 @@ FAProgPourPaie as (
 select 
 3 as id ,
 'FA programmé pour la paie' as name,
-COALESCE((sum(TTC - AcompteVal)),0) as  NetApaye 
+COALESCE((sum(TTC - Acompte)),0) as  NetApaye 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
 where  f.nom = @nom 

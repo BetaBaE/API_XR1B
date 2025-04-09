@@ -434,7 +434,7 @@ async function updateRestiWhenReglerVirement(orderVirementId, nom) {
     console.error(error.message);
   }
 }
-
+/*
 async function ChangeEtatReglerAvanceFacture(orderVirementId, nom) {
   try {
     const pool = await getConnection();
@@ -549,7 +549,7 @@ WHERE rs.ModePaiement = @orderVirementId
     console.error("Erreur lors de la modification de l'état :", error.message);
     throw error;
   }
-}
+}*/
 
 exports.getVirementCount = async (req, res, next) => {
   try {

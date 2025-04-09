@@ -172,7 +172,7 @@ exports.avance = {
 FROM [dbo].[DAF_FactureSaisie] fs
 INNER JOIN DAF_FOURNISSEURS four ON four.id = fs.idfournisseur
 WHERE deletedAt IS NULL -- Filtre pour les factures non supprimées
-  AND fs.etat != 'Annuler'
+  AND fs.etat != 'Saisie'
   AND four.id = @idfournisseur
   AND fs.TTC - ISNULL(
             (SELECT SUM(Montant) 

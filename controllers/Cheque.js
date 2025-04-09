@@ -287,7 +287,7 @@ async function updateRasWhenAnnule(numerocheque) {
     console.error(error.message);
   }
 }
-
+/*
 async function ChangeEtatReglerAvanceFacture(numerocheque) {
   try {
     const pool = await getConnection();
@@ -397,7 +397,7 @@ WHERE rs.ModePaiement = @numerocheque
     console.error("Erreur lors de la modification de l'état :", error.message);
     throw error;
   }
-}
+}*/
 
 async function updateLogFactureWhenAnnuleCheque(numerocheque) {
   try {
@@ -459,60 +459,60 @@ async function updateRestitWhenRegleecheque(numerocheque) {
   }
 }
 
-async function ChangeEtatAnnulerAvanceFacture(numerocheque) {
-  try {
-    const pool = await getConnection();
+// async function ChangeEtatAnnulerAvanceFacture(numerocheque) {
+//   try {
+//     const pool = await getConnection();
 
-    // Requête 1 : Mise à jour de DAF_Avance
-    let query1 = `
-      UPDATE DAF_Avance
-      SET Etat = 'Annuler'
-      WHERE id IN (
-        SELECT idavance
-        FROM DAF_RestitAvance
-        WHERE Etat NOT IN ('Reglee')
-          AND ModePaiement = @numerocheque
-      )
-      AND etat NOT IN ('Annuler')
-    `;
+//     // Requête 1 : Mise à jour de DAF_Avance
+//     let query1 = `
+//       UPDATE DAF_Avance
+//       SET Etat = 'Annuler'
+//       WHERE id IN (
+//         SELECT idavance
+//         FROM DAF_RestitAvance
+//         WHERE Etat NOT IN ('Reglee')
+//           AND ModePaiement = @numerocheque
+//       )
+//       AND etat NOT IN ('Annuler')
+//     `;
 
-    // Requête 2 : Mise à jour de DAF_FactureSaisie
-    let query2 = `
-   UPDATE  fs
-SET  fs.AcompteReg -= rs.Montant
-FROM DAF_FactureSaisie fs
-INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
-WHERE rs.ModePaiement = @numerocheque
- 
-  AND rs.Etat  IN ('Annuler');
+//     // Requête 2 : Mise à jour de DAF_FactureSaisie
+//     let query2 = `
+//    UPDATE  fs
+// SET  fs.AcompteReg -= rs.Montant
+// FROM DAF_FactureSaisie fs
+// INNER JOIN DAF_RestitAvance rs ON fs.id = rs.idFacture
+// WHERE rs.ModePaiement = @numerocheque
 
-    `;
+//   AND rs.Etat  IN ('Annuler');
 
-    // Préparation des requêtes
-    const request1 = pool.request();
-    request1.input("numerocheque", numerocheque);
+//     `;
 
-    const request2 = pool.request();
-    request2.input("numerocheque", numerocheque);
+//     // Préparation des requêtes
+//     const request1 = pool.request();
+//     request1.input("numerocheque", numerocheque);
 
-    // Exécution des requêtes
-    console.log("Requête SQL exécutée 1:", query1);
-    const result1 = await request1.query(query1);
-    console.log("Résultat de la requête 1:", result1);
+//     const request2 = pool.request();
+//     request2.input("numerocheque", numerocheque);
 
-    console.log("Requête SQL exécutée 2:", query2);
-    const result2 = await request2.query(query2);
-    console.log("Résultat de la requête 2:", result2);
+//     // Exécution des requêtes
+//     console.log("Requête SQL exécutée 1:", query1);
+//     const result1 = await request1.query(query1);
+//     console.log("Résultat de la requête 1:", result1);
 
-    return {
-      result1: result1.recordset,
-      result2: result2.recordset,
-    };
-  } catch (error) {
-    console.error("Erreur lors de la modification de l'état :", error.message);
-    throw error;
-  }
-}
+//     console.log("Requête SQL exécutée 2:", query2);
+//     const result2 = await request2.query(query2);
+//     console.log("Résultat de la requête 2:", result2);
+
+//     return {
+//       result1: result1.recordset,
+//       result2: result2.recordset,
+//     };
+//   } catch (error) {
+//     console.error("Erreur lors de la modification de l'état :", error.message);
+//     throw error;
+//   }
+// }
 
 async function updateRasWhenRegleecheque(numerocheque, dateOperation) {
   try {

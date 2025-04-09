@@ -10,7 +10,7 @@ order by mois
   FAStateForByFournisseur: `
   
 with sumFASaisie as(
-select 'sumFASaisie' as id ,'FA Saisie' as name, sum(TTC - AcompteVal) as  NetApaye 
+select 'sumFASaisie' as id ,'FA Saisie' as name, sum(TTC - Acompte) as  NetApaye 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
 where  f.nom = @nom 
@@ -21,7 +21,7 @@ FADispoAvecFN as(
 select 
 'FADispoAvecFN' as id ,
 'FADispoAvecFN' as name,
-sum(TTC - AcompteVal) FADispoAvecFN 
+sum(TTC - Acompte) FADispoAvecFN 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
 where  f.nom = @nom 
@@ -34,7 +34,7 @@ FAProgPourPaie as (
 select 
 'FAProgPourPaie' as id ,
 'FAProgPourPaie' as name,
-COALESCE((sum(TTC - AcompteVal)),0) as  FAProgPourPaie 
+COALESCE((sum(TTC - Acompte)),0) as  FAProgPourPaie 
 from DAF_FactureSaisie fa 
 inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
 where  f.nom = @nom 
