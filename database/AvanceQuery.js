@@ -1,7 +1,13 @@
 // Exportations pour Avance
 exports.avance = {
   // Vérifie si une composition d'avance existe déjà pour une fiche navette, une commande et un fournisseur spécifiques
-  getCount: ` SELECT COUNT(*) as count from daf_avance where etat IN ('En Cours', 'Reglee') `,
+  getCount: `
+  SELECT COUNT(*) as count 
+from DAF_RestitAvance ra 
+          where  
+          ra.idFacture is null
+          and ra.etat <> 'Annuler' 
+  `,
   existingCompositionAvance: `
     SELECT COUNT(*)
     FROM daf_factureNavette AS dfn1
