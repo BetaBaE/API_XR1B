@@ -34,10 +34,10 @@ group by  cast(format(fa.DateFacture,'yyyy-MM-01') as date)
 
 select 
 cast(format(fs.DateFacture,'yyyy-MM-01') as date) id,
-sum(fs.TTC - fs.Acompte) TTCMois,
+sum(fs.TTC - COALESCE(fs.Acompte,0.00)) TTCMois,
 datediff(month,cast(format(fs.DateFacture,'yyyy-MM-01') as date),getdate()) as anc,
 COALESCE ( sf.TTCMois,0.00) 'SumFN',
-round(100*(sum(fs.TTC - fs.Acompte)/sum(sum(fs.TTC - fs.Acompte)) over ()),2) as prcnt
+round(100*(sum(fs.TTC - COALESCE(fs.Acompte,0.00))/sum(sum(fs.TTC - fs.Acompte)) over ()),2) as prcnt
 from DAF_FactureSaisie fs  left join SumFAAyantFN sf on (cast(format(fs.DateFacture,'yyyy-MM-01') as date) = sf.id)
 where fs.etat='Saisie'
 group by  cast(format(fs.DateFacture,'yyyy-MM-01') as date),sf.TTCMois
