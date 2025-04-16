@@ -485,6 +485,7 @@ exports.PrintOrderVirement = async (req, res) => {
     <!doctype html>
     <html>
       <head>
+          <meta charset="UTF-8">
           <style>
               .container {
                 height : 29,4cm;
