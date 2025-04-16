@@ -60,8 +60,7 @@ exports.ordervirements = {
 
   // Récupère les virements en cours
   orderVirementsEnCours: `
-    
-  WITH experation10 AS (
+      WITH experation10 AS (
     SELECT 
         MAX(af.dateExpiration) AS dateExpiration, 
         v.orderVirementId,
@@ -78,18 +77,29 @@ exports.ordervirements = {
         v.orderVirementId
     HAVING 
         MAX(af.dateExpiration) <= GETDATE() + 10
+),
+
+countByOV as (
+
+select orderVirementId, count(*) count from DAF_VIREMENTS
+where etat <> 'Annuler'
+group by orderVirementId
 )
 SELECT 
     o.*, 
     e.dateExpiration, 
-    e.alert 
+    e.alert ,
+	COALESCE(c.count,0) as ligne
 FROM 
     [dbo].[DAF_Order_virements] o
 LEFT JOIN 
     experation10 e ON e.orderVirementId = o.id
+LEFT JOIN 
+	countByOV c on c.orderVirementId = o.id
 WHERE 
     o.etat = 'En cours' 
     AND o.dateExecution IS NULL
+	AND COALESCE(c.count,0) < 10 
 order by o.datecreation desc
   `,
 
