@@ -12,6 +12,7 @@ const {
   getfournisseurwithecheance,
   getNomfournisseur,
   getAllFournissuersClean,
+  getMatchfournisseurByName,
 } = require("../controllers/fournisseurs");
 const router = express.Router();
 router.get("/fournisseurs", getFournisseursCount, getFournissuers);
@@ -35,4 +36,11 @@ router.get(
   getFournisseursCount,
   getAllFournissuersClean
 );
+router.get(
+  "/getAllFournissuersClean",
+  getFournisseursCount,
+  getAllFournissuersClean
+);
+
+router.get("/fournisseursmatch/:id", getMatchfournisseurByName);
 module.exports = router;
