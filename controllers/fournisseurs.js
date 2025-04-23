@@ -286,3 +286,19 @@ exports.getAllFournissuersClean = async (req, res) => {
     res.send(error.message);
   }
 };
+
+exports.getMatchfournisseurByName = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("name", getSql().VarChar, req.params.id)
+      .query(Fournisseurs.fournisseurMatchsByName);
+
+    res.set("Content-Range", `tmpFournisseur 0-1/1`);
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};

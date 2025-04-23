@@ -89,4 +89,8 @@ exports.Fournisseurs = {
         RasIr = @RasIr
     WHERE id = @id
   `,
+
+  fournisseurMatchsByName: `
+  SELECT * FROM dbo.GetFormattedSupplierInfo(@name)
+  `,
 };
