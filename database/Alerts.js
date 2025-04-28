@@ -1,6 +1,6 @@
 exports.Alerts = {
   expirationAttestationFisc: `
-		with maxDate as (
+/*		with maxDate as (
 	select idFournisseur, max(dateExpiration) as maxDateExpiration from DAF_AttestationFiscal
 	group by idFournisseur
 )
@@ -23,11 +23,32 @@ select  f.id,
 	)
 --and md.idFournisseur = 616
 	and (md.maxDateExpiration < GETDATE() +30 or md.maxDateExpiration is null  )
-	and f.exonorer = 'non'
+	and f.exonorer = 'non'*/
+	with expire30 as (
+select at.idFournisseur,fr.nom, max(dateExpiration) DateExpiration, DATEDIFF(day,getdate(),max(dateExpiration)) Restant
+from DAF_AttestationFiscal at 
+join DAF_FOURNISSEURS fr on at.idFournisseur=fr.id
+
+group by at.idFournisseur,fr.nom
+Having max(dateExpiration)< DATEADD(day,30,getdate())
+--order by restant
+),
+
+frWfa as (
+select idfournisseur, min(DateFacture) minfa
+from DAF_FactureSaisie fs 
+--left join DAF_FOURNISSEURS fr on fs.idfournisseur=fr.id
+where Etat='Saisie'
+group by idfournisseur
+having min(DateFacture) >'2024-01-01'
+)
+select idfournisseur as id,* from expire30 e
+where exists(select 1 from frWfa where idfournisseur=e.idFournisseur)
+
     `,
 
   expirationAttestationFiscCount: `		
-    select count(*) as count
+    /*select count(*) as count
 	from DAF_AttestationFiscal af
 	    right join DAF_FOURNISSEURS f on af.idFournisseur = f.id
 	where f.id in (
@@ -38,7 +59,30 @@ select  f.id,
 		where etat = 'Saisie'
 	)
 	and (af.dateExpiration < GETDATE() +30 or af.dateExpiration is null  )
-	and f.exonorer = 'non'`,
+	and f.exonorer = 'non'*/
+	with expire30 as (
+select at.idFournisseur,fr.nom, max(dateExpiration) DateExpiration, DATEDIFF(day,getdate(),max(dateExpiration)) Restant
+from DAF_AttestationFiscal at 
+join DAF_FOURNISSEURS fr on at.idFournisseur=fr.id
+
+group by at.idFournisseur,fr.nom
+Having max(dateExpiration)< DATEADD(day,30,getdate())
+--order by restant
+),
+
+frWfa as (
+select idfournisseur, min(DateFacture) minfa
+from DAF_FactureSaisie fs 
+--left join DAF_FOURNISSEURS fr on fs.idfournisseur=fr.id
+where Etat='Saisie'
+group by idfournisseur
+having min(DateFacture) >'2024-01-01'
+)
+select count(*) as count
+ from expire30 e
+where exists(select 1 from frWfa where idfournisseur=e.idFournisseur)
+	
+	`,
 
   rasTva: `
 		select distinct
@@ -102,7 +146,8 @@ select
 	DateFacture, 
 	CODEAFFAIRE, 
 	ef.TOTALTTC as 'TTCSage', 
-	fa.TTC as 'TTCApp', 
+	fa.TTC as 'TTCApp',
+	Sum(fa.TTC) Over () as sum,
 	RTCFIELD2 as FN  
 from 
 	ENTETEFACTUREFOURNISSEUR ef 
@@ -114,7 +159,6 @@ and Format(CAST(ef.DATEDOC as date),'yyyy-MM-dd') = Format(fa.DateFacture,'yyyy-
 where 
 DATEDOC >= '2022-01-01'
 and ef.CLEETATDOC <> 52
-
 `,
 
   FactureAyantFNCount: `

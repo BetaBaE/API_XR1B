@@ -3,8 +3,8 @@ const { Alerts } = require("../database/Alerts");
 
 exports.getAlertAttestationRegFisc = async (req, res) => {
   try {
-    let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["id" , "ASC"]';
+    let range = req.query.range || "[0,10]";
+    let sort = req.query.sort || '["Restant" , "ASC"]';
     let filter = req.query.filter || "{}";
 
     range = JSON.parse(range);
