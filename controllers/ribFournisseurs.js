@@ -6,7 +6,8 @@ exports.createRibFournisseurs = async (
   rib,
   swift,
   banque,
-  Redacteur
+  Redacteur,
+  iban
 ) => {
   try {
     const pool = await getConnection();
@@ -18,6 +19,7 @@ exports.createRibFournisseurs = async (
       .input("swift", getSql().VarChar, swift)
       .input("Redacteur", getSql().VarChar, Redacteur)
       .input("banque", getSql().VarChar, banque)
+      .input("iban", getSql().VarChar, iban)
       // .input("path_rib", getSql().VarChar, path_rib)
 
       .query(ribFournisseur.create);

@@ -2,8 +2,8 @@ exports.ribFournisseur = {
   // Crée un nouveau RIB Fournisseur
   create: `
     INSERT INTO [dbo].[DAF_RIB_Fournisseurs]
-    ([FournisseurId], [rib], [swift], [banque], [Redacteur], [datesaisie])
-    VALUES (@FournisseurId, @rib, @swift, @banque, @Redacteur, GETDATE())
+    ([FournisseurId], [rib], [swift], [banque], [Redacteur], [datesaisie],iban)
+    VALUES (@FournisseurId, @rib, @swift, @banque, @Redacteur, GETDATE(),@iban)
   `,
 
   // Récupère tous les RIB Fournisseurs avec le nom du fournisseur

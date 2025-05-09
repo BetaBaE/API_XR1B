@@ -14,7 +14,7 @@ exports.ribTemporaire = {
 
   // Crée un nouveau RIB temporaire
   createRibs: `
-    INSERT INTO DAF_RIB_TEMPORAIRE (FournisseurId, rib, swift, banque, Redacteur, datesaisie)
-    VALUES (@FournisseurId, @rib, @swift, @banque, @Redacteur, GETDATE())
+    INSERT INTO DAF_RIB_TEMPORAIRE (FournisseurId, rib, swift, banque, Redacteur, datesaisie,IBAN)
+    VALUES (@FournisseurId, @rib, @swift, @banque, @Redacteur, GETDATE(), @iban)
   `,
 };

@@ -67,6 +67,7 @@ exports.getAlertAttestationRegFiscCount = async (req, res, next) => {
     res.send(error.message);
   }
 };
+
 exports.getRasTva = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
@@ -95,6 +96,7 @@ exports.getRasTva = async (req, res) => {
     res.status(500);
   }
 };
+
 exports.getRasTvaFilter = async (req, res) => {
   try {
     let sort = req.query.sort || '["id" , "ASC"]';
