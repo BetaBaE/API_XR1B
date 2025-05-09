@@ -56,7 +56,7 @@ exports.FicheNavette = {
       LEFT JOIN chantier ch ON fich.LIBELLE = ch.LIBELLE
       WHERE fich.deletedAt IS NULL
         AND fich.ficheNavette <> 'Annuler' 
-        and fich.ficheNavette = '-'
+        AND fich.ficheNavette NOT LIKE '-%'
  --       and fich.numerofacture is not  null
 
     `,
@@ -66,7 +66,7 @@ exports.FicheNavette = {
       SELECT COUNT(*) AS count
       FROM [dbo].[DAF_ficheNavette]
       WHERE ficheNavette <> 'Annuler'
-      and fich.ficheNavette = '-'
+      AND ficheNavette NOT LIKE '-%'
     `,
 
   // Met à jour une fiche navette existante
