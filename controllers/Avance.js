@@ -4,8 +4,26 @@ const { designations } = require("../database/Designations");
 
 exports.getAvanceCount = async (req, res, next) => {
   try {
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+    let queryFilter = "";
+    if (filter.BonCommande) {
+      queryFilter += ` and upper(a.BonCommande) like (upper('%${filter.BonCommande}%'))`;
+    }
+    if (filter.ficheNavette) {
+      queryFilter += ` and upper(fn.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
+    }
+    if (filter.fournisseur) {
+      queryFilter += ` and upper(ra.nom) like (upper('%${filter.fournisseur}%'))`;
+    }
+    if (filter.Etat) {
+      queryFilter += ` and ra.Etat = '${filter.Etat}'`;
+    }
+
     const pool = await getConnection();
-    const result = await pool.request().query(avance.getCount);
+    const result = await pool
+      .request()
+      .query(`${avance.getCount} ${queryFilter}`);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
@@ -655,9 +673,31 @@ exports.getAvanceDétailRestit = async (req, res) => {
 };
 
 exports.getAvanceForUpdateCount = async (req, res, next) => {
+  let filter = req.query.filter || "{}";
+  filter = JSON.parse(filter);
   try {
+    let queryFilter = "";
+
+    if (filter.ficheNavette) {
+      queryFilter += ` and upper(fn.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
+    }
+    if (filter.chantier) {
+      queryFilter += ` and upper(ch.LIBELLE) like (upper('%${filter.chantier}%'))`;
+    }
+
+    if (filter.BonCommande) {
+      queryFilter += ` and upper(BonCommande)  like ('%${filter.BonCommande}%')`;
+    }
+    if (filter.fournisseur) {
+      queryFilter += ` and upper(fou.nom) like (upper('%${filter.fournisseur}%'))`;
+    }
+    if (filter.CodeFournisseur) {
+      queryFilter += ` and upper(CodeFournisseur) like (upper('%${filter.CodeFournisseur}%'))`;
+    }
     const pool = await getConnection();
-    const result = await pool.request().query(avance.getAvanceForUpdateCount);
+    const result = await pool
+      .request()
+      .query(`${avance.getAvanceForUpdateCount} ${queryFilter}`);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {

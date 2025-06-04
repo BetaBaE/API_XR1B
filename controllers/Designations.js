@@ -34,9 +34,27 @@ exports.createRibsAtner = async (req, res) => {
 };
 
 exports.getDesignationCount = async (req, res, next) => {
+  let filter = req.query.filter || "{}";
   try {
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+    if (filter.designation) {
+      queryFilter += ` and upper(designation) like(upper('%${filter.designation}%'))`;
+    }
+    if (filter.PosteTVA) {
+      queryFilter += ` and upper(PosteTVA) like(upper('%${filter.PosteTVA}%'))`;
+    }
+    if (filter.PourcentageTVA) {
+      queryFilter += ` and upper(PourcentageTVA) like(upper('%${filter.PourcentageTVA}%'))`;
+    }
+    if (filter.codeDesignation) {
+      queryFilter += ` and upper(codeDesignation) like(upper('%${filter.codeDesignation}%'))`;
+    }
     const pool = await getConnection();
-    const result = await pool.request().query(designations.getCount);
+    const result = await pool
+      .request()
+      .query(`${designations.getCount} ${queryFilter}`);
 
     req.count = result.recordset[0].count;
     console.log(req.count);

@@ -11,8 +11,9 @@ exports.AideRestitAvance = {
         inner join DAF_FOURNISSEURS fr on fs.idfournisseur=fr.id
         left join DAF_RestitAvance rst on rst.nom =fr.nom
     where fs.Etat='Saisie'
-        and fs.AcompteReg=0 and fs.AcompteVal=0
-        and abs(fs.TTC-rst.Montant)<5
+		--and fs.AcompteVal=0
+        --and fs.AcompteReg=0 
+        and abs((fs.TTC-fs.Acompte)-rst.Montant)<5
         and rst.idFacture is null
         and rst.Etat !='Annuler'
     `,

@@ -32,8 +32,8 @@ exports.ordervirements = {
            ov.dateExecution, ov.directeursigne, ov.Redacteur,
            ra.nom, ra.rib
     FROM [dbo].[DAF_Order_virements] ov
-    JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id
-    JOIN (
+    LEFT JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id
+    LEFT JOIN (
       SELECT orderVirementId AS id, SUM(montantvirement) AS TotalMontant
       FROM DAF_VIREMENTS
       WHERE Etat <> 'Annuler'

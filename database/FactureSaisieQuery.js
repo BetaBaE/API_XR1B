@@ -42,9 +42,17 @@ exports.factureSaisie = {
   getfactureSaisiecount: `
   SELECT COUNT(*) as count
   FROM [dbo].[DAF_FactureSaisie] f
-  INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
-  INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
-  WHERE deletedAt is null`,
+    INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
+    INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+    LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
+  where NOT Exists (
+		select 1 
+		from DAF_LOG_FACTURE lf 
+		where lf.idDocPaye = concat('fr',f.id) 
+			and lf.etat <> 'Annuler'
+	  )
+  and deletedAt is null
+  and (f.etat in('Saisie' ) OR f.etat is null)`,
 
   // Crée une nouvelle facture saisie
   createfacture: `INSERT INTO [dbo].[DAF_FactureSaisie](
