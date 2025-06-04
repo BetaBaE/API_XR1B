@@ -302,3 +302,17 @@ exports.getMatchfournisseurByName = async (req, res) => {
     res.status(500);
   }
 };
+exports.getfournisseurInternational = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(Fournisseurs.fournisseurInternational);
+
+    res.set("Content-Range", `tmpFournisseur 0-99/100`);
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};

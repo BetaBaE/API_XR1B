@@ -95,7 +95,7 @@ exports.createOrderVirements = async (req, res) => {
       .input("Redacteur", getSql().VarChar, Redacteur)
       .input("ribAtner", getSql().Int, ribAtner)
       .query(ordervirements.create);
-    console.log("errour");
+
     res.json({
       id: "",
       ribAtner,

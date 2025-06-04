@@ -1,6 +1,6 @@
 exports.designations = {
   getAll: `SELECT  * FROM [FactureDesignation] where 1=1`,
-  getCount: `SELECT   COUNT(*) AS count FROM [FactureDesignation]`,
+  getCount: `SELECT   COUNT(*) AS count FROM [FactureDesignation] where 1=1`,
   getOneById: `SELECT  * FROM [FactureDesignation] where id = @id`,
   create: `
   INSERT INTO [dbo].[FactureDesignation]

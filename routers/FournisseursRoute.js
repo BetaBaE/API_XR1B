@@ -13,6 +13,7 @@ const {
   getNomfournisseur,
   getAllFournissuersClean,
   getMatchfournisseurByName,
+  getfournisseurInternational,
 } = require("../controllers/fournisseurs");
 const router = express.Router();
 router.get("/fournisseurs", getFournisseursCount, getFournissuers);
@@ -43,4 +44,5 @@ router.get(
 );
 
 router.get("/fournisseursmatch/:id", getMatchfournisseurByName);
+router.get("/fournisseurinternational", getfournisseurInternational);
 module.exports = router;

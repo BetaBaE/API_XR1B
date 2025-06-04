@@ -93,4 +93,11 @@ exports.Fournisseurs = {
   fournisseurMatchsByName: `
   SELECT * FROM dbo.GetFormattedSupplierInfo(@name)
   `,
+
+  fournisseurInternational: `
+  select f.id,f.nom from DAF_FOURNISSEURS f 
+  left join DAF_RIB_Fournisseurs r on f.id = r.FournisseurId
+  where r.banque = 'Bank International' and r.swift is not null and IBAN is not null
+  and r.validation = 'Confirmer'
+  `,
 };

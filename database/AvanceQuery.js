@@ -3,7 +3,9 @@ exports.avance = {
   // Vérifie si une composition d'avance existe déjà pour une fiche navette, une commande et un fournisseur spécifiques
   getCount: `
   SELECT COUNT(*) as count 
-from DAF_RestitAvance ra 
+from DAF_RestitAvance ra inner join DAF_Avance a on ra.idAvance = a.id
+                        inner join DAF_factureNavette fn on fn.idfacturenavette = ra.idAvance
+                        inner join DAF_FOURNISSEURS f on f.nom = ra.nom
           where  
           ra.idFacture is null
           and ra.etat <> 'Annuler' 
@@ -342,7 +344,7 @@ INNER JOIN
      INNER JOIN DAF_FOURNISSEURS fou ON fou.id = av.idFournisseur  --Jointure pour obtenir les détails du fournisseur
      inner join DAF_factureNavette fn on fn.idfacturenavette=av.id
    WHERE 
-    av.etat ='Saisie'   -- Filtre potentiel pour les états des avances
+    av.etat ='Saisie' 
      `,
   getAvanceForUpdateByid: ` select av.* , fn.fichenavette from 
   daf_avance av inner join daf_facturenavette  fn on  fn.idfacturenavette=av.id 

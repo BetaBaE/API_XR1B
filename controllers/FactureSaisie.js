@@ -12,7 +12,33 @@ exports.getfactureSaisieCount = async (req, res, next) => {
     if (filter.BonCommande) {
       queryFilter += ` AND upper(BonCommande) LIKE ('%${filter.BonCommande}%')`;
     }
-
+    if (filter.fournisseur) {
+      queryFilter += ` AND upper(fou.nom) LIKE (upper('%${filter.fournisseur}%'))`;
+    }
+    if (filter.fullname) {
+      queryFilter += ` AND upper(fullname) LIKE (upper('%${filter.fullname}%'))`;
+    }
+    if (filter.designation) {
+      queryFilter += ` AND upper(d.designation) LIKE (upper('%${filter.designation}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` AND upper(numeroFacture) LIKE ('%${filter.numeroFacture}%')`;
+    }
+    if (filter.CodeFournisseur) {
+      queryFilter += ` AND upper(fou.CodeFournisseur) LIKE (upper('%${filter.CodeFournisseur}%'))`;
+    }
+    if (filter.Datedebut && filter.Datefin) {
+      queryFilter += ` AND DateFacture BETWEEN '${filter.Datedebut}' AND '${filter.Datefin}'`;
+    }
+    if (filter.Datedebut) {
+      queryFilter += ` AND DateFacture > '${filter.Datedebut}'`;
+    }
+    if (filter.Datefin) {
+      queryFilter += ` AND DateFacture < '${filter.Datefin}'`;
+    }
+    if (filter.LIBELLE) {
+      queryFilter += ` AND upper(ch.LIBELLE) LIKE (upper('%${filter.LIBELLE}%'))`;
+    }
     const result = await pool
       .request()
       .query(`${factureSaisie.getfactureSaisiecount} ${queryFilter}`);
