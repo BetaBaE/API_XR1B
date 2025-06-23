@@ -189,4 +189,38 @@ WHERE (id IN (SELECT DISTINCT idfournisseur FROM DAF_FactureSaisie where etat <>
    OR id IN (SELECT DISTINCT idfournisseur FROM DAF_Avance where Etat <> 'Annuler'))
 ORDER BY nom
 `,
+
+  GetPreparationPaiement: `
+	select fs.id,fr.nom,isnull(ec.EcheanceJR,60) as modaliteJrs,
+	fs.numeroFacture, fs.DateFacture , fs.ttc,fs.Acompte, (fs.ttc-fs.Acompte) netApayer,fn.ficheNavette as fn,
+	dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture) as dateEcheance,
+	format(dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture),'yyyy-MM') as moisEcheance,
+	sum(fs.ttc-fs.Acompte) over(partition by fr.nom) CumulFournisseur,
+	sum(fs.ttc-fs.Acompte) over() CumulTotal,
+	datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))*-1 as echuDepuisJrs,
+	(datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))/30)*-1 as echuDepuisMnt,
+	iif(datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))/30 <-12,-13,datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))/30) as ANC,
+	fs.codechantier
+	from DAF_FactureSaisie fs
+	left join DAF_FOURNISSEURS fr on fr.id=fs.idfournisseur 
+	left join DAF_factureNavette fn on fn.idFacture=fs.id
+	left join DAF_EcheanceFournisseur ec on ec.idFournisseur=fs.idfournisseur
+	where 
+	1=1
+	and fs.etat='Saisie'
+	and dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture) <= getdate()
+	--and fr.nom not in ('Mev grue','MIDELCO','STE SOFIA SERVICE EXPRESS','Mati trans')
+`,
+
+  GetPreparationPaiementCount: `
+	select count(*) as count
+	from DAF_FactureSaisie fs
+	left join DAF_FOURNISSEURS fr on fr.id=fs.idfournisseur 
+	left join DAF_factureNavette fn on fn.idFacture=fs.id
+	left join DAF_EcheanceFournisseur ec on ec.idFournisseur=fs.idfournisseur
+	where 
+	1=1
+	and fs.etat='Saisie'
+	and dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture) <= getdate()
+`,
 };

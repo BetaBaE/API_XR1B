@@ -1,5 +1,5 @@
 const { getConnection, getSql } = require("../database/connection");
-const { factureDevise } = require("../database/factureDevise");
+const { factureDevise } = require("../database/factureDeviseQuery");
 
 exports.getFactureDeviseCount = async (req, res, next) => {
   try {
