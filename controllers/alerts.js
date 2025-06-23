@@ -234,3 +234,108 @@ exports.getFournisseurFA_AV = async (req, res) => {
     res.status(500);
   }
 };
+
+exports.GetPreparationPaiement = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["fs.id" , "ASC"]';
+    let filter = req.query.filter || "{}";
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+    //{"nom":" ffff","numeroFacture":"ddd","FN":"sss","CODEAFFAIRE":"dd"}
+    if (filter.nom) {
+      queryFilter += ` and upper(fr.nom) like(upper('%${filter.nom}%'))`;
+    }
+
+    if (filter.numeroFacture) {
+      queryFilter += ` and upper(fs.numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
+    }
+    if (filter.FN) {
+      queryFilter += ` and upper(ef.RTCFIELD2) like(upper('%${filter.FN}%'))`;
+    }
+    if (filter.codechantier) {
+      queryFilter += ` and upper(fs.codechantier) like(upper('%${filter.codechantier}%'))`;
+    }
+    if (filter.fn) {
+      if (filter.fn === "non") {
+        queryFilter += ` and fn.ficheNavette is null`;
+      } else if (filter.fn === "oui") {
+        queryFilter += ` and fn.ficheNavette is not null`;
+      }
+    }
+    if (filter.ans_sup) {
+      queryFilter += ` and (datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))/30)*-1 > ${filter.ans_sup}`;
+    }
+    if (filter.ans_inf) {
+      queryFilter += ` and (datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))/30)*-1 < ${filter.ans_inf}`;
+    }
+    console.log(filter);
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`
+      ${Alerts.GetPreparationPaiement} ${queryFilter} 
+      ORDER BY ${sort[0]} ${sort[1]}
+      OFFSET ${range[0]} ROWS 
+      FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY
+    `);
+
+    res.set("Content-Range", `faayantfn ${range[0]}-${range[1]}/${req.count}`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+exports.GetPreparationPaiementCount = async (req, res, next) => {
+  let filter = req.query.filter || "{}";
+  filter = JSON.parse(filter);
+  try {
+    let queryFilter = "";
+    //{"nom":" ffff","numeroFacture":"ddd","FN":"sss","CODEAFFAIRE":"dd"}
+    if (filter.nom) {
+      queryFilter += ` and upper(fr.nom) like(upper('%${filter.nom}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` and upper(fs.numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
+    }
+    if (filter.FN) {
+      queryFilter += ` and upper(ef.RTCFIELD2) like(upper('%${filter.FN}%'))`;
+    }
+    if (filter.CODEAFFAIRE) {
+      queryFilter += ` and upper(ef.CODEAFFAIRE) like(upper('%${filter.CODEAFFAIRE}%'))`;
+    }
+    if (filter.codechantier) {
+      queryFilter += ` and upper(fs.codechantier) like(upper('%${filter.codechantier}%'))`;
+    }
+    if (filter.ans_sup) {
+      queryFilter += ` and (datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))/30)*-1 > ${filter.ans_sup}`;
+    }
+    if (filter.ans_inf) {
+      queryFilter += ` and (datediff(day,getdate(),dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture))/30)*-1 < ${filter.ans_inf}`;
+    }
+    if (filter.fn) {
+      if (filter.fn === "non") {
+        queryFilter += ` and fn.ficheNavette is null`;
+      } else if (filter.fn === "oui") {
+        queryFilter += ` and fn.ficheNavette is not null`;
+      }
+    }
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(`${Alerts.GetPreparationPaiementCount} ${queryFilter}`);
+
+    req.count = result.recordset[0].count;
+    console.log(req.count);
+    // res.json({ count: res.conut });
+    next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};

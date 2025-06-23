@@ -79,6 +79,9 @@ const Echeance = require("./routers/EcheanceFournisseur");
 const TMPFournisseur = require("./routers/TMPFournisseur");
 const Dossier = require("./routers/Dossier");
 const factureDevise = require("./routers/factuedevise");
+const ovCredocRoutes = require("./routers/ovCredoc"); // Import des routes pour OV Credoc
+const Permission = require("./routers/Permission"); // Import des routes pour les permissions
+const FactureDeviseRoute = require("./routers/factureDeviseRoute"); // Import des routes pour les factures en devise
 
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
@@ -116,6 +119,9 @@ app.use("/", Echeance);
 app.use("/", TMPFournisseur);
 app.use("/", Dossier);
 app.use("/", factureDevise);
+app.use("/", ovCredocRoutes); // Utilisation des routes pour OV Credoc
+app.use("/", Permission);
+app.use("/", FactureDeviseRoute);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;

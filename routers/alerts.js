@@ -7,6 +7,8 @@ const {
   getFactureAyantFNSage,
   getFactureAyantFNSageCount,
   getFournisseurFA_AV,
+  GetPreparationPaiementCount,
+  GetPreparationPaiement,
 } = require("../controllers/alerts");
 
 const router = express.Router();
@@ -20,5 +22,10 @@ router.get("/rastva", getRasTva);
 router.get("/rastvafilter", getRasTvaFilter);
 router.get("/faayantfn", getFactureAyantFNSageCount, getFactureAyantFNSage);
 router.get("/getfourfaav", getFournisseurFA_AV);
+router.get(
+  "/preparationpaiement",
+  GetPreparationPaiementCount,
+  GetPreparationPaiement
+);
 
 module.exports = router;
