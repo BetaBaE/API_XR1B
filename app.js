@@ -6,30 +6,37 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 
 // Configuration du CORS pour permettre les requêtes depuis n'importe quelle origine avec certaines méthodes HTTP
+
+const allowedOrigins = [
+  "http://localhost:3000", // Development frontend
+  "http://10.111.1.68:5000", // Production frontend
+  // Add any other origins you need
+];
+
 app.use(
   cors({
-    origin: "*",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      console.log("Incoming origin:", origin);
+      // Check if the origin is in the allowed list
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // For development, you might want to be more permissive
+      if (origin.includes("localhost")) {
+        return callback(null, true);
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "PUT", "POST", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "Range"],
     exposedHeaders: ["Content-Range", "X-Content-Range"],
     credentials: true,
   })
 );
-
-const allowedIPs = ["10.111.3.113", "10.111.1.68", "127.0.0.1"]; // List of allowed IPs
-
-// Middleware to allow only specific IPs
-const allowIPs = (req, res, next) => {
-  // Get the client's IP address
-  const clientIP = req.headers["x-forwarded-for"] || req.ip;
-
-  // Check if the client's IP is in the allowed IPs
-  if (allowedIPs.includes(clientIP)) {
-    return next(); // Allow access
-  } else {
-    return res.status(403).send("Access denied: Your IP is not allowed."); // Block access
-  }
-};
 
 // Use the allowIPs middleware
 // app.use(allowIPs);
@@ -128,5 +135,3 @@ const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`Node API listening to port : ${port}`);
 });
-
-console.log("Helloworld"); // Message de test
