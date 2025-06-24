@@ -191,7 +191,7 @@ ORDER BY nom
 `,
 
   GetPreparationPaiement: `
-	select fs.id,fr.nom,isnull(ec.EcheanceJR,60) as modaliteJrs,
+	select ROW_NUMBER() OVER (ORDER BY fs.id) AS id,fr.nom,isnull(ec.EcheanceJR,60) as modaliteJrs,
 	fs.numeroFacture, fs.DateFacture , fs.ttc,fs.Acompte, (fs.ttc-fs.Acompte) netApayer,fn.ficheNavette as fn,
 	dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture) as dateEcheance,
 	format(dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture),'yyyy-MM') as moisEcheance,

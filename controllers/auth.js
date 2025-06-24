@@ -1,4 +1,3 @@
-// Importation des modules nécessaires
 const { getConnection, getSql } = require("../database/connection");
 const { Users } = require("../database/UserQuery");
 const uuidv1 = require("uuid/v1");
@@ -7,86 +6,100 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const expressJwt = require("express-jwt");
 
-dotenv.config(); // Chargement des variables d'environnement
+dotenv.config();
 
-// Middleware pour obtenir le nombre total d'utilisateurs
-exports.getUserCount = async (req, res, next) => {
-  try {
-    const pool = await getConnection(); // Obtention d'une connexion à la base de données
-    const result = await pool.request().query(Users.getCount); // Exécution de la requête pour compter les utilisateurs
-    req.count = result.recordset[0].count; // Stockage du résultat dans req.count
-    next(); // Passage au middleware suivant
-  } catch (error) {
-    res.status(500); // Envoi d'une réponse d'erreur en cas de problème
-    console.log(error.message); // Affichage de l'erreur dans la console
-    res.send(error.message); // Envoi de l'erreur au client
-  }
-};
-
-// Fonction pour chiffrer un mot de passe avec un sel donné
+// Utility functions
 const encryptPassword = (salt, password) => {
   return crypto.createHmac("sha1", salt).update(password).digest("hex");
 };
 
-// Fonction pour authentifier un utilisateur
 const authenticate = (salt, plainText, hashed_password) => {
   return encryptPassword(salt, plainText) === hashed_password;
 };
 
-// Récupération des utilisateurs avec pagination, tri et filtrage
+const getUserByUsername = async (username) => {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .input("username", getSql().VarChar, username)
+    .query(Users.getOneUsename);
+  return result.recordset;
+};
+
+// Middlewares
+exports.getUserCount = async (req, res, next) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(Users.getCount);
+    req.count = result.recordset[0].count;
+    next();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getUserOne = async (req, res, next) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .query(Users.getOne);
+    req.user = result.recordset[0];
+    next();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.requireSignin = expressJwt({
+  secret: process.env.JWT_SECRET,
+  userProperty: "auth",
+  algorithms: ["HS256"],
+});
+
+// User CRUD operations
 exports.getUsers = async (req, res) => {
   try {
-    let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["id" , "ASC"]';
-    let filter = req.query.filter || "{}";
-
+    let { range = "[0,9]", sort = '["id", "ASC"]', filter = "{}" } = req.query;
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
 
     let queryFilter = "";
-    if (filter.fullname) {
+    if (filter.fullname)
       queryFilter += ` and fullname like('%${filter.fullname}%')`;
-    }
-    if (filter.username) {
+    if (filter.username)
       queryFilter += ` and username like('%${filter.username}%')`;
-    }
-    if (filter.Role) {
-      queryFilter += ` and Role like('%${filter.Role}%')`;
-    }
-    if (filter.isActivated) {
-      queryFilter += ` and isActivated like('%${filter.isActivated}%')`;
-    }
+    if (filter.Role) queryFilter += ` and Role like('%${filter.Role}%')`;
+    if (filter.isActivated)
+      queryFilter += ` and isActivated = '${filter.isActivated}'`;
 
     const pool = await getConnection();
-    console.log(`${Users.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
-        OFFSET ${range[0]} ROWS FETCH NEXT ${
-      range[1] + 1 - range[0]
-    } ROWS ONLY`);
     const result = await pool.request().query(
-      `${Users.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
-        OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
-    );
-    res.set(
-      "Content-Range",
-      `users ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+      `${Users.getAll} ${queryFilter} 
+       ORDER BY ${sort[0]} ${sort[1]}
+       OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
-    res.json(result.recordset); // Envoi des résultats au client
+    res.set("Content-Range", `users ${range[0]}-${range[1]}/${req.count}`);
+    res.json(result.recordset);
   } catch (error) {
-    res.send(error.message); // Envoi de l'erreur au client
-    res.status(500); // Envoi d'une réponse d'erreur en cas de problème
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Création d'un nouvel utilisateur
 exports.createUsers = async (req, res) => {
-  const { fullname, username, role, password } = req.body;
-  let salt = uuidv1(); // Génération d'un sel unique
-  let hached_password = encryptPassword(salt, password); // Chiffrement du mot de passe
   try {
-    const pool = await getConnection();
+    const { fullname, username, role, password } = req.body;
+    if (!fullname || !username || !role || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
 
+    const salt = uuidv1();
+    const hached_password = encryptPassword(salt, password);
+
+    const pool = await getConnection();
     await pool
       .request()
       .input("fullname", getSql().VarChar, fullname)
@@ -94,38 +107,22 @@ exports.createUsers = async (req, res) => {
       .input("Role", getSql().VarChar, role)
       .input("hached_password", getSql().VarChar, hached_password)
       .input("salt", getSql().VarChar, salt)
-      .query(Users.create); // Exécution de la requête pour créer un utilisateur
+      .query(Users.create);
 
-    res.json({
-      id: "",
-      fullname,
-      username,
-      role,
-      hached_password,
-      salt,
-    }); // Envoi des informations de l'utilisateur créé au client
+    res.status(201).json({ id: "", fullname, username, role });
   } catch (error) {
-    res.status(500); // Envoi d'une réponse d'erreur en cas de problème
-    res.send(error.message); // Envoi de l'erreur au client
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Mise à jour des informations d'un utilisateur
 exports.updateUsers = async (req, res) => {
-  const { hached_password, salt } = req.user;
-  const { fullname, username, Role, isActivated } = req.body;
-  let newHashedPassword = "";
-  if (
-    fullname == null ||
-    username == null ||
-    Role == null ||
-    isActivated == null
-  ) {
-    return res.status(400).json({ error: "all field is required" });
-  }
   try {
-    const pool = await getConnection();
+    const { fullname, username, Role, isActivated } = req.body;
+    if (!fullname || !username || !Role || isActivated === undefined) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
 
+    const pool = await getConnection();
     await pool
       .request()
       .input("fullname", getSql().VarChar, fullname)
@@ -133,113 +130,250 @@ exports.updateUsers = async (req, res) => {
       .input("Role", getSql().VarChar, Role)
       .input("isActivated", getSql().VarChar, isActivated)
       .input("id", getSql().Int, req.params.id)
-      .query(Users.update); // Exécution de la requête pour mettre à jour un utilisateur
+      .query(Users.update);
 
-    res.json({
-      id: req.params.id,
-      fullname,
-      username,
-      Role,
-      isActivated,
-    }); // Envoi des informations mises à jour au client
+    res.json({ id: req.params.id, fullname, username, Role, isActivated });
   } catch (error) {
-    res.status(500); // Envoi d'une réponse d'erreur en cas de problème
-    res.send(error.message); // Envoi de l'erreur au client
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Récupération des informations d'un utilisateur par son ID
+exports.updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Both passwords are required" });
+    }
+
+    // Get user ID from the JWT token (req.auth.id) instead of req.params.id
+    const userId = req.auth.id;
+
+    // Fetch the user from DB using userId
+    const pool = await getConnection();
+    const userResult = await pool
+      .request()
+      .input("id", getSql().Int, userId)
+      .query(Users.getOne);
+
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = userResult.recordset[0];
+
+    // Verify current password
+    if (!authenticate(user.salt, currentPassword, user.hached_password)) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    // Generate new salt and hash
+    const newSalt = uuidv1();
+    const newHashedPassword = encryptPassword(newSalt, newPassword);
+
+    // Update password in DB
+    await pool
+      .request()
+      .input("hached_password", getSql().VarChar, newHashedPassword)
+      .input("salt", getSql().VarChar, newSalt)
+      .input("id", getSql().Int, userId)
+      .query(
+        `UPDATE [dbo].[DAF_USER] 
+         SET hached_password = @hached_password, salt = @salt 
+         WHERE id = @id`
+      );
+
+    res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.getOneUserById = async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("id", getSql().Int, req.params.id)
-      .query(Users.getOne); // Exécution de la requête pour récupérer un utilisateur par son ID
+      .query(Users.getOne);
 
-    res.set("Content-Range", `ribFournisseur 0-1/1`);
-
-    res.json(result.recordset[0]); // Envoi des informations de l'utilisateur au client
+    res.set("Content-Range", "users 0-1/1");
+    res.json(result.recordset[0]);
   } catch (error) {
-    res.send(error.message); // Envoi de l'erreur au client
-    res.status(500); // Envoi d'une réponse d'erreur en cas de problème
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Middleware pour récupérer un utilisateur par son ID et le stocker dans req.user
-exports.getUserOne = async (req, res, next) => {
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", getSql().Int, req.params.id)
-      .query(Users.getOne); // Exécution de la requête pour récupérer un utilisateur par son ID
-
-    req.user = result.recordset[0]; // Stockage de l'utilisateur dans req.user
-    next(); // Passage au middleware suivant
-  } catch (error) {
-    res.send(error.message); // Envoi de l'erreur au client
-    res.status(500); // Envoi d'une réponse d'erreur en cas de problème
-  }
-};
-
-/******************************** auth part *********************************/
-
-// Fonction pour récupérer un utilisateur par son nom d'utilisateur
-const getUserByUsername = async (username) => {
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("username", getSql().VarChar, username)
-      .query(Users.getOneUsename); // Exécution de la requête pour récupérer un utilisateur par son nom d'utilisateur
-
-    return result.recordset;
-  } catch (error) {
-    res.send(error.message); // Envoi de l'erreur au client
-    res.status(500); // Envoi d'une réponse d'erreur en cas de problème
-  }
-};
-
-// Fonction de connexion d'un utilisateur
+// Auth operations
 exports.signin = async (req, res) => {
-  const { username, password } = req.body;
-  const login = await getUserByUsername(username); // Récupération de l'utilisateur par son nom d'utilisateur
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username and password are required" });
+    }
 
-  if (login.length == 0) {
-    return res.status(401).json({ message: "username not found" }); // Envoi d'une erreur si l'utilisateur n'est pas trouvé
+    const login = await getUserByUsername(username);
+    if (login.length === 0) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const user = login[0];
+    if (!authenticate(user.salt, password, user.hached_password)) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    if (user.isActivated !== "true") {
+      return res.status(403).json({ error: "Account disabled, contact admin" });
+    }
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "8h",
+    });
+
+    // Set secure cookie with HttpOnly and SameSite attributes
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure in production
+      sameSite: "strict",
+      // maxAge: 1 * 60 * 1000, // 1 minute for testing, change to 4 hours in production
+      maxAge: 4 * 60 * 60 * 1000, // 4 hours
+      path: "/",
+    });
+
+    // Return minimal user data (token is in cookie)
+    res.json({
+      user: {
+        id: user.id,
+        fullname: user.fullname,
+        username: user.username,
+        role: user.Role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  if (!authenticate(login[0].salt, password, login[0].hached_password)) {
-    return res.status(401).json({ message: "password incorrect" }); // Envoi d'une erreur si le mot de passe est incorrect
-  }
-  if (login[0].isActivated !== "true") {
-    return res.status(401).json({
-      error: "your email is disabled, contact your admin",
-    }); // Envoi d'une erreur si l'utilisateur n'est pas activé
-  }
-
-  // Génération d'un token JWT avec l'ID de l'utilisateur et la clé secrète
-  const token = jwt.sign({ id: login[0].salt }, process.env.JWT_SECRET);
-
-  // Persistance du token dans un cookie avec une date d'expiration
-  res.cookie("t", token, { expires: new Date(Date.now() + 1000 * 60 * 1440) });
-
-  // Envoi du token et des informations de l'utilisateur au client
-  const { id, fullname, Role } = login[0];
-  res.json({ token, role: Role, user: { id, fullname, username } });
 };
 
-// Fonction de déconnexion d'un utilisateur
+// Update signout function
 exports.signout = (req, res) => {
-  res.clearCookie("t"); // Suppression du cookie contenant le token
-  return res.json({
-    message: "Signout success",
-  }); // Envoi d'un message de succès au client
+  // res.clearCookie("authToken", {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production",
+  //   sameSite: "strict",
+  //   path: "/",
+  // });
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    domain: process.env.COOKIE_DOMAIN || undefined, // Add if using cross-subdomain
+  });
+
+  res.json({ message: "Signed out successfully" });
 };
 
-// Middleware pour vérifier que l'utilisateur est authentifié
-exports.requireSignin = expressJwt({
-  secret: process.env.JWT_SECRET,
-  userProperty: "auth",
-  algorithms: ["HS256"],
-});
+// Update requireSignin middleware to check cookie
+exports.requireSignin = (req, res, next) => {
+  const token = req.cookies.authToken;
+
+  if (!token) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    }
+    req.auth = decoded;
+    next();
+  });
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { fullname } = req.body;
+    const userId = req.auth.id;
+
+    if (!fullname) {
+      return res.status(400).json({ error: "Full name is required" });
+    }
+
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("fullname", getSql().VarChar, fullname)
+      .input("id", getSql().Int, userId)
+      .query(
+        `UPDATE [dbo].[DAF_USER] 
+         SET fullname = @fullname 
+         WHERE id = @id`
+      );
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.resetUserPassword = async (req, res) => {
+  try {
+    // Check if the requesting user is an admin
+    if (req.auth.role !== "admin") {
+      return res.status(403).json({ error: "Only admins can reset passwords" });
+    }
+
+    const { userId, newPassword } = req.body;
+
+    if (!userId || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: "User ID and new password are required" });
+    }
+
+    // Generate new salt and hash
+    const newSalt = uuidv1();
+    const newHashedPassword = encryptPassword(newSalt, newPassword);
+
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("hached_password", getSql().VarChar, newHashedPassword)
+      .input("salt", getSql().VarChar, newSalt)
+      .input("id", getSql().Int, userId)
+      .query(Users.resetPassword);
+
+    res.json({ success: true, message: "Password reset successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    // Generate new salt and hash
+    const salt = uuidv1();
+    const hached_password = encryptPassword(salt, newPassword);
+
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("hached_password", getSql().VarChar, hached_password)
+      .input("salt", getSql().VarChar, salt)
+      .input("id", getSql().Int, id)
+      .query(Users.resetPassword);
+
+    res.json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    res.status(500);
+    res.send(error.message);
+  }
+};
