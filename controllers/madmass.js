@@ -43,6 +43,10 @@ exports.getAllTransfers = async (req, res) => {
     filter = JSON.parse(filter);
     log("Range:", filter);
     let queryFilter = "";
+
+    if (filter.StatusA) {
+      queryFilter += ` AND Status IN (${filter.StatusA})`;
+    }
     const pool = await getConnection();
     const result = await pool.request().query(
       `${transfers.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
@@ -54,6 +58,18 @@ exports.getAllTransfers = async (req, res) => {
       "Content-Range",
       `transfers ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
     );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+exports.getAllTransfersPrint = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(`${transfers.getTransferCanPrint}`);
+    res.set("Content-Range", `transfers 0-99/100`);
     res.json(result.recordset);
   } catch (error) {
     res.status(500).send(error.message);
@@ -237,16 +253,16 @@ exports.createBeneficiary = async (req, res) => {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .input("LastName", getSql().VarChar, req.body.lastName)
-      .input("FirstName", getSql().VarChar, req.body.firstName)
+      .input("LastName", getSql().VarChar, req.body.lastName.trim())
+      .input("FirstName", getSql().VarChar, req.body.firstName.trim())
       .input("IdentityType", getSql().VarChar, req.body.identityType || "1")
-      .input("IdentityNumber", getSql().VarChar, req.body.identityNumber)
-      .input("Address", getSql().VarChar, req.body.address)
-      .input("City", getSql().VarChar, req.body.city)
-      .input("PostalCode", getSql().VarChar, req.body.postalCode)
-      .input("Email", getSql().VarChar, req.body.email)
-      .input("Phone", getSql().VarChar, req.body.phone)
-      .input("CreatedBy", getSql().VarChar, req.body.redacteur)
+      .input("IdentityNumber", getSql().VarChar, req.body.identityNumber.trim())
+      .input("Address", getSql().VarChar, req.body.address.trim())
+      .input("City", getSql().VarChar, req.body.city.trim())
+      .input("PostalCode", getSql().VarChar, req.body.postalCode.trim())
+      .input("Email", getSql().VarChar, req.body.email.trim())
+      .input("Phone", getSql().VarChar, req.body.phone.trim())
+      .input("CreatedBy", getSql().VarChar, req.body.redacteur.trim())
       .query(beneficiaries.create);
 
     res.status(201).json({ id: "" });
@@ -431,7 +447,7 @@ exports.generateMadFile = async (req, res) => {
     const fileContent = [header, body, footer].join("\r\n"); // ✅ Windows-style line endings
     const fileName = `MASS_${headerResult.recordset[0].Reference}.txt`; // ✅ Dynamic file name
     const filePath = path.join(
-      "\\\\10.200.1.20\\02_Exe\\00 - Reporting\\generated_files", // ✅ UNC path for network share
+      "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\MAD\\", // ✅ UNC path for network share
       fileName
     );
 
@@ -718,12 +734,12 @@ exports.generateMadPdf = async (req, res) => {
       // Save PDF to network location
       let pdfPath = path.join(
         "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\MAD\\",
-        `${headerResult.recordset[0].Reference}.pdf`
+        `MASS_${headerResult.recordset[0].Reference}.pdf`
       );
 
       fs.writeFileSync(pdfPath, pdfBuffer);
       printData.path = pdfPath;
-      printData.title = `MAD Mass Transfer - ${headerResult.recordset[0].Reference}`;
+      printData.title = `MASS_${headerResult.recordset[0].Reference}`;
 
       res.set("Content-Range", `madmass 0-1/1`);
       res.json(printData);
