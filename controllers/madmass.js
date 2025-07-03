@@ -175,11 +175,12 @@ exports.getBeneficiariesCount = async (req, res, next) => {
 
 exports.getAllBeneficiaries = async (req, res) => {
   try {
-    let range = req.query.range || "[0,9]";
+    let range = req.query.range || "[0,9999]";
     let sort = req.query.sort || '["id" , "ASC"]';
     let filter = req.query.filter || "{}";
 
     range = JSON.parse(range);
+    log("Range:", range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
     log("Range:", filter);
