@@ -9,7 +9,12 @@ exports.transfers = {
   update: `UPDATE DAF_MassTransfers SET Description = @Description, DueDate = @DueDate, Status = @Status, BankCode = @BankCode, AccountNumber = @AccountNumber, CompanyCode = @CompanyCode, BranchCode = @BranchCode WHERE Id = @Id`,
   delete: `DELETE FROM DAF_MassTransfers WHERE Id = @Id`,
   getHeaderData: `SELECT id%999999 as idref,* FROM DAF_MassTransfers WHERE Id = @MassTransferId`,
-  markAsGenerated: `UPDATE DAF_MassTransfers SET Status = 'Generated', FileGeneratedAt = GETDATE(), FilePath = @FilePath WHERE Id = @MassTransferId`,
+  markAsGenerated: `UPDATE DAF_MassTransfers SET Status = 'Générer', FileGeneratedAt = GETDATE(), FilePath = @FilePath WHERE Id = @MassTransferId`,
+  getTransferCanPrint: `select * 
+                        from [dbo].[DAF_MassTransfers]
+                        where [TotalAmount]>0 and [BeneficiaryCount]>0 and status in ('Saisie', 'Générer')  
+                        order by CreatedAt DESC
+                        `,
 };
 
 exports.beneficiaries = {

@@ -529,7 +529,7 @@ exports.RestitutionAvance = async (req, res) => {
         /** if (def > 5)
          * or  Montant > MontantRestantARestituer
          * or (Montant - MontantRestantARestituer)>5*/
-        if (Montant - MontantRestantARestituer > 2) {
+        if (Montant - MontantRestantARestituer > 9) {
           await pool
             .request()
             .input("id", getSql().Int, req.params.id)

@@ -27,6 +27,7 @@ const {
   getAllTransferItems,
   getBeneficiariesNotInTransfer,
   generateMadPdf,
+  getAllTransfersPrint,
 } = require("../controllers/madmass");
 
 // Mass Transfers CRUD
@@ -55,6 +56,7 @@ router.post("/transfersitems", addToTransfer);
 // );
 
 // File Generation
+router.get("/transfersprint", getAllTransfersPrint);
 router.get("/transfers/:id/generate", generateMadFile);
 router.get("/transfers/:id/generate-pdf", generateMadPdf);
 
