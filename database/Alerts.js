@@ -100,14 +100,15 @@ where exists(select 1 from frWfa where idfournisseur=e.idFournisseur)
                 rt.TauxTva,
                 concat(rt.PourcentageRas,'%') as 'Pourcentage Ras',
                 rt.RaS,
-                                format(lf.DateOperation,'yyyy-MMMM') DateOperation2
+				format(lf.DateOperation,'yyyy-MMMM') DateOperation2
         from DAF_RAS_Tva rt
         inner join  DAF_LOG_FACTURE lf on(
-                                                                                rt.idDocPaye = lf.idDocPaye
-                                                                                and lf.etat = rt.etat
-                                                                                )
+			rt.idDocPaye = lf.idDocPaye
+			and lf.etat = rt.etat
+			)
         inner join DAF_FOURNISSEURS f on (rt.nom = f.nom)
         where rt.etat= 'Reglee' 
+		and abs(rt.RaS) > 3
 `,
   countRasTVA: `
 	select distinct
