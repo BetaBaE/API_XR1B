@@ -254,12 +254,24 @@ exports.createBeneficiary = async (req, res) => {
     const pool = await getConnection();
     const result = await pool
       .request()
-      .input("LastName", getSql().VarChar, req.body.lastName.trim())
-      .input("FirstName", getSql().VarChar, req.body.firstName.trim())
+      .input(
+        "LastName",
+        getSql().VarChar,
+        req.body.lastName.trim().toUpperCase()
+      )
+      .input(
+        "FirstName",
+        getSql().VarChar,
+        req.body.firstName.trim().toUpperCase()
+      )
       .input("IdentityType", getSql().VarChar, req.body.identityType || "1")
-      .input("IdentityNumber", getSql().VarChar, req.body.identityNumber.trim())
+      .input(
+        "IdentityNumber",
+        getSql().VarChar,
+        req.body.identityNumber.trim().toUpperCase()
+      )
       .input("Address", getSql().VarChar, req.body.address.trim())
-      .input("City", getSql().VarChar, req.body.city.trim())
+      .input("City", getSql().VarChar, req.body.city.trim().toUpperCase())
       .input("PostalCode", getSql().VarChar, req.body.postalCode)
       .input("Email", getSql().VarChar, (req.body.email ?? "").trim())
       .input("Phone", getSql().VarChar, req.body.phone.trim())
