@@ -260,7 +260,7 @@ exports.createBeneficiary = async (req, res) => {
       .input("IdentityNumber", getSql().VarChar, req.body.identityNumber.trim())
       .input("Address", getSql().VarChar, req.body.address.trim())
       .input("City", getSql().VarChar, req.body.city.trim())
-      .input("PostalCode", getSql().VarChar, req.body.postalCode.trim())
+      .input("PostalCode", getSql().VarChar, req.body.postalCode)
       .input("Email", getSql().VarChar, req.body.email.trim())
       .input("Phone", getSql().VarChar, req.body.phone.trim())
       .input("CreatedBy", getSql().VarChar, req.body.redacteur.trim())
