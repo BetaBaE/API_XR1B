@@ -18,9 +18,26 @@ const {
 // Mass Transfers CRUD
 exports.getTransfersCount = async (req, res, next) => {
   try {
-    const pool = await getConnection();
-    const result = await pool.request().query(transfers.getCount);
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+    let queryFilter = "";
+    if (filter.StatusA) {
+      queryFilter += ` AND Status IN (${filter.StatusA})`;
+    }
+    if (filter.Reference) {
+      queryFilter += ` AND Reference LIKE '%${filter.Reference}%'`;
+    }
+    if (filter.Description) {
+      queryFilter += ` AND Description LIKE '%${filter.Description}%'`;
+    }
+    if (filter.Status) {
+      queryFilter += ` AND Status = '${filter.Status}'`;
+    }
 
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(`${transfers.getCount} ${queryFilter}`);
     req.count = result.recordset[0].count;
     console.log(req.count);
     // res.json({ count: res.conut });
@@ -46,6 +63,18 @@ exports.getAllTransfers = async (req, res) => {
 
     if (filter.StatusA) {
       queryFilter += ` AND Status IN (${filter.StatusA})`;
+    }
+    if (filter.Reference) {
+      queryFilter += ` AND Reference LIKE '%${filter.Reference}%'`;
+    }
+    if (filter.Description) {
+      queryFilter += ` AND Description LIKE '%${filter.Description}%'`;
+    }
+    if (filter.Status) {
+      queryFilter += ` AND Status = '${filter.Status}'`;
+    }
+    if (filter.q) {
+      queryFilter += ` and (Reference like('%${filter.q}%') or Status like('%${filter.q}%') )`;
     }
     const pool = await getConnection();
     const result = await pool.request().query(
@@ -197,7 +226,9 @@ exports.getAllBeneficiaries = async (req, res) => {
     if (filter.IdentityNumber) {
       queryFilter += ` and IdentityNumber like('%${filter.IdentityNumber}%')`;
     }
-
+    if (filter.q) {
+      queryFilter += ` and (LastName like('%${filter.q}%') or FirstName like('%${filter.q}%') or IdentityNumber like('%${filter.q}%') )`;
+    }
     const pool = await getConnection();
 
     const result = await pool.request().query(
@@ -308,23 +339,6 @@ exports.updateBeneficiary = async (req, res) => {
 };
 
 // Transfer Items Operations
-
-exports.getTransferItemsCount = async (req, res, next) => {
-  try {
-    const pool = await getConnection();
-    const result = await pool.request().query(transferItems.getCount);
-
-    req.count = result.recordset[0].count;
-    console.log(req.count);
-    // res.json({ count: res.conut });
-    next();
-  } catch (error) {
-    res.status(500);
-    console.log(error.message);
-    res.send(error.message);
-  }
-};
-
 const getTheReference = async (id) => {
   try {
     const pool = await getConnection();
@@ -340,6 +354,39 @@ const getTheReference = async (id) => {
   }
 };
 
+exports.getTransferItemsCount = async (req, res, next) => {
+  try {
+    let filter = req.query.filter || "{}";
+
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+    if (filter.TransferReference) {
+      queryFilter += ` and TransferReference like('%${filter.TransferReference}%')`;
+    }
+    if (filter.BeneficiaryId) {
+      queryFilter += ` and BeneficiaryId = ${filter.BeneficiaryId}`;
+    }
+    if (filter.MassTransferId) {
+      queryFilter += ` and MassTransferId = ${filter.MassTransferId}`;
+    }
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(`${transferItems.getCount} ${queryFilter}`);
+
+    req.count = result.recordset[0].count;
+    console.log(req.count);
+    // res.json({ count: res.conut });
+    next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};
+
 exports.getAllTransferItems = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
@@ -351,17 +398,14 @@ exports.getAllTransferItems = async (req, res) => {
     filter = JSON.parse(filter);
     log("Range:", filter);
     let queryFilter = "";
-    if (filter.LastName) {
-      queryFilter += ` and LastName like('%${filter.LastName}%')`;
+    if (filter.TransferReference) {
+      queryFilter += ` and TransferReference like('%${filter.TransferReference}%')`;
     }
-    if (filter.FirstName) {
-      queryFilter += ` and FirstName like('%${filter.FirstName}%')`;
+    if (filter.BeneficiaryId) {
+      queryFilter += ` and BeneficiaryId = ${filter.BeneficiaryId}`;
     }
-    if (filter.City) {
-      queryFilter += ` and City like('%${filter.City}%')`;
-    }
-    if (filter.IdentityNumber) {
-      queryFilter += ` and IdentityNumber like('%${filter.IdentityNumber}%')`;
+    if (filter.MassTransferId) {
+      queryFilter += ` and MassTransferId = ${filter.MassTransferId}`;
     }
 
     const pool = await getConnection();
@@ -427,6 +471,41 @@ exports.removeFromTransfer = async (req, res) => {
   }
 };
 
+exports.getTransferItemById = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("Id", getSql().Int, req.params.id)
+      .query(transferItems.getOneById);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).send("Transfer item not found");
+    }
+
+    res.json(result.recordset[0]);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+exports.updateTransferItem = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .input("Amount", getSql().Decimal(18, 2), req.body.Amount)
+      .query(transferItems.update);
+    res.json({
+      id: req.params.id,
+      massTransferId: req.params.id,
+      amount: req.body.Amount,
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
 // File Generation
 exports.generateMadFile = async (req, res) => {
   try {
@@ -491,6 +570,13 @@ exports.generateMadFile = async (req, res) => {
   }
 };
 
+const formatNumber = (num) => {
+  // Convert to number if it's a string
+  const number = typeof num === "string" ? parseFloat(num) : num;
+
+  // Always show 2 decimal places, including .00 for integers
+  return number.toFixed(2);
+};
 // Generate PDF for MAD mass transfer
 exports.generateMadPdf = async (req, res) => {
   let options = { format: "A4" };
@@ -694,7 +780,9 @@ exports.generateMadPdf = async (req, res) => {
         <div class="details">
             <div class="detail-row">
                 <span class="detail-label">Référence du fichier :</span>
-                <span class="detail-value">${headerResult.recordset[0].Reference}</span>
+                <span class="detail-value">${
+                  headerResult.recordset[0].Reference
+                }</span>
             </div>
             
             <div class="detail-row">
@@ -704,12 +792,16 @@ exports.generateMadPdf = async (req, res) => {
             
             <div class="detail-row">
                 <span class="detail-label">Nombre de mises à disposition :</span>
-                <span class="detail-value">${headerResult.recordset[0].BeneficiaryCount}</span>
+                <span class="detail-value">${
+                  headerResult.recordset[0].BeneficiaryCount
+                }</span>
             </div>
             
             <div class="detail-row">
                 <span class="detail-label">Montant total (DH)</span>
-                <span class="detail-value">${headerResult.recordset[0].TotalAmount}</span>
+                <span class="detail-value">${formatAmount(
+                  formatNumber(headerResult.recordset[0].TotalAmount)
+                )}</span>
             </div>
         </div>
         
