@@ -28,6 +28,8 @@ const {
   getBeneficiariesNotInTransfer,
   generateMadPdf,
   getAllTransfersPrint,
+  getTransferItemById,
+  updateTransferItem,
 } = require("../controllers/madmass");
 
 // Mass Transfers CRUD
@@ -48,6 +50,8 @@ router.get("/beneficiaries/:id/not-in-transfer", getBeneficiariesNotInTransfer);
 // Get Transfer Items
 router.get("/transfersitems", getTransferItemsCount, getAllTransferItems);
 router.post("/transfersitems", addToTransfer);
+router.get("/transfersitems/:id", getTransferItemById);
+router.put("/transfersitems/:id", updateTransferItem);
 
 // Transfer Items
 // router.delete(
