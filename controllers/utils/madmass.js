@@ -45,8 +45,14 @@ exports.generateBody = (items) =>
         " ".repeat(8),
         "000000",
         " ".repeat(12),
-        this.spaceComplete(item.LastName, 24),
-        this.spaceComplete(item.FirstName, 10),
+        this.spaceComplete(`${item.LastName} ${item.FirstName}`, 24),
+        this.spaceComplete(
+          `${item.LastName} ${item.FirstName}`.substring(
+            24,
+            `${item.LastName} ${item.FirstName}`.length
+          ),
+          10
+        ),
         " ".repeat(9),
         item.IdentityType || "1",
         this.spaceComplete(item.IdentityNumber, 12),
