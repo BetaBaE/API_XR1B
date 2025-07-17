@@ -76,7 +76,7 @@ exports.factureDevise = {
         [dateDoc] = @dateDoc,
         [numDoc] = @numDoc,
         [codeChantier] = @codeChantier,
-        [Redacteur] = @Redacteur,
+        [ModifierPar] = @ModifierPar,
         [dateDouane] = @dateDouane
     WHERE id = @id
   `,

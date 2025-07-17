@@ -90,6 +90,8 @@ const ovCredocRoutes = require("./routers/ovCredoc"); // Import des routes pour 
 const Permission = require("./routers/Permission"); // Import des routes pour les permissions
 const FactureDeviseRoute = require("./routers/factureDeviseRoute"); // Import des routes pour les factures en devise
 const madMass = require("./routers/madmass"); // Import des routes pour madMass
+const VirementInter = require("./routers/VirementInter");
+
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
 app.use("/", FournisseursRoute);
@@ -130,6 +132,7 @@ app.use("/", ovCredocRoutes); // Utilisation des routes pour OV Credoc
 app.use("/", Permission);
 app.use("/", FactureDeviseRoute);
 app.use("/", madMass);
+app.use("/", VirementInter);
 
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;

@@ -128,13 +128,39 @@ exports.updateFactureDevise = async (req, res) => {
       idDossier,
       Devise,
       MontantHtDevise,
-      // Include all other fields
-      ModifierPar,
+      MontantTvaDevise,
+      MontantTTCDevise,
+      MontantPreparation,
+      CumulPaiementDevise,
+      TauxInit,
+      iddesignation,
+      idFournisseur,
+      dateDoc,
+      numDoc,
+      codeChantier,
+      dateDouane,
+      redacteur,
     } = req.body;
+    console.log(req.body);
 
-    if (!idDossier || !Devise || !ModifierPar) {
-      return res.status(400).json({ error: "Required fields are missing" });
+    // Validate required fields
+    if (
+      !idDossier ||
+      !Devise ||
+      !redacteur ||
+      !iddesignation ||
+      !idFournisseur
+    ) {
+      return res.status(400).json({
+        error:
+          "Required fields (idDossier, Devise, iddesignation, idFournisseur, ModifierPar) are missing",
+      });
     }
+
+    // Validate numeric fields
+    // if (isNaN((MontantHtDevise)) {
+    //   return res.status(400).json({ error: "MontantHtDevise must be a valid number" });
+    // }
 
     const pool = await getConnection();
     await pool
@@ -142,19 +168,56 @@ exports.updateFactureDevise = async (req, res) => {
       .input("id", getSql().Int, req.params.id)
       .input("idDossier", getSql().Int, idDossier)
       .input("Devise", getSql().VarChar, Devise)
-      .input("MontantHtDevise", getSql().Decimal, MontantHtDevise)
-      // Include all other input parameters
-      .input("ModifierPar", getSql().VarChar, ModifierPar)
+      .input("MontantHtDevise", getSql().Numeric(38, 6), MontantHtDevise)
+      .input("MontantTvaDevise", getSql().Numeric(38, 6), MontantTvaDevise || 0)
+      .input("MontantTTCDevise", getSql().Numeric(38, 6), MontantTTCDevise || 0)
+      .input(
+        "MontantPreparation",
+        getSql().Numeric(38, 6),
+        MontantPreparation || 0
+      )
+      .input(
+        "CumulPaiementDevise",
+        getSql().Numeric(38, 6),
+        CumulPaiementDevise || 0
+      )
+      .input("TauxInit", getSql().Numeric(6, 3), TauxInit || 0)
+      .input(
+        "MontantHtDh",
+        getSql().Numeric(38, 6),
+        MontantHtDevise * TauxInit || 0
+      )
+      .input(
+        "MontantTvaDh",
+        getSql().Numeric(38, 6),
+        MontantTvaDevise * TauxInit || 0
+      )
+      .input(
+        "MontantTTCDh",
+        getSql().Numeric(38, 6),
+        MontantTTCDevise * TauxInit || 0
+      )
+      .input("iddesignation", getSql().Int, iddesignation)
+      .input("idFournisseur", getSql().Int, idFournisseur)
+      .input("dateDoc", getSql().DateTime, dateDoc || null)
+      .input("numDoc", getSql().VarChar, numDoc || null)
+      .input("codeChantier", getSql().VarChar, codeChantier || null)
+      .input("dateDouane", getSql().DateTime, dateDouane || null)
+      .input("ModifierPar", getSql().VarChar, redacteur)
       .query(factureDevise.update);
 
     res.json({
       id: req.params.id,
       ...req.body,
       dateModification: new Date().toISOString(),
+      message: "Invoice updated successfully",
     });
   } catch (error) {
     console.error("Error updating invoice:", error.message);
-    res.status(500).send(error.message);
+    res.status(500).json({
+      error: "Failed to update invoice",
+      details: error.message,
+    });
   }
 };
 

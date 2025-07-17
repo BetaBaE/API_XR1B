@@ -69,7 +69,7 @@ exports.getDesignationCount = async (req, res, next) => {
 
 exports.getDesignation = async (req, res) => {
   try {
-    let range = req.query.range || "[0,9]";
+    let range = req.query.range || "[0,999]";
     let sort = req.query.sort || '["id" , "ASC"]';
     let filter = req.query.filter || "{}";
 

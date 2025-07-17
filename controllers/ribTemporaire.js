@@ -69,7 +69,7 @@ exports.getRibs = async (req, res) => {
 
 exports.createRibs = async (req, res) => {
   const { FournisseurId, rib, swift, banque, Redacteur, iban } = req.body;
-  //  console.log("path_rib",path_rib.rawFile.path)
+  console.log("path_rib", req.body);
   // const RIB_fournisseur="\\10.200.1.20/03_Compta/02-Dossier Comptabilité/01-fichiers comptabilité/04-RIB DES FRS/"+path_rib.rawFile.path
   // const RIB_fournisseur="C:/Users/y.ihrai/Downloads/"+path_rib.rawFile.path
 
