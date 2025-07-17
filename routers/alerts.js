@@ -9,6 +9,8 @@ const {
   getFournisseurFA_AV,
   GetPreparationPaiementCount,
   GetPreparationPaiement,
+  GetFA_BCsameBC,
+  GetFA_BCsameBCCount,
 } = require("../controllers/alerts");
 
 const router = express.Router();
@@ -27,5 +29,6 @@ router.get(
   GetPreparationPaiementCount,
   GetPreparationPaiement
 );
+router.get("/fabcsamebc", GetFA_BCsameBCCount, GetFA_BCsameBC);
 
 module.exports = router;

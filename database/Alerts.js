@@ -224,4 +224,57 @@ ORDER BY nom
 	and fs.etat='Saisie'
 	and dateadd(day,isnull(ec.EcheanceJR,60),fs.DateFacture) <= getdate()
 `,
+  FA_BCsameBC: `
+		with FA_BCsameBC as (
+select 
+fs.id,
+fs.BonCommande 'BC', 
+fs.numeroFacture,
+fs.DateFacture,
+f.nom 'FournisseurApp',
+e.NOM 'FournisseurSage',
+fs.codechantier 'chtApp',
+e.CODECHT 'chtSage', 
+fs.TTC 'TTCApp',
+e.TOTALTTC 'TTCSage',
+IIF(fs.codechantier <> e.CODECHT,'Oui','Non') 'EcartChantier',
+IIF(f.nom<> e.NOM,'Oui','Non') 'EcartNom',
+IIF(fs.TTC > e.TOTALTTC,'Oui','Non') 'RiskEcartTTC'
+FROM dbo.DAF_FactureSaisie fs
+inner join ENTETECDEFOURNISSEUR e on fs.BonCommande = e.CODEDOCUTIL --and e.CODECHT <> fs.codechantier
+left join DAF_FOURNISSEURS f on fs.idfournisseur = f.id
+where fs.etat not in ( 'Annuler','Reglee')
+
+)
+
+select * from FA_BCsameBC where 1=1
+`,
+
+  FA_BCsameBCCount: `
+	with FA_BCsameBC as (
+		select 
+		fs.id,
+		fs.BonCommande 'BC', 
+		fs.numeroFacture,
+		fs.DateFacture,
+		f.nom 'FournisseurApp',
+		e.NOM 'FournisseurSage',
+		fs.codechantier 'chtApp',
+		e.CODECHT 'chtSage', 
+		fs.TTC 'TTCApp',
+		e.TOTALTTC 'TTCSage',
+		IIF(fs.codechantier <> e.CODECHT,'Oui','Non') 'EcartChantier',
+		IIF(f.nom<> e.NOM,'Oui','Non') 'EcartNom',
+		IIF(fs.TTC > e.TOTALTTC,'Oui','Non') 'RiskEcartTTC'
+		from DAF_FactureSaisie fs
+		inner join ENTETECDEFOURNISSEUR e on fs.BonCommande = e.CODEDOCUTIL --and e.CODECHT <> fs.codechantier
+		left join DAF_FOURNISSEURS f on fs.idfournisseur = f.id
+		where fs.etat not in ( 'Annuler','Reglee')
+
+	)
+
+
+
+	select count(*) as count from FA_BCsameBC where 1=1
+`,
 };

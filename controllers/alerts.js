@@ -339,3 +339,112 @@ exports.GetPreparationPaiementCount = async (req, res, next) => {
     res.send(error.message);
   }
 };
+
+exports.GetFA_BCsameBC = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["id" , "ASC"]';
+    let filter = req.query.filter || "{}";
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+    if (filter.BC) {
+      queryFilter += ` and upper(BC) like(upper('%${filter.BC}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` and upper(numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
+    }
+    if (filter.Fournisseur) {
+      queryFilter += ` and (
+        upper(FournisseurApp) like(upper('%${filter.Fournisseur}%')) 
+        or
+        upper(FournisseurSage) like(upper('%${filter.Fournisseur}%')) 
+      )`;
+    }
+    if (filter.chantier) {
+      queryFilter += ` and (
+        upper(chtApp) like(upper('%${filter.chantier}%')) 
+        or
+        upper(chtSage) like(upper('%${filter.chantier}%')) 
+      )`;
+    }
+
+    if (filter.EcartChantier) {
+      queryFilter += ` and upper(EcartChantier) like(upper('%${filter.EcartChantier}%'))`;
+    }
+    if (filter.EcartNom) {
+      queryFilter += ` and upper(EcartNom) like(upper('%${filter.EcartNom}%'))`;
+    }
+    if (filter.EcartTTC) {
+      queryFilter += ` and upper(RiskEcartTTC) like(upper('%${filter.EcartTTC}%'))`;
+    }
+    console.log(filter);
+    const pool = await getConnection();
+
+    const result = await pool.request().query(`
+      ${Alerts.FA_BCsameBC} ${queryFilter} 
+      ORDER BY ${sort[0]} ${sort[1]}
+      OFFSET ${range[0]} ROWS 
+      FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY
+    `);
+
+    res.set("Content-Range", `faayantfn ${range[0]}-${range[1]}/${req.count}`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+exports.GetFA_BCsameBCCount = async (req, res, next) => {
+  let filter = req.query.filter || "{}";
+  filter = JSON.parse(filter);
+  try {
+    let queryFilter = "";
+    if (filter.BC) {
+      queryFilter += ` and upper(BC) like(upper('%${filter.BC}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` and upper(numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
+    }
+    if (filter.Fournisseur) {
+      queryFilter += ` and (
+        upper(FournisseurApp) like(upper('%${filter.Fournisseur}%')) 
+        or
+        upper(FournisseurSage) like(upper('%${filter.Fournisseur}%')) 
+      )`;
+    }
+    if (filter.chantier) {
+      queryFilter += ` and (
+        upper(chtApp) like(upper('%${filter.chantier}%')) 
+        or
+        upper(chtSage) like(upper('%${filter.chantier}%')) 
+      )`;
+    }
+
+    if (filter.EcartChantier) {
+      queryFilter += ` and upper(EcartChantier) like(upper('%${filter.EcartChantier}%'))`;
+    }
+    if (filter.EcartNom) {
+      queryFilter += ` and upper(EcartNom) like(upper('%${filter.EcartNom}%'))`;
+    }
+    if (filter.EcartTTC) {
+      queryFilter += ` and upper(RiskEcartTTC) like(upper('%${filter.EcartTTC}%'))`;
+    }
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(`${Alerts.FA_BCsameBCCount} ${queryFilter}`);
+
+    req.count = result.recordset[0].count;
+    console.log(req.count);
+    // res.json({ count: res.conut });
+    next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};
