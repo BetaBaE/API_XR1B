@@ -23,7 +23,7 @@ router.post("/auth", signin);
 // Protected routes
 router.get("/users", getUserCount, getUsers);
 router.post("/users", createUsers);
-router.put("/users/:id", requireSignin, updateUsers);
+router.put("/users/:id", updateUsers);
 router.put("/auth/change-password", requireSignin, updatePassword);
 router.post("/auth/signout", requireSignin, signout);
 router.get("/users/:id", getOneUserById);
