@@ -1,6 +1,6 @@
 exports.logfacture = {
   GetFactureDetails: `
-    select
+select
 		fs.id,
 		fs.codechantier,
 		fo.nom,
@@ -10,8 +10,10 @@ exports.logfacture = {
 		fs.HT,
 		fs.MontantTVA,
 		fs.TTC,
-		fs.AcompteReg,
-		fs.AcompteVal,
+		fs.Acompte,
+		(fs.TTC - (fs.Acompte+isNull(fs.montantPaiement,0)+isNull(fs.Ras,0))) as Restant,
+--		fs.AcompteReg,
+--		fs.AcompteVal,
 		fs.idAvance,
 		fs.Etat,
 		fs.modepaiement,
