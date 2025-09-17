@@ -4,8 +4,34 @@ const { FicheNavette } = require("../database/FicheNavetteQuery");
 
 exports.getFicheNavetteCount = async (req, res, next) => {
   try {
+    let filter = req.query.filter || "{}";
+
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+
+    if (filter.CatDoc) {
+      queryFilter += ` and upper(CatDoc) like (upper('%${filter.CatDoc}%'))`;
+    }
+    if (filter.NumeroDoc) {
+      queryFilter += ` and upper(NumeroDoc) like (upper('%${filter.NumeroDoc}%'))`;
+    }
+
+    if (filter.codechantier) {
+      queryFilter += ` and upper(codechantier)  like ('%${filter.codechantier}%')`;
+    }
+    if (filter.FN) {
+      queryFilter += ` and upper(FN) like (upper('%${filter.FN}%'))`;
+    }
+
+    if (filter.nom) {
+      queryFilter += ` and upper(nom) like (upper('%${filter.nom}%'))`;
+    }
+
     const pool = await getConnection();
-    const result = await pool.request().query(FicheNavette.getCount);
+    const result = await pool
+      .request()
+      .query(`${FicheNavette.getCount} ${queryFilter}`);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
@@ -26,29 +52,22 @@ exports.getFicheNavette = async (req, res) => {
 
     let queryFilter = "";
 
-    if (filter.ficheNavette) {
-      queryFilter += ` and upper(fich.ficheNavette) like (upper('%${filter.ficheNavette}%'))`;
+    if (filter.CatDoc) {
+      queryFilter += ` and upper(CatDoc) like (upper('%${filter.CatDoc}%'))`;
     }
-    if (filter.chantier) {
-      queryFilter += ` and upper(fich.LIBELLE) like (upper('%${filter.chantier}%'))`;
-    }
-
-    if (filter.BonCommande) {
-      queryFilter += ` and upper(BonCommande)  like ('%${filter.BonCommande}%')`;
-    }
-    if (filter.fournisseur) {
-      queryFilter += ` and upper(fich.nom) like (upper('%${filter.fournisseur}%'))`;
+    if (filter.NumeroDoc) {
+      queryFilter += ` and upper(NumeroDoc) like (upper('%${filter.NumeroDoc}%'))`;
     }
 
-    if (filter.designation) {
-      queryFilter += ` and upper(designation) like (upper('%${filter.designation}%'))`;
+    if (filter.codechantier) {
+      queryFilter += ` and upper(codechantier)  like ('%${filter.codechantier}%')`;
+    }
+    if (filter.FN) {
+      queryFilter += ` and upper(FN) like (upper('%${filter.FN}%'))`;
     }
 
-    if (filter.numeroFacture) {
-      queryFilter += ` and upper(fich.numeroFacture)  like ('%${filter.numeroFacture}%')`;
-    }
-    if (filter.CodeFournisseur) {
-      queryFilter += ` and upper(CodeFournisseur) like (upper('%${filter.CodeFournisseur}%'))`;
+    if (filter.nom) {
+      queryFilter += ` and upper(nom) like (upper('%${filter.nom}%'))`;
     }
     console.log(queryFilter);
     const pool = await getConnection();

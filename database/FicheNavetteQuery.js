@@ -29,7 +29,38 @@ exports.FicheNavette = {
 
   // Récupère toutes les fiches navettes
   get: `
-               SELECT DISTINCT
+with FnFa as (
+select fr.nom,fn.idfacturenavette as id,fn.ficheNavette as FN,fs.codechantier, fs.numeroFacture as NumeroDoc, fs.DateFacture as DateDoc,fs.HT HT,fs.MontantTVA TVA ,fs.ttc TTC,
+fs.Etat,
+'Facture' as CatDoc
+from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
+inner join DAF_FactureSaisie fs on fs.id =fn.idFacture
+where  fs.Etat = 'Saisie'
+
+),
+FnAv as (
+select fr.nom,fn.idfacturenavette,fn.ficheNavette as FN,fs.CodeAffaire, fs.BonCommande as NumeroDoc, fs.DateCreation as DateDoc,fs.MontantAvanceHT HT,fs.MontantAvanceTVA TVA ,
+fs.MontantAvanceTTC TTC,
+fs.Etat,
+'Avance' as CatDoc
+from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
+inner join DAF_Avance fs on fs.id =fn.idfacturenavette
+where  fs.Etat = 'Saisie'
+)
+
+
+select * from (
+select
+* from FnFa
+union
+select
+* from FnAv) t
+where 1=1
+
+
+              /* 
+              --code yousef changment apres error (-)
+              SELECT DISTINCT
         fich.id,
         fich.BonCommande AS BonCommande,
         fich.CodeFournisseur AS CodeFournisseur,
@@ -58,15 +89,46 @@ exports.FicheNavette = {
         AND fich.ficheNavette <> 'Annuler' 
         AND fich.ficheNavette NOT LIKE '-%'
  --       and fich.numerofacture is not  null
-
+*/
     `,
 
   // Compte le nombre de fiches navettes valides
   getCount: `
+    with FnFa as (
+    select fr.nom,fn.idfacturenavette as id,fn.ficheNavette as FN,fs.codechantier, fs.numeroFacture as NumeroDoc, fs.DateFacture as DateDoc,fs.HT HT,fs.MontantTVA TVA ,fs.ttc TTC,
+    fs.Etat,
+    'Facture' as CatDoc
+    from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
+    inner join DAF_FactureSaisie fs on fs.id =fn.idFacture
+    where  fs.Etat = 'Saisie'
+
+    ),
+    FnAv as (
+    select fr.nom,fn.idfacturenavette,fn.ficheNavette as FN,fs.CodeAffaire, fs.BonCommande as NumeroDoc, fs.DateCreation as DateDoc,fs.MontantAvanceHT HT,fs.MontantAvanceTVA TVA ,
+    fs.MontantAvanceTTC TTC,
+    fs.Etat,
+    'Avance' as CatDoc
+    from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
+    inner join DAF_Avance fs on fs.id =fn.idfacturenavette
+    where  fs.Etat = 'Saisie'
+    )
+
+
+    select count(*) as count from (
+    select
+    * from FnFa
+    union
+    select
+    * from FnAv) t
+    where 1=1
+
+  /*
       SELECT COUNT(*) AS count
       FROM [dbo].[DAF_ficheNavette]
       WHERE ficheNavette <> 'Annuler'
       AND ficheNavette NOT LIKE '-%'
+
+      */
     `,
 
   // Met à jour une fiche navette existante
@@ -75,7 +137,6 @@ exports.FicheNavette = {
       SET ficheNavette = @ficheNavette,  
       CatFn = @CatFn
       WHERE idfacturenavette = @id 
-      and ficheNavette !='-'
     `,
 
   // Annule une fiche navette
