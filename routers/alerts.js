@@ -11,6 +11,8 @@ const {
   GetPreparationPaiement,
   GetFA_BCsameBC,
   GetFA_BCsameBCCount,
+  GetLocationSituationCount,
+  GetLocationSituation,
 } = require("../controllers/alerts");
 
 const router = express.Router();
@@ -30,5 +32,10 @@ router.get(
   GetPreparationPaiement
 );
 router.get("/fabcsamebc", GetFA_BCsameBCCount, GetFA_BCsameBC);
+router.get(
+  "/locationsituation",
+  GetLocationSituationCount,
+  GetLocationSituation
+);
 
 module.exports = router;

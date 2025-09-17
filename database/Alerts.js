@@ -277,4 +277,29 @@ select * from FA_BCsameBC where 1=1
 
 	select count(*) as count from FA_BCsameBC where 1=1
 `,
+
+  locationSituation: `
+SELECT l.[id]
+      ,[nom]
+      ,[designation]
+      ,[quantite]
+      ,[prixUnitaire]
+      ,[totalLigneHT]
+      ,[totFourniHT]
+      ,concat(c.id,' | ',c.LIBELLE) codeAffaire
+      ,[totAffaireHT]
+      ,[mois]
+      ,[totMoisHT]
+      ,[ann]
+      ,[totAnHT]
+      ,[categorie]
+	FROM [APP_COMPTA].[dbo].[DAF_location] l
+	inner join chantier c on l.codeAffaire = c.id
+ 
+  `,
+  locationSituationCount: `
+  SELECT COUNT(*) as count
+  FROM [APP_COMPTA].[dbo].[DAF_location] l
+  inner join chantier c on l.codeAffaire = c.id
+  `,
 };
