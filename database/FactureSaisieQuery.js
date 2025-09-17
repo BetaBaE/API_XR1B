@@ -158,7 +158,7 @@ exports.factureSaisie = {
 	AND ETAT <> 'Annuler'
 	AND idfournisseur 
     IN (SELECT id FROM [dbo].[DAF_FOURNISSEURS] WHERE id = @nom)
-    AND id NOT IN (SELECT idfacture FROM DAF_factureNavette where ficheNavette !='-')
+    AND id NOT IN (SELECT idfacture FROM DAF_factureNavette)
     order by DateFacture 
     `,
 
