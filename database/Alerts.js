@@ -295,6 +295,7 @@ SELECT l.[id]
       ,[categorie]
 	FROM [APP_COMPTA].[dbo].[DAF_location] l
 	inner join chantier c on l.codeAffaire = c.id
+	where 1=1 
  
   `,
   locationSituationCount: `

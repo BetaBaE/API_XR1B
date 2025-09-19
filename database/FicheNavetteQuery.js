@@ -35,7 +35,7 @@ fs.Etat,
 'Facture' as CatDoc
 from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
 inner join DAF_FactureSaisie fs on fs.id =fn.idFacture
-where  fs.Etat = 'Saisie'
+where  fs.Etat in('Saisie', 'En Cours')
 
 ),
 FnAv as (
@@ -45,7 +45,7 @@ fs.Etat,
 'Avance' as CatDoc
 from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
 inner join DAF_Avance fs on fs.id =fn.idfacturenavette
-where  fs.Etat = 'Saisie'
+where  fs.Etat in('Saisie', 'En Cours')
 )
 
 
