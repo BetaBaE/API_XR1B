@@ -459,36 +459,25 @@ exports.GetLocationSituation = async (req, res) => {
     filter = JSON.parse(filter);
 
     let queryFilter = "";
-    // if (filter.BC) {
-    //   queryFilter += ` and upper(BC) like(upper('%${filter.BC}%'))`;
-    // }
-    // if (filter.numeroFacture) {
-    //   queryFilter += ` and upper(numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
-    // }
-    // if (filter.Fournisseur) {
-    //   queryFilter += ` and (
-    //     upper(FournisseurApp) like(upper('%${filter.Fournisseur}%'))
-    //     or
-    //     upper(FournisseurSage) like(upper('%${filter.Fournisseur}%'))
-    //   )`;
-    // }
-    // if (filter.chantier) {
-    //   queryFilter += ` and (
-    //     upper(chtApp) like(upper('%${filter.chantier}%'))
-    //     or
-    //     upper(chtSage) like(upper('%${filter.chantier}%'))
-    //   )`;
-    // }
+    if (filter.nom) {
+      queryFilter += ` and upper(nom) like(upper('%${filter.nom}%'))`;
+    }
+    if (filter.designation) {
+      queryFilter += ` and upper(designation) like(upper('%${filter.designation}%'))`;
+    }
+    if (filter.codeAffaire) {
+      queryFilter += ` and upper(concat(c.id,' | ',c.LIBELLE)) like(upper('%${filter.codeAffaire}%'))`;
+    }
+    if (filter.categorie) {
+      queryFilter += ` and upper(categorie) like(upper('%${filter.categorie}%'))`;
+    }
+    if (filter.categorie) {
+      queryFilter += ` and upper(categorie) like(upper('%${filter.categorie}%'))`;
+    }
+    if (filter.mois) {
+      queryFilter += ` and upper(mois) like(upper('%${filter.mois}%'))`;
+    }
 
-    // if (filter.EcartChantier) {
-    //   queryFilter += ` and upper(EcartChantier) like(upper('%${filter.EcartChantier}%'))`;
-    // }
-    // if (filter.EcartNom) {
-    //   queryFilter += ` and upper(EcartNom) like(upper('%${filter.EcartNom}%'))`;
-    // }
-    // if (filter.EcartTTC) {
-    //   queryFilter += ` and upper(RiskEcartTTC) like(upper('%${filter.EcartTTC}%'))`;
-    // }
     console.log(filter);
     const pool = await getConnection();
 
@@ -512,36 +501,24 @@ exports.GetLocationSituationCount = async (req, res, next) => {
   filter = JSON.parse(filter);
   try {
     let queryFilter = "";
-    // if (filter.BC) {
-    //   queryFilter += ` and upper(BC) like(upper('%${filter.BC}%'))`;
-    // }
-    // if (filter.numeroFacture) {
-    //   queryFilter += ` and upper(numeroFacture) like(upper('%${filter.numeroFacture}%'))`;
-    // }
-    // if (filter.Fournisseur) {
-    //   queryFilter += ` and (
-    //     upper(FournisseurApp) like(upper('%${filter.Fournisseur}%'))
-    //     or
-    //     upper(FournisseurSage) like(upper('%${filter.Fournisseur}%'))
-    //   )`;
-    // }
-    // if (filter.chantier) {
-    //   queryFilter += ` and (
-    //     upper(chtApp) like(upper('%${filter.chantier}%'))
-    //     or
-    //     upper(chtSage) like(upper('%${filter.chantier}%'))
-    //   )`;
-    // }
-
-    // if (filter.EcartChantier) {
-    //   queryFilter += ` and upper(EcartChantier) like(upper('%${filter.EcartChantier}%'))`;
-    // }
-    // if (filter.EcartNom) {
-    //   queryFilter += ` and upper(EcartNom) like(upper('%${filter.EcartNom}%'))`;
-    // }
-    // if (filter.EcartTTC) {
-    //   queryFilter += ` and upper(RiskEcartTTC) like(upper('%${filter.EcartTTC}%'))`;
-    // }
+    if (filter.nom) {
+      queryFilter += ` and upper(nom) like(upper('%${filter.nom}%'))`;
+    }
+    if (filter.designation) {
+      queryFilter += ` and upper(designation) like(upper('%${filter.designation}%'))`;
+    }
+    if (filter.codeAffaire) {
+      queryFilter += ` and upper(concat(c.id,' | ',c.LIBELLE)) like(upper('%${filter.codeAffaire}%'))`;
+    }
+    if (filter.categorie) {
+      queryFilter += ` and upper(categorie) like(upper('%${filter.categorie}%'))`;
+    }
+    if (filter.categorie) {
+      queryFilter += ` and upper(categorie) like(upper('%${filter.categorie}%'))`;
+    }
+    if (filter.mois) {
+      queryFilter += ` and upper(mois) like(upper('%${filter.mois}%'))`;
+    }
     const pool = await getConnection();
     const result = await pool
       .request()
