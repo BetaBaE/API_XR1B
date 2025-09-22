@@ -27,18 +27,29 @@ exports.ordervirements = {
 
   // Récupère tous les virements avec détails
   getAll: `
-    SELECT ov.id, ov.ribAtner, ov.datecreation, ov.etat,
-           FORMAT(TotalOV.TotalMontant, '0.00') AS total,
-           ov.dateExecution, ov.directeursigne, ov.Redacteur,
-           ra.nom, ra.rib
-    FROM [dbo].[DAF_Order_virements] ov
-    LEFT JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id
-    LEFT JOIN (
-      SELECT orderVirementId AS id, SUM(montantvirement) AS TotalMontant
-      FROM DAF_VIREMENTS
-      WHERE Etat <> 'Annuler'
-      GROUP BY orderVirementId
-    ) TotalOV ON ov.id = TotalOV.id
+   SELECT 
+    ov.id, 
+    ov.ribAtner, 
+    ov.datecreation, 
+    ov.etat,
+    FORMAT(COALESCE(TotalOV.TotalMontant, 0), '0.00') AS total,
+    ov.dateExecution, 
+    ov.directeursigne, 
+    ov.Redacteur,
+    ra.nom, 
+    ra.rib
+FROM [dbo].[DAF_Order_virements] ov
+LEFT JOIN [dbo].[DAF_RIB_ATNER] ra ON ov.ribAtner = ra.id
+LEFT JOIN (
+    SELECT 
+        orderVirementId AS id, 
+        SUM(montantvirement) AS TotalMontant
+    FROM DAF_VIREMENTS
+    WHERE Etat <> 'Annuler' OR Etat IS NULL  -- Handle NULL values
+    GROUP BY orderVirementId
+) TotalOV ON ov.id = TotalOV.id
+
+where 1=1
   `,
 
   // Récupère un virement spécifique par ID
