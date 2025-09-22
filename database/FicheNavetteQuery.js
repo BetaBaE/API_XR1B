@@ -160,7 +160,37 @@ where 1=1
   FROM [dbo].[DAF_FOURNISSEURS] f
   INNER JOIN [dbo].[DAF_factureNavette] fa ON f.id = @id
   WHERE fa.idfacturenavette NOT IN (SELECT idAvance FROM [dbo].[DAF_LOG_FACTURE])`,
-  getone: ` SELECT DISTINCT
+  getone: ` 
+  	 with FnFa as (
+select fr.nom,fn.idfacturenavette as id,fn.ficheNavette as ficheNavette,fs.codechantier, fs.numeroFacture as NumeroDoc, fs.DateFacture as DateDoc,fs.HT HT,fs.MontantTVA TVA ,fs.ttc TTC,
+fs.Etat,
+'Facture' as CatDoc
+from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
+inner join DAF_FactureSaisie fs on fs.id =fn.idFacture
+where  fs.Etat in('Saisie', 'En Cours')
+
+),
+FnAv as (
+select fr.nom,fn.idfacturenavette,fn.ficheNavette as FN,fs.CodeAffaire, fs.BonCommande as NumeroDoc, fs.DateCreation as DateDoc,fs.MontantAvanceHT HT,fs.MontantAvanceTVA TVA ,
+fs.MontantAvanceTTC TTC,
+fs.Etat,
+'Avance' as CatDoc
+from DAF_factureNavette fn left join DAF_FOURNISSEURS fr on fn.idfournisseur=fr.id
+inner join DAF_Avance fs on fs.id =fn.idfacturenavette
+where  fs.Etat in('Saisie', 'En Cours')
+)
+
+
+select * from (
+select
+* from FnFa
+union
+select
+* from FnAv) t
+where 1=1
+and id = @id
+  
+  /*SELECT DISTINCT
         fich.id,
         fich.BonCommande AS BonCommande,
         fich.CodeFournisseur AS CodeFournisseur,
@@ -187,7 +217,7 @@ where 1=1
       LEFT JOIN chantier ch ON fich.LIBELLE = ch.LIBELLE
       WHERE fich.deletedAt IS NULL
         AND fich.ficheNavette <> 'Annuler'
-             and  fich.id=@id
+             and  fich.id=@id*/
      --   AND fich.numeroFacture IS NOT NULL`,
 
   AnnulationFnAvance: `

@@ -281,7 +281,8 @@ exports.factureSaisie = {
     INNER JOIN [dbo].[DAF_CalculRasNetApaye] fa ON f.nom = fa.nom
     WHERE 
     f.id = @id
-    AND fa.ficheNavette not like '%-%'
+    --AND fa.ficheNavette not like '%-%'
+    AND fa.ficheNavette != '-'
     -- Filtre pour le fournisseur ayant l'identifiant spécifié
 	 AND
      NOT EXISTS (
