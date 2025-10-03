@@ -11,7 +11,7 @@ select
 		fs.MontantTVA,
 		fs.TTC,
 		fs.Acompte,
-		(fs.TTC - (fs.Acompte+isNull(fs.montantPaiement,0)+isNull(fs.Ras,0))) as Restant,
+		(fs.TTC - (fs.Acompte+isNull(fs.montantPaiement,0)+isNull(fs.Ras,0)+isNull(fs.RasIR,0))) as Restant,
 --		fs.AcompteReg,
 --		fs.AcompteVal,
 		fs.idAvance,
@@ -20,6 +20,7 @@ select
 		fs.modepaiementID as RefPay,
 		fs.DateOperation ,
 		fs.Ras,
+		fs.RasIR,
 		ra.nom as Bank,
 		montantPaiement
 	from DAF_FactureSaisie fs
@@ -31,6 +32,7 @@ select
 		DAF_factureNavette fn on ( fn.idFacture = fs.id)
 	where etat <> 'Annuler' and ([dateoperation] > @dateExercices or [dateoperation] is null )
 	and YEAR(fs.DateFacture) <= YEAR(@dateExercices)
+
 `,
   GetFactureDetailsCount: `
     SELECT count(*) as count from DAF_FactureSaisie fs

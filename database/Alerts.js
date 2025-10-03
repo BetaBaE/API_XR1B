@@ -123,8 +123,8 @@ where exists(select 1 from frWfa where idfournisseur=e.idFournisseur)
 `,
   FilterRASTva: `
 	select distinct
-	format(lf.DateOperation,'yyyy-MMMM') as 'id',
-	format(lf.DateOperation,'yyyy-MMMM') as 'DateFilter'
+	format(lf.DateOperation,'yyyy-MM') as 'id',
+	format(lf.DateOperation,'yyyy-MM') as 'DateFilter'
 	from DAF_RAS_Tva rt 
 	inner join  DAF_LOG_FACTURE lf on(
 									rt.idDocPaye = lf.idDocPaye 
@@ -303,4 +303,56 @@ SELECT l.[id]
   FROM [APP_COMPTA].[dbo].[DAF_location] l
   inner join chantier c on l.codeAffaire = c.id
   `,
+
+  rasIr: `
+				select 
+			rt.id as id,
+                f.catFournisseur ,
+                concat(' ',f.Identifiantfiscal) as 'Identifiant fiscal',
+                concat(' ',f.ICE) as ICE,
+                rt.nom,
+                rt.CODEDOCUTIL 'NumDoc',
+                --rt.CatFN,
+                rt.DateDouc 'dateFacture',
+                lf.DateOperation,
+                rt.TOTHTNET,
+                --concat(rt.Pourcentage_TVA,'%') as 'Pourcentage TVA',
+               -- rt.TauxTva,
+                --concat(rt.PourcentageRas,'%') as 'Pourcentage Ras',
+                rt.RASIR,
+				format(lf.DateOperation,'yyyy-MM') DateOperation2
+        from DAF_LOG_FACTURE rt
+        inner join  DAF_LOG_FACTURE lf on(
+			rt.idDocPaye = lf.idDocPaye
+			and lf.etat = rt.etat
+			)
+        inner join DAF_FOURNISSEURS f on (rt.nom = f.nom)
+        where rt.etat= 'Reglee' 
+		and abs(rt.RASIR) > 0.1
+`,
+  countRasIR: `
+	select 
+	count(*) as count
+	from DAF_LOG_FACTURE rt
+	inner join  DAF_LOG_FACTURE lf on(
+	rt.idDocPaye = lf.idDocPaye
+	and lf.etat = rt.etat
+	)
+	inner join DAF_FOURNISSEURS f on (rt.nom = f.nom)
+	where rt.etat= 'Reglee' 
+	and abs(rt.RASIR) > 0.1 
+`,
+  FilterRASIR: `
+	select distinct
+	format(lf.DateOperation,'yyyy-MM') as 'id',
+	format(lf.DateOperation,'yyyy-MM') as 'DateFilter'
+	from DAF_LOG_FACTURE rt
+	inner join  DAF_LOG_FACTURE lf on(
+	rt.idDocPaye = lf.idDocPaye
+	and lf.etat = rt.etat
+	)
+	inner join DAF_FOURNISSEURS f on (rt.nom = f.nom)
+	where rt.etat= 'Reglee' 
+	and abs(rt.RASIR) > 0.1 
+`,
 };

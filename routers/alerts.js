@@ -13,6 +13,8 @@ const {
   GetFA_BCsameBCCount,
   GetLocationSituationCount,
   GetLocationSituation,
+  getRasIR,
+  getRasIRFilter,
 } = require("../controllers/alerts");
 
 const router = express.Router();
@@ -24,6 +26,10 @@ router.get(
 );
 router.get("/rastva", getRasTva);
 router.get("/rastvafilter", getRasTvaFilter);
+
+router.get("/rasir", getRasIR);
+router.get("/rasirfilter", getRasIRFilter);
+
 router.get("/faayantfn", getFactureAyantFNSageCount, getFactureAyantFNSage);
 router.get("/getfourfaav", getFournisseurFA_AV);
 router.get(
