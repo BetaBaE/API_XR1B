@@ -80,7 +80,7 @@ exports.getRasTva = async (req, res) => {
 
     let queryFilter = "";
     if (filter.DateOperation2) {
-      queryFilter += ` and format(lf.DateOperation,'yyyy-MMMM') = '${filter.DateOperation2}' `;
+      queryFilter += ` and format(lf.DateOperation,'yyyy-MM') = '${filter.DateOperation2}' `;
     }
 
     const pool = await getConnection();
@@ -96,7 +96,6 @@ exports.getRasTva = async (req, res) => {
     res.status(500);
   }
 };
-
 exports.getRasTvaFilter = async (req, res) => {
   try {
     let sort = req.query.sort || '["id" , "ASC"]';
@@ -523,6 +522,71 @@ exports.GetLocationSituationCount = async (req, res, next) => {
     const result = await pool
       .request()
       .query(`${Alerts.locationSituationCount} ${queryFilter}`);
+
+    req.count = result.recordset[0].count;
+    console.log(req.count);
+    // res.json({ count: res.conut });
+    next();
+  } catch (error) {
+    res.status(500);
+    console.log(error.message);
+    res.send(error.message);
+  }
+};
+
+exports.getRasIR = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["id" , "ASC"]';
+    let filter = req.query.filter || "{}";
+
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+
+    let queryFilter = "";
+    if (filter.DateOperation2) {
+      queryFilter += ` and format(lf.DateOperation,'yyyy-MM') = '${filter.DateOperation2}' `;
+    }
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(`${Alerts.rasIr} ${queryFilter} Order by ${sort[0]} ${sort[1]}`);
+
+    res.set("Content-Range", `rasir ${req.count}`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+exports.getRasIRFilter = async (req, res) => {
+  try {
+    let sort = req.query.sort || '["id" , "ASC"]';
+
+    sort = JSON.parse(sort);
+
+    const pool = await getConnection();
+    console.log(`${Alerts.FilterRASIR} Order by ${sort[0]} ${sort[1]}`);
+
+    const result = await pool
+      .request()
+      .query(`${Alerts.FilterRASIR} Order by ${sort[0]} ${sort[1]}`);
+
+    res.set("Content-Range", `rasirfilter 1000`);
+
+    res.json(result.recordset);
+  } catch (error) {
+    res.send(error.message);
+    res.status(500);
+  }
+};
+exports.getRasIRCount = async (req, res, next) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(Alerts.countRasIR);
 
     req.count = result.recordset[0].count;
     console.log(req.count);
