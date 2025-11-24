@@ -399,12 +399,13 @@ WHERE rs.ModePaiement = @numerocheque
   }
 }*/
 
-async function updateLogFactureWhenAnnuleCheque(numerocheque) {
+async function updateLogFactureWhenAnnuleCheque(numerocheque, ribatnerid) {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("numerocheque", getSql().VarChar, numerocheque)
+      .input("ribatnerid", getSql().VarChar, ribatnerid)
       .query(cheque.updateLogFactureWhenAnnuleV);
 
     console.log(`${cheque.updateLogFactureWhenAnnuleV}` + "ma requete");
@@ -429,13 +430,14 @@ async function updateRestitWhenAnnuleCheque(numerocheque) {
   }
 }
 
-async function updateLogFactureWhenRegleecheque(numerocheque, dateOperation) {
+async function updateLogFactureWhenRegleecheque(numerocheque, dateOperation,ribatnerid) {
   try {
     const pool = await getConnection();
     const result = await pool
       .request()
       .input("numerocheque", getSql().VarChar, numerocheque)
       .input("dateOperation", getSql().Date, dateOperation)
+      .input("ribatnerid", getSql().VarChar, ribatnerid)
       .query(cheque.updateLogFactureWhenRegleeCheque);
 
     return result.recordset;
@@ -644,7 +646,7 @@ exports.getCheque = async (req, res) => {
 
 exports.updateCheque = async (req, res) => {
   console.log(req.body);
-  const { dateOperation, Etat, numerocheque } = req.body;
+  const { dateOperation, Etat, numerocheque,ribatnerid } = req.body;
 
   try {
     const pool = await getConnection();
@@ -656,13 +658,13 @@ exports.updateCheque = async (req, res) => {
       .input("numerocheque", getSql().VarChar, numerocheque)
       .query(cheque.update);
     if (Etat === "Annuler") {
-      updateLogFactureWhenAnnuleCheque(numerocheque);
+      updateLogFactureWhenAnnuleCheque(numerocheque,ribatnerid);
       // updateRasWhenAnnule(numerocheque);
       // updateRestitWhenAnnuleCheque(numerocheque);// replace with trigger log_facture et restit
       // ChangeEtatAnnulerAvanceFacture(numerocheque); // replace with trigger log_facture et restit
     }
     if (Etat === "Reglee") {
-      updateLogFactureWhenRegleecheque(numerocheque, dateOperation);
+      updateLogFactureWhenRegleecheque(numerocheque, dateOperation,ribatnerid);
       // updateRasWhenRegleecheque(numerocheque, dateOperation);
       // updateRestitWhenRegleecheque(numerocheque);
       // ChangeEtatReglerAvanceFacture(numerocheque);

@@ -33,6 +33,7 @@ exports.cheque = {
     SELECT v.[id]
         ,[ribatnerid],
         dateOperation
+        -- v.ribatnerid
         ,[montantVirement],
         [Etat],
         rf.nom ,v.numerocheque,v.datecheque,v.dateecheance
@@ -129,7 +130,7 @@ exports.cheque = {
 
   // Met à jour l'état d'une facture dans les logs lorsque le chèque est annulé
   updateLogFactureWhenAnnuleV:
-    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annuler' where [numerocheque] =@numerocheque",
+    "update [dbo].[DAF_LOG_FACTURE] set Etat = 'Annuler' where [numerocheque] =@numerocheque and ModePaiementID =@ribatnerid",
 
   // Met à jour l'état d'une restitution d'avance lorsque le chèque est annulé
   updateRestitWhenAnnuleCheque:
@@ -143,6 +144,7 @@ exports.cheque = {
   updateLogFactureWhenRegleeCheque: `update [dbo].[DAF_LOG_FACTURE] 
                   set Etat = 'Reglee' ,dateOperation=@dateOperation
                 where [numerocheque] =@numerocheque
+                and ModePaiementID =@ribatnerid
                   and etat<>'Annuler'
       `,
 
