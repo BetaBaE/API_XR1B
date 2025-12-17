@@ -37,6 +37,9 @@ exports.getFournissuers = async (req, res) => {
     if (filter.codeFournisseur) {
       queryFilter += ` and upper(fou.codeFournisseur) like('%${filter.codeFournisseur}%')`;
     }
+    if (filter.actif) {
+      queryFilter += ` and upper(fou.actif) like('%${filter.actif}%')`;
+    }
     console.log(queryFilter);
 
     const pool = await getConnection();
@@ -196,6 +199,7 @@ exports.updatefournisseur = async (req, res) => {
     catFournisseur,
     exonorer,
     RasIr,
+    actif,
   } = req.body;
 
   try {
@@ -211,6 +215,7 @@ exports.updatefournisseur = async (req, res) => {
       .input("catFournisseur", getSql().VarChar, catFournisseur)
       .input("exonorer", getSql().VarChar, exonorer)
       .input("RasIr", getSql().VarChar, RasIr)
+      .input("actif", getSql().VarChar, actif)
       .query(Fournisseurs.update);
 
     res.json({
@@ -221,6 +226,8 @@ exports.updatefournisseur = async (req, res) => {
       mail,
       catFournisseur,
       exonorer,
+      RasIr,
+      actif,
     });
   } catch (error) {
     res.status(500);
@@ -302,6 +309,7 @@ exports.getMatchfournisseurByName = async (req, res) => {
     res.status(500);
   }
 };
+
 exports.getfournisseurInternational = async (req, res) => {
   try {
     const pool = await getConnection();
