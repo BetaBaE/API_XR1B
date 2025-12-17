@@ -26,7 +26,7 @@ exports.Fournisseurs = {
   getAllFournisseurs: `
     SELECT fou.datecreation, fou.id, fou.Redacteur, fou.addresse, 
            fou.CodeFournisseur, fou.Identifiantfiscal, fou.ICE, 
-           fou.nom, fou.exonorer, 
+           fou.nom, fou.exonorer, fou.actif,
            echr.modalitePaiement AS echeancereel, 
            echl.modalitePaiement AS echeanceloi,
            fou.mail, fou.catFournisseur
@@ -54,7 +54,7 @@ exports.Fournisseurs = {
   // Crée un nouveau fournisseur
   createFournisseur: `
     INSERT INTO DAF_FOURNISSEURS(CodeFournisseur, nom, ICE, Identifiantfiscal, mail, addresse, Redacteur, catFournisseur, RasIr)
-    VALUES(@CodeFournisseur, @nom, @ICE, @IF, @mail, @addresse, @Redacteur, @catFournisseur,@RasIr)
+    VALUES(@CodeFournisseur, @nom, @ICE, @IF, @mail, @addresse, @Redacteur, @catFournisseur, @RasIr)
   `,
 
   // Récupère les RIBs des fournisseurs validés
@@ -86,7 +86,8 @@ exports.Fournisseurs = {
         mail = @mail,
         addresse = @addresse,
         exonorer = @exonorer,
-        RasIr = @RasIr
+        RasIr = @RasIr,
+        actif = @actif
     WHERE id = @id
   `,
 
