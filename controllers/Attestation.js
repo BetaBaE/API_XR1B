@@ -21,6 +21,26 @@ exports.GetAttestation = async (req, res) => {
       queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
     }
 
+    if (filter.statut) {
+      switch (filter.statut) {
+        case "pas_attestation":
+          queryFilter += ` and att.[dateExpiration] IS NULL`;
+          break;
+        case "expire":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) < 0`;
+          break;
+        case "expire_aujourdhui":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) = 0`;
+          break;
+        case "alerte":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) BETWEEN 1 AND 20`;
+          break;
+        case "ok":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) > 20`;
+          break;
+      }
+    }
+
     const pool = await getConnection();
 
     const result = await pool.request().query(
@@ -49,10 +69,41 @@ exports.GetAttestation = async (req, res) => {
 
 exports.GetAttestationCount = async (req, res, next) => {
   try {
+
+    let filter = req.query.filter || "{}";
+
+    filter = JSON.parse(filter);
+    console.log(filter);
+    let queryFilter = "";
+
+
+    if (filter.nom) {
+      queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
+    }
+
+    if (filter.statut) {
+      switch (filter.statut) {
+        case "pas_attestation":
+          queryFilter += ` and att.[dateExpiration] IS NULL`;
+          break;
+        case "expire":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) < 0`;
+          break;
+        case "expire_aujourdhui":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) = 0`;
+          break;
+        case "alerte":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) BETWEEN 1 AND 20`;
+          break;
+        case "ok":
+          queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) > 20`;
+          break;
+      }
+    }
     const pool = await getConnection();
     const result = await pool
       .request()
-      .query(AttestationFiscalite.getAllAttestationCount);
+      .query(`${AttestationFiscalite.getAllAttestationCount} ${queryFilter}`);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
