@@ -18,7 +18,7 @@ exports.GetAttestation = async (req, res) => {
 
     console.log(queryFilter);
     if (filter.nom) {
-      queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
+      queryFilter += `and upper(fou.nom) like(upper('%${filter.nom}%'))`;
     }
 
     if (filter.statut) {
@@ -73,7 +73,7 @@ exports.GetAttestationCount = async (req, res, next) => {
     let filter = req.query.filter || "{}";
 
     filter = JSON.parse(filter);
-    console.log(filter);
+    console.log("cont",filter);
     let queryFilter = "";
 
 
