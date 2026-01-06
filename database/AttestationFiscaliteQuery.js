@@ -42,15 +42,22 @@ exports.AttestationFiscalite = {
             FROM [DAF_AttestationFiscal]
             GROUP BY idfournisseur
         ) AS derniere_att ON att.idfournisseur = derniere_att.idfournisseur 
-                          AND att.dateExpiration = derniere_att.derniere_expiration
+                        AND att.dateExpiration = derniere_att.derniere_expiration
     ) att ON att.idfournisseur = fou.id
     WHERE 1=1 
         AND fou.actif = 'Oui'
-        AND fou.id IN (
-            SELECT idfournisseur 
-            FROM daf_factureSaisie 
-            WHERE etat = 'Saisie'
+         AND (fou.id IN (
+        SELECT idfournisseur 
+        FROM daf_factureSaisie 
+        WHERE etat = 'Saisie'
         )
+        OR
+        (
+        fou.id IN (
+            SELECT idfournisseur 
+            FROM DAF_Avance 
+            WHERE etat = 'Saisie'
+        )))
 -- ORDER BY priorite ASC, att.[dateExpiration] ASC
   `,
 
