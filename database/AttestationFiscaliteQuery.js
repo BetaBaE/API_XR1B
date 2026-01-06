@@ -45,7 +45,7 @@ exports.AttestationFiscalite = {
                         AND att.dateExpiration = derniere_att.derniere_expiration
     ) att ON att.idfournisseur = fou.id
     WHERE 1=1 
-        AND fou.actif = 'Oui'
+       
          AND (fou.id IN (
         SELECT idfournisseur 
         FROM daf_factureSaisie 
@@ -58,7 +58,7 @@ exports.AttestationFiscalite = {
             FROM DAF_Avance 
             WHERE etat = 'Saisie'
         )))
--- ORDER BY priorite ASC, att.[dateExpiration] ASC
+    AND fou.actif = 'Oui'
   `,
 
   // Requête SQL pour obtenir le nombre total d'attestations
@@ -81,11 +81,18 @@ LEFT JOIN (
 ) att ON att.idfournisseur = fou.id
 WHERE 1=1 
     AND fou.actif = 'Oui'
-    AND fou.id IN (
+    AND (fou.id IN (
         SELECT idfournisseur 
         FROM daf_factureSaisie 
         WHERE etat = 'Saisie'
-    )
+        )
+        OR
+        (
+        fou.id IN (
+            SELECT idfournisseur 
+            FROM DAF_Avance 
+            WHERE etat = 'Saisie'
+        )))
   `,
 
   // Requête SQL pour créer une nouvelle attestation
