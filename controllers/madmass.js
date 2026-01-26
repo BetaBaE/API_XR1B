@@ -539,7 +539,7 @@ exports.generateMadFile = async (req, res) => {
     const fileContent = [header, body, footer].join("\r\n"); // ✅ Windows-style line endings
     const fileName = `MASS_${headerResult.recordset[0].Reference}.txt`; // ✅ Dynamic file name
     const filePath = path.join(
-      "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\MAD\\", // ✅ UNC path for network share
+      "\\\\10.200.1.20\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\MAD\\", // ✅ UNC path for network share
       fileName
     );
 
@@ -838,7 +838,7 @@ exports.generateMadPdf = async (req, res) => {
 
       // Save PDF to network location
       let pdfPath = path.join(
-        "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\MAD\\",
+        "\\\\10.200.1.20\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\MAD\\",
         `MASS_${headerResult.recordset[0].Reference}.pdf`
       );
 

@@ -1042,7 +1042,7 @@ exports.PrintCheque = async (req, res) => {
       console.log("PDF Buffer:-", pdfBuffer);
       printData.base64 = pdfBuffer.toString("base64");
       let pdfPath =
-        "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\Cheque\\" +
+        "\\\\10.200.1.20\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\Cheque\\" +
         `${printData.header[0].type} - ${printData.header[0].numerocheque} - ${printData.header[0].bank}` +
         ".pdf";
       fs.writeFileSync(pdfPath, pdfBuffer);
