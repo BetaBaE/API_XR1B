@@ -773,7 +773,7 @@ exports.PrintOrderVirement = async (req, res) => {
       printData.base64 = pdfBuffer.toString("base64");
 
       let pdfPath =
-        "\\\\10.200.1.21\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\OV\\" +
+        "\\\\10.200.1.20\\02_Exe\\00 - Reporting\\11 - Scripts Traitements Compta\\OV\\" +
         printData.header[0].id +
         ".pdf";
       fs.writeFileSync(pdfPath, pdfBuffer);
