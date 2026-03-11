@@ -1,6 +1,7 @@
 // Exportations pour AttestationFiscalite
 exports.AttestationFiscalite = {
   // Requête SQL pour récupérer toutes les attestations ainsi que les détails des fournisseurs associés
+<<<<<<< HEAD
   getAllAttestation: `
         SELECT 
 <<<<<<< HEAD
@@ -93,42 +94,84 @@ exports.AttestationFiscalite = {
     END AS priorite
 FROM DAF_FOURNISSEURS fou
 LEFT JOIN (
+=======
+getAllAttestation: `
+>>>>>>> 9c20ab99ae3b4b087d77be99b0bf3ff0ca7639df
     SELECT 
-        att.id,
-        att.idfournisseur,
+        COALESCE(CAST(att.id AS VARCHAR), fou.nom) as id,
+        fou.nom, 
+        fou.id as idfournisseur,
         att.[dateDebut],
-        att.[dateExpiration]
-    FROM [DAF_AttestationFiscal] att
-    INNER JOIN (
-        SELECT idfournisseur, MAX(dateExpiration) AS derniere_expiration
-        FROM [DAF_AttestationFiscal]
-        GROUP BY idfournisseur
-    ) AS derniere_att ON att.idfournisseur = derniere_att.idfournisseur 
-                    AND att.dateExpiration = derniere_att.derniere_expiration
-) att ON att.idfournisseur = fou.id
-WHERE fou.actif = 'Oui'
-AND (
-    -- Bloc 1 : fournisseurs avec factures ou avances en état Saisie
-    fou.id IN (
-        SELECT idfournisseur FROM daf_factureSaisie WHERE etat = 'Saisie'
-    )
-    OR
-    fou.id IN (
-        SELECT idfournisseur FROM DAF_Avance WHERE etat = 'Saisie'
-    )
+        att.[dateExpiration],
+        CASE 
+            WHEN att.[dateExpiration] IS NULL 
+                THEN NULL
+            ELSE DATEDIFF(DAY, GETDATE(), att.[dateExpiration])
+        END AS joursRestants,
+        CASE 
+            WHEN att.[dateExpiration] IS NULL AND fou.[datecreation] >= DATEADD(MONTH, -5, GETDATE())
+                THEN 'Nouveau fournisseur (< 5 mois) - Pas d''attestation'
+            WHEN att.[dateExpiration] IS NULL 
+                THEN 'Pas d''attestation fiscale'
+            WHEN DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) > 0 
+                THEN CAST(DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) AS VARCHAR) + ' jours restants'
+            WHEN DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) = 0 
+                THEN 'Expire aujourd''hui'
+            ELSE CAST(ABS(DATEDIFF(DAY, GETDATE(), att.[dateExpiration])) AS VARCHAR) + ' jours de retard'
+        END AS statut,
+        CASE 
+            WHEN att.[dateExpiration] IS NULL AND fou.[datecreation] >= DATEADD(MONTH, -5, GETDATE())
+                THEN 6
+            WHEN att.[dateExpiration] IS NULL THEN 1
+            WHEN DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) < 0 THEN 2
+            WHEN DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) = 0 THEN 3
+            WHEN DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) <= 20 THEN 4
+            ELSE 5
+        END AS priorite
+    FROM DAF_FOURNISSEURS fou
+    LEFT JOIN (
+        SELECT 
+            att.id,
+            att.idfournisseur,
+            att.[dateDebut],
+            att.[dateExpiration]
+        FROM [DAF_AttestationFiscal] att
+        INNER JOIN (
+            SELECT idfournisseur, MAX(dateExpiration) AS derniere_expiration
+            FROM [DAF_AttestationFiscal]
+            GROUP BY idfournisseur
+        ) AS derniere_att ON att.idfournisseur = derniere_att.idfournisseur 
+                        AND att.dateExpiration = derniere_att.derniere_expiration
+    ) att ON att.idfournisseur = fou.id
+    WHERE fou.actif = 'Oui'
+    AND (
+        -- Bloc 1 : fournisseurs avec factures ou avances en état Saisie
+        fou.id IN (
+            SELECT idfournisseur FROM daf_factureSaisie WHERE etat = 'Saisie'
+        )
+        OR
+        fou.id IN (
+            SELECT idfournisseur FROM DAF_Avance WHERE etat = 'Saisie'
+        )
 
-    OR
+        OR
 
-    -- Bloc 2 : fournisseurs récents (≤ 5 mois), sans attestation, sans facture, sans avance
-    (
-        fou.[datecreation] >= DATEADD(MONTH, -5, GETDATE())
-        AND att.id IS NULL
-        AND fou.id NOT IN (SELECT idfournisseur FROM daf_factureSaisie)
-        AND fou.id NOT IN (SELECT idfournisseur FROM DAF_Avance)
+        -- Bloc 2 : fournisseurs récents (≤ 5 mois), sans attestation, sans facture, sans avance
+        (
+            fou.[datecreation] IS NOT NULL
+            AND fou.[datecreation] >= DATEADD(MONTH, -5, GETDATE())
+            AND att.id IS NULL
+            AND fou.id NOT IN (SELECT idfournisseur FROM daf_factureSaisie)
+            AND fou.id NOT IN (SELECT idfournisseur FROM DAF_Avance)
+        )
     )
+<<<<<<< HEAD
 )
 >>>>>>> 9277958ce4ddd0feb59313f222a53b5a0bde021d
   `,
+=======
+`,
+>>>>>>> 9c20ab99ae3b4b087d77be99b0bf3ff0ca7639df
 
   // Requête SQL pour obtenir le nombre total d'attestations
   getAllAttestationCount: `
