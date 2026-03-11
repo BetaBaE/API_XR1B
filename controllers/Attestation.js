@@ -8,7 +8,7 @@ const {
 exports.GetAttestation = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["nom" , "ASC"]';
+    let sort = req.query.sort || '["priorite" , "ASC"]';
     let filter = req.query.filter || "{}";
     range = JSON.parse(range);
     sort = JSON.parse(sort);
@@ -24,7 +24,14 @@ exports.GetAttestation = async (req, res) => {
     if (filter.statut) {
       switch (filter.statut) {
         case "pas_attestation":
+<<<<<<< HEAD
           queryFilter += ` and att.[dateExpiration] IS NULL`;
+=======
+          queryFilter += ` and att.[dateExpiration] IS NULL and fou.[datecreation] < DATEADD(MONTH, -5, GETDATE())`;
+          break;
+        case "nouveau_fournisseur":
+          queryFilter += ` and att.[dateExpiration] IS NULL and fou.[datecreation] >= DATEADD(MONTH, -5, GETDATE())`;
+>>>>>>> 9277958ce4ddd0feb59313f222a53b5a0bde021d
           break;
         case "expire":
           queryFilter += ` and att.[dateExpiration] IS NOT NULL and DATEDIFF(DAY, GETDATE(), att.[dateExpiration]) < 0`;
