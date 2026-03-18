@@ -355,4 +355,84 @@ SELECT l.[id]
 	where rt.etat= 'Reglee' 
 	and abs(rt.RASIR) > 0.1 
 `,
+
+attestationSaisie: `
+    WITH ExpDate AS (
+        SELECT idFournisseur, MAX(dateExpiration) AS expdate
+        FROM DAF_AttestationFiscal
+        GROUP BY idFournisseur
+    ),
+    FAReglee AS (
+        SELECT 
+            idFournisseur,
+            YEAR(DateFacture)  AS annee,
+            MONTH(DateFacture) AS mois_num,
+            SUM(TTC)           AS sumReg
+        FROM DAF_FactureSaisie
+        WHERE ABS(TTC) <= 5000 
+          AND etat IN ('Reglee', 'En cours')
+        GROUP BY idFournisseur, YEAR(DateFacture), MONTH(DateFacture)
+    )
+    SELECT * FROM (
+        SELECT 
+            fs.id,
+            f.nom,
+            fs.DateFacture,
+            fs.numeroFacture,
+            fs.TTC,
+            FORMAT(fs.DateFacture, 'yyyy-MM')  AS mois,
+            SUM(fs.TTC) OVER (
+                PARTITION BY fs.idFournisseur, YEAR(fs.DateFacture), MONTH(fs.DateFacture)
+            )                                  AS cumulMois,
+            ISNULL(r.sumReg, 0)                AS montantReglee
+        FROM DAF_FactureSaisie fs 
+        LEFT JOIN DAF_FOURNISSEURS f ON fs.idFournisseur = f.id
+        LEFT JOIN ExpDate e          ON fs.idFournisseur = e.idFournisseur
+        LEFT JOIN FAReglee r         ON fs.idFournisseur = r.idFournisseur
+                                     AND YEAR(fs.DateFacture)  = r.annee
+                                     AND MONTH(fs.DateFacture) = r.mois_num
+        WHERE ABS(fs.TTC) <= 5000
+          AND fs.etat = 'Saisie'
+          AND f.exonorer = 'Non'
+          AND (e.expdate < GETDATE() OR e.expdate IS NULL)
+    ) AS base
+    WHERE 1=1
+`,
+
+attestationSaisieCount: `
+    WITH ExpDate AS (
+        SELECT idFournisseur, MAX(dateExpiration) AS expdate
+        FROM DAF_AttestationFiscal
+        GROUP BY idFournisseur
+    ),
+    FAReglee AS (
+        SELECT 
+            idFournisseur,
+            YEAR(DateFacture)  AS annee,
+            MONTH(DateFacture) AS mois_num,
+            SUM(TTC)           AS sumReg
+        FROM DAF_FactureSaisie
+        WHERE ABS(TTC) <= 5000 
+          AND etat IN ('Reglee', 'En cours')
+        GROUP BY idFournisseur, YEAR(DateFacture), MONTH(DateFacture)
+    )
+    SELECT COUNT(*) AS count FROM (
+        SELECT 
+            fs.id,
+            f.nom,
+            fs.numeroFacture,
+            FORMAT(fs.DateFacture, 'yyyy-MM') AS mois
+        FROM DAF_FactureSaisie fs 
+        LEFT JOIN DAF_FOURNISSEURS f ON fs.idFournisseur = f.id
+        LEFT JOIN ExpDate e          ON fs.idFournisseur = e.idFournisseur
+        LEFT JOIN FAReglee r         ON fs.idFournisseur = r.idFournisseur
+                                     AND YEAR(fs.DateFacture)  = r.annee
+                                     AND MONTH(fs.DateFacture) = r.mois_num
+        WHERE ABS(fs.TTC) <= 5000
+          AND fs.etat = 'Saisie'
+          AND f.exonorer = 'Non'
+          AND (e.expdate < GETDATE() OR e.expdate IS NULL)
+    ) AS base
+    WHERE 1=1
+`,
 };

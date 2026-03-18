@@ -15,6 +15,8 @@ const {
   GetLocationSituation,
   getRasIR,
   getRasIRFilter,
+  GetAttestationSaisieCount,
+  GetAttestationSaisie,
 } = require("../controllers/alerts");
 
 const router = express.Router();
@@ -43,5 +45,9 @@ router.get(
   GetLocationSituationCount,
   GetLocationSituation
 );
-
+router.get(
+  "/attestationsaisie",
+  GetAttestationSaisieCount,
+  GetAttestationSaisie
+);
 module.exports = router;

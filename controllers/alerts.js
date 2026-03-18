@@ -598,3 +598,52 @@ exports.getRasIRCount = async (req, res, next) => {
     res.send(error.message);
   }
 };
+
+exports.GetAttestationSaisie = async (req, res) => {
+  try {
+    let range  = JSON.parse(req.query.range  || "[0,9]");
+    let sort   = JSON.parse(req.query.sort   || '["id","ASC"]');
+    let filter = JSON.parse(req.query.filter || "{}");
+
+    let queryFilter = "";
+    if (filter.nom)           queryFilter += ` AND UPPER(nom) LIKE UPPER('%${filter.nom}%')`;
+    if (filter.numeroFacture) queryFilter += ` AND UPPER(numeroFacture) LIKE UPPER('%${filter.numeroFacture}%')`;
+    if (filter.mois)          queryFilter += ` AND mois LIKE '%${filter.mois}%'`;
+
+    const pool = await getConnection(); // 👈 présent ?
+    const finalQuery = `
+      ${Alerts.attestationSaisie} ${queryFilter}
+      ORDER BY ${sort[0]} ${sort[1]}
+      OFFSET ${range[0]} ROWS
+      FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY
+    `;
+    const result = await pool.request().query(finalQuery);
+
+    res.set("Content-Range", `attestationsaisie ${range[0]}-${range[1]}/${req.count}`);
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+exports.GetAttestationSaisieCount = async (req, res, next) => {
+  try {
+    let filter = JSON.parse(req.query.filter || "{}");
+
+    let queryFilter = "";
+    if (filter.nom)           queryFilter += ` AND UPPER(nom) LIKE UPPER('%${filter.nom}%')`;
+    if (filter.numeroFacture) queryFilter += ` AND UPPER(numeroFacture) LIKE UPPER('%${filter.numeroFacture}%')`;
+    if (filter.mois)          queryFilter += ` AND mois LIKE '%${filter.mois}%'`;
+
+    const pool = await getConnection(); // 👈 présent ?
+    const result = await pool.request().query(
+      `${Alerts.attestationSaisieCount} ${queryFilter}`
+    );
+
+    req.count = result.recordset[0].count;
+    next();
+  } catch (error) {
+    console.log("COUNT ERROR:", error.message);
+    res.status(500).send(error.message);
+  }
+};
