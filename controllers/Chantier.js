@@ -16,26 +16,47 @@ exports.GetChantier = async (req, res) => {
 
     console.log(filter); // Affichage du filtre pour débogage
 
-    let queryFilter = "";
+    const pool = await getConnection(); // Obtention d'une connexion pool à la base de données
+    const request = pool.request();
+    const whereParts = [];
+
     if (filter.LIBELLE) {
-      // Construction de la clause de filtre SQL si un libellé est spécifié
-      queryFilter += ` and upper(nom) like upper('%${filter.LIBELLE}%')`;
+      whereParts.push("upper(LIBELLE) like upper(@libelle)");
+      request.input("libelle", getSql().VarChar, `%${filter.LIBELLE}%`);
     }
+
+    if (filter.q) {
+      whereParts.push("(upper(LIBELLE) like upper(@q) or upper(CODEAFFAIRE) like upper(@q))");
+      request.input("q", getSql().VarChar, `%${filter.q}%`);
+    }
+
+    if (filter.id) {
+      const ids = Array.isArray(filter.id) ? filter.id : [filter.id];
+      if (ids.length > 0) {
+        const placeholders = ids.map((_, i) => `@id${i}`);
+        whereParts.push(`id IN (${placeholders.join(", ")})`);
+        ids.forEach((idValue, i) => {
+          request.input(`id${i}`, getSql().VarChar, idValue);
+        });
+      }
+    }
+
+    const queryFilter =
+      whereParts.length > 0 ? ` WHERE ${whereParts.join(" and ")}` : "";
     console.log(queryFilter); // Affichage de la clause de filtre pour débogage
 
-    const pool = await getConnection(); // Obtention d'une connexion pool à la base de données
-
     // Récupération du nombre total de chantiers (pour la pagination)
-    const countResult = await pool
-      .request()
-      .query(`${chantiers.getChantiers} ${queryFilter}`);
+    const countResult = await request.query(`${chantiers.getChantiers} ${queryFilter}`);
     // const count = countResult.recordset[0].totalCount;
 
     // Récupération des chantiers paginés, triés et filtrés
-    const result = await pool.request().query(
+    request.input("offset", getSql().Int, range[0]);
+    request.input("limit", getSql().Int, range[1] + 1 - range[0]);
+
+    const result = await request.query(
       `${chantiers.getChantiers} ${queryFilter}
       ORDER BY ${sort[0]} ${sort[1]}
-      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`
     );
 
     // Définition de l'en-tête Content-Range pour indiquer la plage des résultats retournés

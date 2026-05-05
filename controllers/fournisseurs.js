@@ -29,6 +29,9 @@ exports.getFournissuers = async (req, res) => {
     console.log(filter);
 
     let queryFilter = "";
+    if (filter.q) {
+      queryFilter += ` and (upper(fou.nom) like(upper('%${filter.q}%')) or upper(fou.codeFournisseur) like(upper('%${filter.q}%')))`;
+    }
     // Ajouter un filtre sur le nom si présent
     if (filter.nom) {
       queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;

@@ -93,6 +93,9 @@ const madMass = require("./routers/madmass"); // Import des routes pour madMass
 const VirementInter = require("./routers/VirementInter");
 const Card = require("./routers/Card");
 const BilanAnnuel = require("./routers/factureDesignationRoutes"); // Import des routes pour le bilan annuel des factures par désignation
+const MarcheRoute = require("./routers/MarcheRoute");
+const CautionRoute = require("./routers/CautionRoute");
+const FactureClientRoute = require("./routers/FactureClientRoute");
 
 // // Utilisation des routes importées avec des chemins spécifiques
 app.use("/", AttestationRoute);
@@ -137,6 +140,9 @@ app.use("/", madMass);
 app.use("/", VirementInter);
 app.use("/", Card);
 app.use("/", BilanAnnuel);
+app.use("/", MarcheRoute);
+app.use("/", CautionRoute);
+app.use("/", FactureClientRoute);
 // Configuration du port d'écoute pour le serveur, en utilisant le port spécifié dans l'environnement ou le port 8080 par défaut
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
