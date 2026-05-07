@@ -22,6 +22,10 @@ const {
   getsumfacturebyfournisseurwithoutfn,
   getAvancesNonPayeesParFournisseurId,
   checkFAcreation,
+  getFactureAlerteSansPapier,
+  getFactureAlerteSansPapierCount,
+  getFactureAlerteSansPapierById,
+  updateFactureAlerteSansPapier,
 } = require("../controllers/FactureSaisie"); // Importation des fonctions de contrôle des opérations sur les factures
 
 const router = express.Router(); // Création d'un routeur Express
@@ -75,5 +79,14 @@ router.get(
 router.put("/facturevalider/:id", updatefacturevalider); // Route pour mettre à jour le statut de validation d'une facture par ID
 
 router.get("/checkfacturecreation", checkFAcreation); // Route pour mettre à jour le statut de validation d'une facture par ID
+
+// Route pour récupérer les factures qui ne sont plus en saisie mais sans papier reçu
+router.get(
+  "/factureAlerteSansPapier",
+  getFactureAlerteSansPapierCount,
+  getFactureAlerteSansPapier
+);
+router.get("/factureAlerteSansPapier/:id", getFactureAlerteSansPapierById);
+router.put("/factureAlerteSansPapier/:id", updateFactureAlerteSansPapier);
 
 module.exports = router; // Exportation du routeur pour être utilisé dans d'autres fichiers

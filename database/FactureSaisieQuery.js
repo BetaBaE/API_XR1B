@@ -23,7 +23,8 @@ exports.factureSaisie = {
 		f.dateecheance,
 		f.CatFn,
 		f.AcompteReg,
-		f.AcompteVal
+		f.AcompteVal,
+		f.papierRecu
   FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
     INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
     INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
@@ -66,7 +67,8 @@ exports.factureSaisie = {
     [codechantier],
     [dateecheance],
     [CatFn],
-    [EtatIR]
+    [EtatIR],
+    [papierRecu]
   )
   VALUES (
     @numeroFacture,
@@ -79,7 +81,8 @@ exports.factureSaisie = {
     @codechantier,
     @dateEcheance,
     @CatFn,
-    @EtatIR
+    @EtatIR,
+    @papierRecu
   )`,
 
   // Récupère une facture saisie par son ID
@@ -104,7 +107,8 @@ exports.factureSaisie = {
 		f.AcompteReg,
 		f.AcompteVal,
     f.etat,
-    f.EtatIR
+    f.EtatIR,
+    f.papierRecu
   FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
   INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
   where NOT Exists (
@@ -140,6 +144,7 @@ exports.factureSaisie = {
         ,[CatFn] = @CatFn
         ,[etat] = @etat
         ,[EtatIR] = @EtatIR
+        ,[papierRecu] = @papierRecu
   WHERE id = @id
     
     `,
@@ -328,4 +333,88 @@ exports.factureSaisie = {
     and YEAR(DateFacture) = Year(@fdate)
     and idfournisseur = @idf
 `,
+
+  // Compte les factures qui ne sont plus en saisie mais sans papier reçu
+  getFactureAlerteSansPapierCount: `
+  SELECT COUNT(*) as count
+  FROM [dbo].[DAF_FactureSaisie] f
+    INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
+    INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+    LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
+  WHERE f.deletedAt IS NULL
+    AND f.papierRecu = 0
+    AND f.etat IS NOT NULL
+    AND f.etat NOT IN ('Saisie', 'Annuler')`,
+
+  // Liste les factures qui ne sont plus en saisie mais sans papier reçu
+  getFactureAlerteSansPapier: `
+  SELECT 
+    f.id,
+    f.fullName,
+    f.numeroFacture,
+    f.BonCommande,
+    f.TTC AS TTC,
+    f.createdDate,
+    f.DateFacture,
+    f.HT,
+    f.MontantTVA,
+    d.designation as designation,
+    fou.nom as nom,
+    fou.CodeFournisseur,
+    f.verifiyMidelt,
+    f.updatedBy,
+    ch.LIBELLE as LIBELLE,
+    f.dateecheance,
+    f.CatFn,
+    f.AcompteReg,
+    f.AcompteVal,
+    f.etat,
+    f.papierRecu
+  FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
+    INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
+    INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+    LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
+  WHERE f.deletedAt IS NULL
+    AND f.papierRecu = 0
+    AND f.etat IS NOT NULL
+    AND f.etat NOT IN ('Saisie', 'Annuler')`,
+
+  // Récupère une facture d'alerte sans papier par son ID
+  getFactureAlerteSansPapierOne: `
+  SELECT 
+    f.id,
+    f.fullName,
+    f.numeroFacture,
+    f.BonCommande,
+    f.TTC AS TTC,
+    f.createdDate,
+    f.DateFacture,
+    f.HT,
+    f.MontantTVA,
+    d.designation as designation,
+    fou.nom as nom,
+    fou.CodeFournisseur,
+    f.verifiyMidelt,
+    f.updatedBy,
+    ch.LIBELLE as LIBELLE,
+    f.dateecheance,
+    f.CatFn,
+    f.AcompteReg,
+    f.AcompteVal,
+    f.etat,
+    f.papierRecu
+  FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
+    INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
+    INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
+    LEFT JOIN [dbo].[chantier] ch on ch.id=f.codechantier
+  WHERE f.deletedAt IS NULL
+    AND f.etat IS NOT NULL
+    AND f.etat NOT IN ('Saisie', 'Annuler')
+    AND f.id = @id`,
+
+  // Met à jour uniquement le statut papierRecu
+  updateFactureAlerteSansPapier: `
+  UPDATE [dbo].[DAF_FactureSaisie]
+  SET [papierRecu] = @papierRecu
+  WHERE id = @id`,
 };

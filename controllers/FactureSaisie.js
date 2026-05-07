@@ -158,6 +158,7 @@ exports.createfacture = async (req, res) => {
       .input("dateecheance", getSql().VarChar, req.body.dateecheance)
       .input("CatFn", getSql().VarChar, req.body.CatFn)
       .input("EtatIR", getSql().VarChar, req.body.EtatIR)
+      .input("papierRecu", getSql().Bit, req.body.papierRecu ?? 0)
       .query(factureSaisie.createfacture);
 
     res.json({
@@ -194,6 +195,7 @@ exports.updatefactureSaisie = async (req, res) => {
     designation,
     etat,
     EtatIR,
+    papierRecu,
   } = req.body;
 
   console.log(req.body);
@@ -238,6 +240,7 @@ exports.updatefactureSaisie = async (req, res) => {
       .input("CatFn", getSql().VarChar, CatFn)
       .input("etat", getSql().VarChar, etat)
       .input("EtatIR", getSql().VarChar, EtatIR)
+      .input("papierRecu", getSql().Bit, papierRecu ?? 0)
       .input("id", getSql().Int, req.params.id)
       .query(factureSaisie.delete);
 
@@ -546,5 +549,91 @@ exports.checkFAcreation = async (req, res) => {
   } catch (error) {
     res.send(error.message);
     res.status(500);
+  }
+};
+
+// Compter les factures sans papier reçu qui ne sont plus en saisie
+exports.getFactureAlerteSansPapierCount = async (req, res, next) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query(factureSaisie.getFactureAlerteSansPapierCount);
+    req.count = result.recordset[0].count;
+    next();
+  } catch (error) {
+    res.status(500).send(error.message);
+    console.error(error.message);
+  }
+};
+
+// Lister les factures sans papier reçu qui ne sont plus en saisie
+exports.getFactureAlerteSansPapier = async (req, res) => {
+  try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["id" , "desc"]';
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+
+    const pool = await getConnection();
+    const result = await pool.request().query(
+      `${factureSaisie.getFactureAlerteSansPapier} ORDER BY ${sort[0]} ${sort[1]}
+      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+    );
+
+    res.set(
+      "Content-Range",
+      `factures ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+// Récupérer une facture alerte sans papier par ID
+exports.getFactureAlerteSansPapierById = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .query(factureSaisie.getFactureAlerteSansPapierOne);
+
+    if (!result.recordset.length) {
+      return res.status(404).json({ error: "Facture introuvable" });
+    }
+
+    res.set("Content-Range", `factures 0-1/1`);
+    res.json(result.recordset[0]);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+// Mettre à jour uniquement le champ papierRecu pour les factures d'alerte
+exports.updateFactureAlerteSansPapier = async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const papierRecu = req.body?.papierRecu ?? 0;
+
+    await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .input("papierRecu", getSql().Bit, papierRecu ? 1 : 0)
+      .query(factureSaisie.updateFactureAlerteSansPapier);
+
+    const updated = await pool
+      .request()
+      .input("id", getSql().Int, req.params.id)
+      .query(factureSaisie.getFactureAlerteSansPapierOne);
+
+    if (!updated.recordset.length) {
+      return res.status(200).json({ id: Number(req.params.id), papierRecu });
+    }
+
+    res.json(updated.recordset[0]);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 };
