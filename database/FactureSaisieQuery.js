@@ -344,7 +344,8 @@ exports.factureSaisie = {
   WHERE f.deletedAt IS NULL
     AND f.papierRecu = 0
     AND f.etat IS NOT NULL
-    AND f.etat NOT IN ('Saisie', 'Annuler')`,
+    AND f.etat NOT IN ('Saisie', 'Annuler')
+    AND YEAR(f.DateFacture) >= 2026`,
 
   // Liste les factures qui ne sont plus en saisie mais sans papier reçu
   getFactureAlerteSansPapier: `
@@ -377,7 +378,8 @@ exports.factureSaisie = {
   WHERE f.deletedAt IS NULL
     AND f.papierRecu = 0
     AND f.etat IS NOT NULL
-    AND f.etat NOT IN ('Saisie', 'Annuler')`,
+    AND f.etat NOT IN ('Saisie', 'Annuler')
+    AND YEAR(f.DateFacture) >= 2026`,
 
   // Récupère une facture d'alerte sans papier par son ID
   getFactureAlerteSansPapierOne: `

@@ -555,10 +555,21 @@ exports.checkFAcreation = async (req, res) => {
 // Compter les factures sans papier reçu qui ne sont plus en saisie
 exports.getFactureAlerteSansPapierCount = async (req, res, next) => {
   try {
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+    let queryFilter = "";
+
+    if (filter.fournisseur) {
+      queryFilter += ` AND upper(fou.nom) LIKE (upper('%${filter.fournisseur}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` AND upper(f.numeroFacture) LIKE (upper('%${filter.numeroFacture}%'))`;
+    }
+
     const pool = await getConnection();
     const result = await pool
       .request()
-      .query(factureSaisie.getFactureAlerteSansPapierCount);
+      .query(`${factureSaisie.getFactureAlerteSansPapierCount} ${queryFilter}`);
     req.count = result.recordset[0].count;
     next();
   } catch (error) {
@@ -572,12 +583,22 @@ exports.getFactureAlerteSansPapier = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
     let sort = req.query.sort || '["id" , "desc"]';
+    let filter = req.query.filter || "{}";
     range = JSON.parse(range);
     sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+    let queryFilter = "";
+
+    if (filter.fournisseur) {
+      queryFilter += ` AND upper(fou.nom) LIKE (upper('%${filter.fournisseur}%'))`;
+    }
+    if (filter.numeroFacture) {
+      queryFilter += ` AND upper(f.numeroFacture) LIKE (upper('%${filter.numeroFacture}%'))`;
+    }
 
     const pool = await getConnection();
     const result = await pool.request().query(
-      `${factureSaisie.getFactureAlerteSansPapier} ORDER BY ${sort[0]} ${sort[1]}
+      `${factureSaisie.getFactureAlerteSansPapier} ${queryFilter} ORDER BY ${sort[0]} ${sort[1]}
       OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
     );
 
