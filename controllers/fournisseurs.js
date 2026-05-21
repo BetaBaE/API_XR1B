@@ -43,6 +43,9 @@ exports.getFournissuers = async (req, res) => {
     if (filter.actif) {
       queryFilter += ` and upper(fou.actif) like('%${filter.actif}%')`;
     }
+    if (filter.ExoServiceRas) {
+      queryFilter += ` and upper(fou.ExoServiceRas) like('%${filter.ExoServiceRas}%')`;
+    }
     console.log(queryFilter);
 
     const pool = await getConnection();
@@ -203,6 +206,7 @@ exports.updatefournisseur = async (req, res) => {
     exonorer,
     RasIr,
     actif,
+    ExoServiceRas,
   } = req.body;
 
   try {
@@ -219,6 +223,7 @@ exports.updatefournisseur = async (req, res) => {
       .input("exonorer", getSql().VarChar, exonorer)
       .input("RasIr", getSql().VarChar, RasIr)
       .input("actif", getSql().VarChar, actif)
+      .input("ExoServiceRas", getSql().VarChar, ExoServiceRas)
       .query(Fournisseurs.update);
 
     res.json({
@@ -231,6 +236,7 @@ exports.updatefournisseur = async (req, res) => {
       exonorer,
       RasIr,
       actif,
+      ExoServiceRas,
     });
   } catch (error) {
     res.status(500);

@@ -26,7 +26,7 @@ exports.Fournisseurs = {
   getAllFournisseurs: `
     SELECT fou.datecreation, fou.id, fou.Redacteur, fou.addresse, 
            fou.CodeFournisseur, fou.Identifiantfiscal, fou.ICE, 
-           fou.nom, fou.exonorer, fou.actif,
+           fou.nom, fou.exonorer, fou.actif, fou.ExoServiceRas,
            echr.modalitePaiement AS echeancereel, 
            echl.modalitePaiement AS echeanceloi,
            fou.mail, fou.catFournisseur
@@ -87,7 +87,8 @@ exports.Fournisseurs = {
         addresse = @addresse,
         exonorer = @exonorer,
         RasIr = @RasIr,
-        actif = @actif
+        actif = @actif,
+        ExoServiceRas = @ExoServiceRas
     WHERE id = @id
   `,
 
