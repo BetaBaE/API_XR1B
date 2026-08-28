@@ -28,37 +28,59 @@ exports.getFournissuers = async (req, res) => {
     filter = JSON.parse(filter);
     console.log(filter);
 
+    const pool = await getConnection();
+    const request = pool.request();
+
     let queryFilter = "";
+    // Recherche globale (react-admin AutocompleteInput / ReferenceInput)
     if (filter.q) {
-      queryFilter += ` and (upper(fou.nom) like(upper('%${filter.q}%')) or upper(fou.codeFournisseur) like(upper('%${filter.q}%')))`;
+      queryFilter +=
+        " and (upper(fou.nom) like upper(@q) or upper(fou.codeFournisseur) like upper(@q))";
+      request.input("q", getSql().VarChar, `%${filter.q}%`);
     }
     // Ajouter un filtre sur le nom si présent
     if (filter.nom) {
-      queryFilter += ` and upper(fou.nom) like(upper('%${filter.nom}%'))`;
+      queryFilter += " and upper(fou.nom) like upper(@nom)";
+      request.input("nom", getSql().VarChar, `%${filter.nom}%`);
     }
     // Ajouter un filtre sur le code fournisseur si présent
     if (filter.codeFournisseur) {
-      queryFilter += ` and upper(fou.codeFournisseur) like('%${filter.codeFournisseur}%')`;
+      queryFilter += " and upper(fou.codeFournisseur) like upper(@codeFournisseur)";
+      request.input("codeFournisseur", getSql().VarChar, `%${filter.codeFournisseur}%`);
     }
     if (filter.actif) {
-      queryFilter += ` and upper(fou.actif) like('%${filter.actif}%')`;
+      queryFilter += " and upper(fou.actif) like upper(@actif)";
+      request.input("actif", getSql().VarChar, `%${filter.actif}%`);
     }
     if (filter.ExoServiceRas) {
-      queryFilter += ` and upper(fou.ExoServiceRas) like('%${filter.ExoServiceRas}%')`;
+      queryFilter += " and upper(fou.ExoServiceRas) like upper(@ExoServiceRas)";
+      request.input("ExoServiceRas", getSql().VarChar, `%${filter.ExoServiceRas}%`);
     }
-    console.log(queryFilter);
+    // Résolution par id (react-admin getMany pour ReferenceInput)
+    if (filter.id !== undefined && filter.id !== null) {
+      const ids = Array.isArray(filter.id) ? filter.id : [filter.id];
+      const validIds = ids.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
+      if (validIds.length > 0) {
+        const placeholders = validIds.map((_, i) => `@id${i}`);
+        validIds.forEach((idValue, i) => {
+          request.input(`id${i}`, getSql().Int, idValue);
+        });
+        queryFilter += ` and fou.id in (${placeholders.join(", ")})`;
+      }
+    }
 
-    const pool = await getConnection();
+    const offset = Number(range[0]) || 0;
+    const fetchCount = Number(range[1]) + 1 - Number(range[0]);
+    request.input("offset", getSql().Int, offset);
+    request.input("limit", getSql().Int, fetchCount > 0 ? fetchCount : 10);
 
     // Exécuter la requête pour récupérer les fournisseurs
-    const result = await pool.request().query(
-      `${Fournisseurs.getAllFournisseurs} ${queryFilter} Order by ${sort[0]} ${
-        sort[1]
-      }
-      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+    const result = await request.query(
+      `${Fournisseurs.getAllFournisseurs} ${queryFilter}
+      Order by ${sort[0]} ${sort[1]}
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`
     );
 
-    console.log(req.count);
     res.set(
       "Content-Range",
       `fournisseurs ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`
@@ -291,11 +313,48 @@ exports.getNomfournisseur = async (req, res) => {
 // Récupérer tous les fournisseurs "propres" qui ont ice IF , Catégorie
 exports.getAllFournissuersClean = async (req, res) => {
   try {
+    let range = req.query.range || "[0,9]";
+    let sort = req.query.sort || '["nom","ASC"]';
+    let filter = req.query.filter || "{}";
+    range = JSON.parse(range);
+    sort = JSON.parse(sort);
+    filter = JSON.parse(filter);
+
     const pool = await getConnection();
+    const request = pool.request();
 
-    const result = await pool.request().query(Fournisseurs.getFournisseurClean);
+    let queryFilter = "";
+    // Recherche globale (react-admin AutocompleteInput / ReferenceInput)
+    if (filter.q) {
+      queryFilter +=
+        " and (upper(nom) like upper(@q) or upper(CodeFournisseur) like upper(@q))";
+      request.input("q", getSql().VarChar, `%${filter.q}%`);
+    }
+    // Résolution par id (react-admin getMany pour ReferenceInput)
+    if (filter.id !== undefined && filter.id !== null) {
+      const ids = Array.isArray(filter.id) ? filter.id : [filter.id];
+      const validIds = ids.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
+      if (validIds.length > 0) {
+        const placeholders = validIds.map((_, i) => `@id${i}`);
+        validIds.forEach((idValue, i) => {
+          request.input(`id${i}`, getSql().Int, idValue);
+        });
+        queryFilter += ` and id in (${placeholders.join(", ")})`;
+      }
+    }
 
-    res.set("Content-Range", `fournisseurs 0-${req.count - 1}/${req.count}`);
+    const offset = Number(range[0]) || 0;
+    const fetchCount = Number(range[1]) + 1 - Number(range[0]);
+    request.input("offset", getSql().Int, offset);
+    request.input("limit", getSql().Int, fetchCount > 0 ? fetchCount : 10);
+
+    const result = await request.query(
+      `${Fournisseurs.getFournisseurClean} ${queryFilter}
+      Order by ${sort[0]} ${sort[1]}
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`
+    );
+
+    res.set("Content-Range", `fournisseurs ${range[0]}-${range[1]}/${req.count}`);
     res.json(result.recordset);
   } catch (error) {
     res.status(500);

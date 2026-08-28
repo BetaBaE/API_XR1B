@@ -43,29 +43,55 @@ exports.getDossiers = async (req, res) => {
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
+    const pool = await getConnection();
+    const request = pool.request();
+
     let queryFilter = "";
+    // Recherche globale (react-admin AutocompleteInput / ReferenceInput)
+    if (filter.q) {
+      queryFilter +=
+        " and (NumDossier like @q or upper(Libele) like upper(@q) or f.nom like @q)";
+      request.input("q", getSql().VarChar, `%${filter.q}%`);
+    }
     if (filter.NumDossier) {
-      queryFilter += ` and NumDossier like('%${filter.NumDossier}%')`;
+      queryFilter += " and NumDossier like @NumDossier";
+      request.input("NumDossier", getSql().VarChar, `%${filter.NumDossier}%`);
     }
     if (filter.Libele) {
-      queryFilter += ` and upper(Libele) like(upper('%${filter.Libele}%'))`;
+      queryFilter += " and upper(Libele) like upper(@Libele)";
+      request.input("Libele", getSql().VarChar, `%${filter.Libele}%`);
     }
     if (filter.nom) {
-      queryFilter += ` and f.nom like('%${filter.nom}%')`;
+      queryFilter += " and f.nom like @nom";
+      request.input("nom", getSql().VarChar, `%${filter.nom}%`);
     }
     if (filter.Etat) {
-      queryFilter += ` and d.Etat like('%${filter.Etat}%')`;
+      queryFilter += " and d.Etat like @Etat";
+      request.input("Etat", getSql().VarChar, `%${filter.Etat}%`);
+    }
+    // Résolution par id (react-admin getMany pour ReferenceInput)
+    if (filter.id !== undefined && filter.id !== null) {
+      const ids = Array.isArray(filter.id) ? filter.id : [filter.id];
+      const validIds = ids.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
+      if (validIds.length > 0) {
+        const placeholders = validIds.map((_, i) => `@id${i}`);
+        validIds.forEach((idValue, i) => {
+          request.input(`id${i}`, getSql().Int, idValue);
+        });
+        queryFilter += ` and d.id in (${placeholders.join(", ")})`;
+      }
     }
 
-    const pool = await getConnection();
-    // const result = await pool.request().query(Fournisseurs.getAllFournisseurs);
+    const offset = Number(range[0]) || 0;
+    const fetchCount = Number(range[1]) + 1 - Number(range[0]);
+    request.input("offset", getSql().Int, offset);
+    request.input("limit", getSql().Int, fetchCount > 0 ? fetchCount : 10);
 
-    const result = await pool.request().query(
+    const result = await request.query(
       `${Dossier.getAll} ${queryFilter} Order by ${sort[0]} ${sort[1]}
-      OFFSET ${range[0]} ROWS FETCH NEXT ${range[1] + 1 - range[0]} ROWS ONLY`
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`
     );
 
-    console.log(req.count);
     res.set(
       "Content-Range",
       `dossier ${range[0]}-${range[1] + 1 - range[0]}/${req.count}`

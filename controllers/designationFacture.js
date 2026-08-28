@@ -14,24 +14,51 @@ exports.GetDesignations = async (req, res) => {
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
 
-    console.log(filter); // Affichage du filtre pour débogage
+    const pool = await getConnection(); // Obtention d'une connexion pool à la base de données
+    const request = pool.request();
 
-    let queryFilter = "";
+    const whereParts = [];
+    // Recherche globale (react-admin AutocompleteInput / ReferenceInput)
+    if (filter.q) {
+      whereParts.push(
+        "(upper(codeDesignation) like upper(@q) or upper(designation) like upper(@q))"
+      );
+      request.input("q", getSql().VarChar, `%${filter.q}%`);
+    }
     if (filter.codeDesignation) {
-      // Construction de la clause de filtre SQL si un code de designation est spécifié
-      queryFilter += ` and upper(codeDesignation) like(upper('%${filter.codeDesignation}%'))`;
+      whereParts.push("upper(codeDesignation) like upper(@codeDesignation)");
+      request.input(
+        "codeDesignation",
+        getSql().VarChar,
+        `%${filter.codeDesignation}%`
+      );
+    }
+    // Résolution par id (react-admin getMany pour ReferenceInput)
+    if (filter.id !== undefined && filter.id !== null) {
+      const ids = Array.isArray(filter.id) ? filter.id : [filter.id];
+      const validIds = ids.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
+      if (validIds.length > 0) {
+        const placeholders = validIds.map((_, i) => `@id${i}`);
+        validIds.forEach((idValue, i) => {
+          request.input(`id${i}`, getSql().Int, idValue);
+        });
+        whereParts.push(`id in (${placeholders.join(", ")})`);
+      }
     }
 
-    const pool = await getConnection(); // Obtention d'une connexion pool à la base de données
+    const queryFilter =
+      whereParts.length > 0 ? ` WHERE ${whereParts.join(" and ")}` : "";
+
+    const offset = Number(range[0]) || 0;
+    const fetchCount = Number(range[1]) + 1 - Number(range[0]);
+    request.input("offset", getSql().Int, offset);
+    request.input("limit", getSql().Int, fetchCount > 0 ? fetchCount : 10);
 
     // Récupération des designations paginées, triées et filtrées
-    const result = await pool.request().query(
-      `${designation.getDesignation} ${queryFilter} Order by ${sort[0]} ${
-        sort[1]
-      }
-            OFFSET ${range[0]} ROWS FETCH NEXT ${
-        range[1] + 1 - range[0]
-      } ROWS ONLY`
+    const result = await request.query(
+      `${designation.getDesignation} ${queryFilter}
+      Order by ${sort[0]} ${sort[1]}
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`
     );
 
     // Traitement des résultats pour ajouter un texte personnalisé en fonction de l'ID

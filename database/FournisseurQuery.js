@@ -2,7 +2,8 @@ exports.Fournisseurs = {
   // Récupère les fournisseurs avec des informations complètes
   getFournisseurClean: `
     SELECT * FROM DAF_FOURNISSEURS
-    WHERE ICE IS NOT NULL 
+    WHERE actif = 'Oui'
+      AND ICE IS NOT NULL 
       AND catFournisseur IS NOT NULL
       AND Identifiantfiscal IS NOT NULL
   `,
@@ -43,7 +44,7 @@ exports.Fournisseurs = {
       GROUP BY idfournisseur
     ) AS echr_max ON fou.id = echr_max.idfournisseur
     LEFT JOIN DAF_echeanceReelFournisseur echr ON echr.id = echr_max.id
-    WHERE 1 = 1
+    WHERE fou.actif = 'Oui'
   `,
 
   // Compte le nombre de fournisseurs
