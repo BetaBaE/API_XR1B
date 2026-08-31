@@ -4,6 +4,7 @@ const {
   getAlertAttestationRegFisc,
   getRasTva,
   getRasTvaFilter,
+  getRasTvaCount,
   getFactureAyantFNSage,
   getFactureAyantFNSageCount,
   getFournisseurFA_AV,
@@ -26,7 +27,7 @@ router.get(
   getAlertAttestationRegFiscCount,
   getAlertAttestationRegFisc
 );
-router.get("/rastva", getRasTva);
+router.get("/rastva", getRasTvaCount, getRasTva);
 router.get("/rastvafilter", getRasTvaFilter);
 
 router.get("/rasir", getRasIR);

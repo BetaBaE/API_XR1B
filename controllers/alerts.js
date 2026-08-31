@@ -68,63 +68,100 @@ exports.getAlertAttestationRegFiscCount = async (req, res, next) => {
   }
 };
 
+const RAS_TVA_SORTABLE = {
+  id: "lf.DateOperation",
+  DateOperation: "lf.DateOperation",
+  dateFactue: "rt.dateFactue",
+  nom: "rt.nom",
+  RefernceDOC: "rt.RefernceDOC",
+  HT: "rt.HT",
+  RaS: "rt.RaS",
+};
+
+const appendRasTvaDateFilter = (filter, request) => {
+  let queryFilter = "";
+  if (filter.DateOperation2) {
+    const month = String(filter.DateOperation2).slice(0, 7);
+    if (/^\d{4}-\d{2}$/.test(month)) {
+      queryFilter += " and format(lf.DateOperation,'yyyy-MM') = @dateOpMonth";
+      request.input("dateOpMonth", getSql().VarChar, month);
+    }
+  }
+  return queryFilter;
+};
+
 exports.getRasTva = async (req, res) => {
   try {
     let range = req.query.range || "[0,9]";
-    let sort = req.query.sort || '["id" , "ASC"]';
+    let sort = req.query.sort || '["DateOperation","DESC"]';
     let filter = req.query.filter || "{}";
 
     range = JSON.parse(range);
     sort = JSON.parse(sort);
     filter = JSON.parse(filter);
 
-    let queryFilter = "";
-    if (filter.DateOperation2) {
-      queryFilter += ` and format(lf.DateOperation,'yyyy-MM') = '${filter.DateOperation2}' `;
-    }
+    const sortField = RAS_TVA_SORTABLE[sort[0]] || "lf.DateOperation";
+    const sortOrder = String(sort[1]).toUpperCase() === "ASC" ? "ASC" : "DESC";
 
     const pool = await getConnection();
-    const result = await pool
-      .request()
-      .query(`${Alerts.rasTva} ${queryFilter} Order by ${sort[0]} ${sort[1]}`);
+    const request = pool.request();
+    const queryFilter = appendRasTvaDateFilter(filter, request);
 
-    res.set("Content-Range", `rastva ${req.count}`);
+    const offset = Number(range[0]) || 0;
+    const fetchCount = Number(range[1]) + 1 - Number(range[0]);
+    request.input("offset", getSql().Int, offset);
+    request.input("limit", getSql().Int, fetchCount > 0 ? fetchCount : 10);
+
+    const result = await request.query(
+      `${Alerts.rasTva} ${queryFilter}
+      ORDER BY ${sortField} ${sortOrder}
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`
+    );
+
+    res.set(
+      "Content-Range",
+      `rastva ${range[0]}-${range[1]}/${req.count}`
+    );
 
     res.json(result.recordset);
   } catch (error) {
-    res.send(error.message);
     res.status(500);
+    res.send(error.message);
   }
 };
 exports.getRasTvaFilter = async (req, res) => {
   try {
-    let sort = req.query.sort || '["id" , "ASC"]';
-
-    sort = JSON.parse(sort);
-
     const pool = await getConnection();
-    console.log(`${Alerts.FilterRASTva} Order by ${sort[0]} ${sort[1]}`);
+    const result = await pool.request().query(Alerts.FilterRASTva);
 
-    const result = await pool
-      .request()
-      .query(`${Alerts.FilterRASTva} Order by ${sort[0]} ${sort[1]}`);
-
-    res.set("Content-Range", `rastvafilter 1000`);
+    res.set(
+      "Content-Range",
+      `rastvafilter 0-${Math.max(result.recordset.length - 1, 0)}/${result.recordset.length}`
+    );
 
     res.json(result.recordset);
   } catch (error) {
-    res.send(error.message);
     res.status(500);
+    res.send(error.message);
   }
 };
 exports.getRasTvaCount = async (req, res, next) => {
   try {
+    let filter = req.query.filter || "{}";
+    filter = JSON.parse(filter);
+
     const pool = await getConnection();
-    const result = await pool.request().query(Alerts.countRasTVA);
+    const request = pool.request();
+    const queryFilter = appendRasTvaDateFilter(filter, request);
+
+    const result = await request.query(`
+      SELECT COUNT(*) AS count FROM (
+        ${Alerts.rasTva}
+        ${queryFilter}
+      ) AS ras_tva_rows
+    `);
 
     req.count = result.recordset[0].count;
-    console.log(req.count);
-    // res.json({ count: res.conut });
     next();
   } catch (error) {
     res.status(500);

@@ -86,7 +86,7 @@ where exists(select 1 from frWfa where idfournisseur=e.idFournisseur)
 
   rasTva: `
 		select distinct
-			rt.RefernceDOC as id,
+			concat(rt.RefernceDOC, '|', rt.nom, '|', convert(varchar(10), lf.DateOperation, 23)) as id,
                 f.catFournisseur ,
                 concat(' ',f.Identifiantfiscal) as 'Identifiant fiscal',
                 concat(' ',f.ICE) as ICE,
@@ -110,17 +110,6 @@ where exists(select 1 from frWfa where idfournisseur=e.idFournisseur)
         where rt.etat= 'Reglee' 
 		and abs(rt.RaS) > 3
 `,
-  countRasTVA: `
-	select distinct
-	count(*) as count
-	from DAF_RAS_Tva rt 
-	inner join  DAF_LOG_FACTURE lf on(
-									rt.idDocPaye = lf.idDocPaye 
-									and lf.etat = rt.etat
-									)
-	inner join DAF_FOURNISSEURS f on (rt.nom = f.nom)
-	where rt.etat= 'Reglee'  
-`,
   FilterRASTva: `
 	select distinct
 	format(lf.DateOperation,'yyyy-MM') as 'id',
@@ -131,7 +120,9 @@ where exists(select 1 from frWfa where idfournisseur=e.idFournisseur)
 									and lf.etat = rt.etat
 									)
 	inner join DAF_FOURNISSEURS f on (rt.nom = f.nom)
-	where rt.etat= 'Reglee'  
+	where rt.etat= 'Reglee'
+	and abs(rt.RaS) > 3
+	order by format(lf.DateOperation,'yyyy-MM') desc
 `,
 
   FactureAyantFN: `
