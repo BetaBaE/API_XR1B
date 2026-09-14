@@ -170,57 +170,74 @@ exports.getFAStateForByFournisseur = async (req, res) => {
 
     // Query for paginated data
     const paginatedQuery = `
-      with sumFASaisie as(
-select 1 as id ,'FA Saisie' as name, COALESCE((sum(TTC - Acompte)),0)  as  NetApaye 
-from DAF_FactureSaisie fa 
-inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
-where  f.nom = @nom 
-and etat = 'Saisie'
-),
---1 143 250.03
-FADispoAvecFN as(
-select 
-2 as id ,
-'FA Disponible Avec FN' as name,
-COALESCE((sum(TTC - Acompte)),0)  NetApaye 
-from DAF_FactureSaisie fa 
-inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
-where  f.nom = @nom 
-and fa.id in (select idFacture from DAF_factureNavette) 
-and etat in ('Saisie') and ([dateoperation] > FORMAT(GETDATE(), 'yyyy-01-01') or [dateoperation] is null )
-and YEAR(fa.DateFacture) <= YEAR(GETDATE())
+      WITH sumFASaisie AS (
+  SELECT
+    1 AS id,
+    'FA Saisie' AS name,
+    COALESCE(SUM(TTC - Acompte), 0) AS NetApaye
+  FROM DAF_FactureSaisie fa
+  INNER JOIN DAF_FOURNISSEURS f ON fa.idfournisseur = f.id
+  WHERE f.nom = @nom
+    AND etat = 'Saisie'
 ),
 
-FAProgPourPaie as (
-select 
-3 as id ,
-'FA programmé pour la paie' as name,
-COALESCE((sum(TTC - Acompte)),0) as  NetApaye 
-from DAF_FactureSaisie fa 
-inner join DAF_FOURNISSEURS f on fa.idfournisseur = f.id
-where  f.nom = @nom 
-and fa.id in (select idFacture from DAF_factureNavette) 
-and etat in ('En cours') and ([dateoperation] > FORMAT(GETDATE(), 'yyyy-01-01') or [dateoperation] is null )
-and YEAR(fa.DateFacture) <= YEAR(GETDATE())
+sumAVnoRestit as (
+ select 2 as id ,
+ 'Av non restitué' as name , 
+ COALESCE(SUM(Montant), 0) AS NetApaye
+ from DAF_RestitAvance
+ where idFacture is null
+ and Etat <> 'Annuler'
+ and nom = @nom
 ),
 
- resume as(
-select * from sumFASaisie
-union all 
-select * from FADispoAvecFN
-union all 
-select * from FAProgPourPaie)
+FADispoAvecFN AS (
+  SELECT
+    3 AS id,
+    'FN Disponible' AS name,
+    COALESCE(SUM(TTC - Acompte), 0) AS NetApaye
+  FROM DAF_FactureSaisie fa
+  INNER JOIN DAF_FOURNISSEURS f ON fa.idfournisseur = f.id
+  WHERE f.nom = @nom
+    AND fa.id IN (SELECT idFacture FROM DAF_factureNavette)
+    AND etat IN ('Saisie')
+    AND ([dateoperation] > FORMAT(GETDATE(), 'yyyy-01-01') OR [dateoperation] IS NULL)
+    AND YEAR(fa.DateFacture) <= YEAR(GETDATE())
+),
 
+FAProgPourPaie AS (
+  SELECT
+    4 AS id,
+    'FA En Cours' AS name,
+    COALESCE(SUM(TTC - Acompte), 0) AS NetApaye
+  FROM DAF_FactureSaisie fa
+  INNER JOIN DAF_FOURNISSEURS f ON fa.idfournisseur = f.id
+  WHERE f.nom = @nom
+    AND fa.id IN (SELECT idFacture FROM DAF_factureNavette)
+    AND etat IN ('En cours')
+    AND ([dateoperation] > FORMAT(GETDATE(), 'yyyy-01-01') OR [dateoperation] IS NULL)
+    AND YEAR(fa.DateFacture) <= YEAR(GETDATE())
+),
 
-select * from resume
-order by id
+resume AS (
+  SELECT * FROM sumFASaisie
+  UNION ALL
+  SELECT * FROM   sumAVnoRestit
+  UNION ALL
+  SELECT * FROM FADispoAvecFN
+  UNION ALL
+  SELECT * FROM FAProgPourPaie
+)
+
+SELECT * FROM resume
+ORDER BY id
 OFFSET 0 ROWS
-FETCH NEXT 3 ROWS ONLY;
+FETCH NEXT 4 ROWS ONLY;
     `;
 
     // Query for the total number of records
     const totalCountQuery = `
-      Select 3 AS totalCount
+      Select 4 AS totalCount
       FROM DAF_FactureSaisie fa
     `;
 
@@ -240,7 +257,7 @@ FETCH NEXT 3 ROWS ONLY;
 
     // Calculate Content-Range
     const end = Math.min(offset + limit - 1, totalItems - 1);
-    res.set("Content-Range", `items 0-2/${totalItems}`);
+    res.set("Content-Range", `items 0-3/${totalItems}`);
 
     // Send the paginated data
     res.json(result.recordset);
@@ -409,6 +426,71 @@ GROUP BY
 
     // Send the paginated data
     res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+exports.getPaiementByMonthFournisseur = async (req, res) => {
+  try {
+    const filter = JSON.parse(req.query.fournisseur || "{}");
+    const pool = await getConnection();
+
+    const result = await pool
+      .request()
+      .input("nom", getSql().VarChar, filter.nom)
+      .query(StFournisseur.paiementByMonth);
+
+    res.set(
+      "Content-Range",
+      `paiementbymonth 0-${Math.max(result.recordset.length - 1, 0)}/${result.recordset.length}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+exports.getPaiementDetailByMonthFournisseur = async (req, res) => {
+  try {
+    const filter = JSON.parse(req.query.fournisseur || "{}");
+    const mois = req.query.mois || req.params.mois;
+    if (!filter.nom || !mois) {
+      return res.status(400).send("nom and mois are required");
+    }
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("nom", getSql().VarChar, filter.nom)
+      .input("mois", getSql().VarChar, mois)
+      .query(StFournisseur.paiementDetailByMonth);
+
+    res.set(
+      "Content-Range",
+      `paiementdetail 0-${Math.max(result.recordset.length - 1, 0)}/${result.recordset.length}`
+    );
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+exports.getSoldeFournisseur = async (req, res) => {
+  try {
+    const filter = JSON.parse(req.query.fournisseur || "{}");
+    if (!filter.nom) {
+      return res.status(400).send("nom is required");
+    }
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("nom", getSql().VarChar, filter.nom)
+      .query(StFournisseur.soldeFournisseur);
+
+    res.set("Content-Range", `solde 0-0/1`);
+    res.json(result.recordset[0] || { solde: 0 });
   } catch (error) {
     res.status(500).send(error.message);
   }

@@ -6,6 +6,9 @@ const {
   getDonneeFournissuerByNom,
   getstatueRIBByFou,
   getAttsFourByNom,
+  getPaiementByMonthFournisseur,
+  getPaiementDetailByMonthFournisseur,
+  getSoldeFournisseur,
 } = require("../controllers/StFournisseur");
 
 const router = express.Router();
@@ -16,5 +19,11 @@ router.get("/restitbyFournisseur", getRestitiByFou);
 router.get("/ribfournisseur", getstatueRIBByFou);
 router.get("/datafournisseur", getDonneeFournissuerByNom);
 router.get("/attsfiscle", getAttsFourByNom);
+router.get("/paiementbymonthfournisseur", getPaiementByMonthFournisseur);
+router.get(
+  "/paiementdetailbyfournisseur",
+  getPaiementDetailByMonthFournisseur
+);
+router.get("/soldefournisseur", getSoldeFournisseur);
 
 module.exports = router;
