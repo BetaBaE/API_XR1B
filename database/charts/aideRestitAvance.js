@@ -21,8 +21,8 @@ exports.AideRestitAvance = {
   montantAvanceAndFactureByFournisseur: `
     with FA as (
         select  
-        fr.nom,
-        sum(fs.TTC) as TotalTTCFactureDisponible 
+            fr.nom,
+            sum(fs.TTC) as TotalTTCFactureDisponible 
         from DAF_FactureSaisie fs 
             inner join DAF_FOURNISSEURS fr on fs.idfournisseur=fr.id 
         where fs.Etat='Saisie'
@@ -39,11 +39,11 @@ exports.AideRestitAvance = {
         group by rst.nom
     )
     select  r.nom,
-        f.TotalTTCFactureDisponible, 
+        COALESCE(f.TotalTTCFactureDisponible, 0) as TotalTTCFactureDisponible, 
         r.MontantTotalNonRestitue
-    from FA f 
-        inner join RS r on (f.nom =r.nom )
-    order by MontantTotalNonRestitue desc
+    from RS r 
+        left join FA f on (f.nom = r.nom)
+    order by r.MontantTotalNonRestitue desc
     `,
 
   montantAvanceNonRestitueByFournisseur: `
