@@ -98,8 +98,7 @@ exports.getTMPfournisseurById = async (req, res) => {
 };
 
 exports.updateTMPfournisseur = async (req, res) => {
-  const { etat, Validateur } = req.body;
-  console.log(req.body);
+  const { etat, validateur } = req.body;
 
   try {
     const pool = await getConnection();
@@ -108,13 +107,13 @@ exports.updateTMPfournisseur = async (req, res) => {
       .request()
       .input("id", getSql().Int, req.params.id)
       .input("etat", getSql().VarChar, etat)
-      .input("validateur", getSql().VarChar, Validateur)
+      .input("validateur", getSql().VarChar, validateur)
       .query(TMPFournisseurs.updateTmpFournisseur);
 
     res.json({
       id: req.params.id,
       etat,
-      Validateur,
+      validateur,
     });
   } catch (error) {
     res.status(500);
