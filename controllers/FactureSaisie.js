@@ -159,6 +159,7 @@ exports.createfacture = async (req, res) => {
       .input("CatFn", getSql().VarChar, req.body.CatFn)
       .input("EtatIR", getSql().VarChar, req.body.EtatIR)
       .input("papierRecu", getSql().Bit, req.body.papierRecu ?? 0)
+      .input("ForcerRas", getSql().VarChar, req.body.ForcerRas ?? "Non")
       .query(factureSaisie.createfacture);
 
     res.json({
@@ -196,6 +197,7 @@ exports.updatefactureSaisie = async (req, res) => {
     etat,
     EtatIR,
     papierRecu,
+    ForcerRas,
   } = req.body;
 
   console.log(req.body);
@@ -241,6 +243,7 @@ exports.updatefactureSaisie = async (req, res) => {
       .input("etat", getSql().VarChar, etat)
       .input("EtatIR", getSql().VarChar, EtatIR)
       .input("papierRecu", getSql().Bit, papierRecu ?? 0)
+      .input("ForcerRas", getSql().VarChar, ForcerRas ?? "Non")
       .input("id", getSql().Int, req.params.id)
       .query(factureSaisie.delete);
 

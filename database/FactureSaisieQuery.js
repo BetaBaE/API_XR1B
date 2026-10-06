@@ -24,7 +24,8 @@ exports.factureSaisie = {
 		f.CatFn,
 		f.AcompteReg,
 		f.AcompteVal,
-		f.papierRecu
+		f.papierRecu,
+		f.ForcerRas
   FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
     INNER JOIN [dbo].[FactureDesignation] d on d.id=f.iddesignation
     INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
@@ -68,7 +69,8 @@ exports.factureSaisie = {
     [dateecheance],
     [CatFn],
     [EtatIR],
-    [papierRecu]
+    [papierRecu],
+    [ForcerRas]
   )
   VALUES (
     @numeroFacture,
@@ -82,7 +84,8 @@ exports.factureSaisie = {
     @dateEcheance,
     @CatFn,
     @EtatIR,
-    @papierRecu
+    @papierRecu,
+    @ForcerRas
   )`,
 
   // Récupère une facture saisie par son ID
@@ -108,7 +111,8 @@ exports.factureSaisie = {
 		f.AcompteVal,
     f.etat,
     f.EtatIR,
-    f.papierRecu
+    f.papierRecu,
+    f.ForcerRas
   FROM [APP_COMPTA].[dbo].[DAF_FactureSaisie] f
   INNER JOIN [dbo].[DAF_FOURNISSEURS] fou on fou.id=f.idfournisseur
   where NOT Exists (
@@ -145,6 +149,7 @@ exports.factureSaisie = {
         ,[etat] = @etat
         ,[EtatIR] = @EtatIR
         ,[papierRecu] = @papierRecu
+        ,[ForcerRas] = @ForcerRas
   WHERE id = @id
     
     `,
